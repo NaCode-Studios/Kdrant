@@ -32,9 +32,9 @@ qdrant.use { client ->
 }
 ```
 
-> **Status — early development.** `createCollection`, `deleteCollection`, `upsert`, and the full
-> filter DSL are implemented and tested; `search`, `scroll`, and `delete` are next (see the
-> [roadmap](#roadmap)). APIs may change before `1.0`.
+> **Status — early development.** All core operations — create/delete collection, `upsert`,
+> `search`, `scroll`, `delete` — and the full filter DSL are implemented and tested. APIs may
+> change before `1.0`.
 
 ## Why Kdrant
 
@@ -118,8 +118,7 @@ Large batches are split automatically to stay under Qdrant's request-size limit;
 ### Filters
 
 The filter DSL mirrors Qdrant's filtering model — `must` / `should` / `mustNot` / `minShould`,
-every condition type, and recursive nesting — and powers `search` and delete-by-filter (landing
-next):
+every condition type, and recursive nesting — and powers both `search` and delete-by-filter:
 
 ```kotlin
 val query = filter {
@@ -139,6 +138,35 @@ val query = filter {
 Supported conditions include exact/any/except and full-text match, numeric and datetime ranges,
 `values_count`, geo bounding-box / radius / polygon, `is_empty` / `is_null`, `has_id`,
 `has_vector`, per-element `nested` filters, and recursive `filter { }` sub-groups.
+
+### Searching
+
+```kotlin
+val hits: List<ScoredPoint> = qdrant.search("articles") {
+    query(queryVector)
+    limit = 5
+    scoreThreshold = 0.75
+    withPayload = WithPayload.include("title")
+    filter { must { "lang" eq "en" } }
+}
+```
+
+### Scrolling
+
+`scroll` returns a cold `Flow` that transparently pages through the collection:
+
+```kotlin
+qdrant.scroll("articles", pageSize = 256) {
+    filter { must { "lang" eq "en" } }
+}.collect { record -> /* ... */ }
+```
+
+### Deleting
+
+```kotlin
+qdrant.delete("articles", ids = listOf(PointId.num(1), PointId.uuid("...")))
+qdrant.delete("articles") { must { "lang" eq "en" } }   // by filter
+```
 
 ### Error handling
 
@@ -166,11 +194,10 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Now** — connect, `createCollection`, `deleteCollection`, `upsert` (with auto-batching), and the
-complete filter DSL.
+**Now** — connect, collection management, `upsert` (with auto-batching), `search` (over Qdrant's
+unified query API), `scroll` as a `Flow`, `delete` by ids or filter, and the complete filter DSL.
 
-**Next** — `search` (over Qdrant's unified query API), `scroll` as a `Flow`, `delete` by ids or
-filter, then snapshots and a gRPC transport engine.
+**Next** — snapshots and aliases, then a gRPC transport engine behind the same seam.
 
 ## Building and testing
 

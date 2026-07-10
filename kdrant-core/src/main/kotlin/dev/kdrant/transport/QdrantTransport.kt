@@ -1,7 +1,12 @@
 package dev.kdrant.transport
 
 import dev.kdrant.model.CreateCollectionRequest
+import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.PointStruct
+import dev.kdrant.model.ScoredPoint
+import dev.kdrant.model.ScrollPage
+import dev.kdrant.model.ScrollRequest
+import dev.kdrant.model.SearchRequest
 
 /**
  * Wire-protocol seam. Concrete engines (the REST/Ktor engine lives in `kdrant-transport-rest`;
@@ -26,4 +31,13 @@ public interface QdrantTransport : AutoCloseable {
      * 32 MiB payload cap). [wait] maps to `?wait=`.
      */
     public suspend fun upsert(name: String, points: List<PointStruct>, wait: Boolean)
+
+    /** Nearest-vector search (`POST /collections/{name}/points/query`). */
+    public suspend fun query(name: String, request: SearchRequest): List<ScoredPoint>
+
+    /** Fetch a single page of points (`POST /collections/{name}/points/scroll`). */
+    public suspend fun scroll(name: String, request: ScrollRequest): ScrollPage
+
+    /** Delete points by id or by filter (`POST /collections/{name}/points/delete`). */
+    public suspend fun delete(name: String, selector: DeleteSelector, wait: Boolean)
 }

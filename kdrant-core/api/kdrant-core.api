@@ -61,12 +61,22 @@ public final class dev/kdrant/KdrantException$Unauthorized : dev/kdrant/KdrantEx
 
 public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseable {
 	public abstract fun createCollection (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun delete (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun delete (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun scroll (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun search (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/kdrant/QdrantClient$DefaultImpls {
+	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -156,6 +166,44 @@ public final class dev/kdrant/dsl/PointBuilder {
 	public final fun vector (Ljava/util/Map;)V
 	public final fun vector ([F)V
 	public final fun vector ([Lkotlin/Pair;)V
+}
+
+public final class dev/kdrant/dsl/ScrollBuilder {
+	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
+	public final fun getWithVector ()Ljava/lang/Boolean;
+	public final fun setWithPayload (Ldev/kdrant/model/WithPayload;)V
+	public final fun setWithVector (Ljava/lang/Boolean;)V
+}
+
+public final class dev/kdrant/dsl/SearchBuilder {
+	public fun <init> ()V
+	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun getLimit ()I
+	public final fun getOffset ()Ljava/lang/Integer;
+	public final fun getScoreThreshold ()Ljava/lang/Double;
+	public final fun getUsing ()Ljava/lang/String;
+	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
+	public final fun getWithVector ()Ljava/lang/Boolean;
+	public final fun params (Lkotlin/jvm/functions/Function1;)V
+	public final fun query (Ljava/util/List;)V
+	public final fun query ([F)V
+	public final fun setLimit (I)V
+	public final fun setOffset (Ljava/lang/Integer;)V
+	public final fun setScoreThreshold (Ljava/lang/Double;)V
+	public final fun setUsing (Ljava/lang/String;)V
+	public final fun setWithPayload (Ldev/kdrant/model/WithPayload;)V
+	public final fun setWithVector (Ljava/lang/Boolean;)V
+}
+
+public final class dev/kdrant/dsl/SearchParamsBuilder {
+	public fun <init> ()V
+	public final fun getExact ()Ljava/lang/Boolean;
+	public final fun getHnswEf ()Ljava/lang/Integer;
+	public final fun getIndexedOnly ()Ljava/lang/Boolean;
+	public final fun setExact (Ljava/lang/Boolean;)V
+	public final fun setHnswEf (Ljava/lang/Integer;)V
+	public final fun setIndexedOnly (Ljava/lang/Boolean;)V
 }
 
 public final class dev/kdrant/dsl/UpsertBuilder {
@@ -310,6 +358,31 @@ public final synthetic class dev/kdrant/model/CreateCollectionRequest$$serialize
 
 public final class dev/kdrant/model/CreateCollectionRequest$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/kdrant/model/DeleteSelector {
+}
+
+public final class dev/kdrant/model/DeleteSelector$ByFilter : dev/kdrant/model/DeleteSelector {
+	public fun <init> (Ldev/kdrant/model/Filter;)V
+	public final fun component1 ()Ldev/kdrant/model/Filter;
+	public final fun copy (Ldev/kdrant/model/Filter;)Ldev/kdrant/model/DeleteSelector$ByFilter;
+	public static synthetic fun copy$default (Ldev/kdrant/model/DeleteSelector$ByFilter;Ldev/kdrant/model/Filter;ILjava/lang/Object;)Ldev/kdrant/model/DeleteSelector$ByFilter;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Ldev/kdrant/model/Filter;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/DeleteSelector$Ids : dev/kdrant/model/DeleteSelector {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/DeleteSelector$Ids;
+	public static synthetic fun copy$default (Ldev/kdrant/model/DeleteSelector$Ids;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/DeleteSelector$Ids;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIds ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/kdrant/model/Distance : java/lang/Enum {
@@ -770,6 +843,217 @@ public final class dev/kdrant/model/PointStruct$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/Record {
+	public static final field Companion Ldev/kdrant/model/Record$Companion;
+	public fun <init> (Ldev/kdrant/model/PointId;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;)V
+	public synthetic fun <init> (Ldev/kdrant/model/PointId;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/PointId;
+	public final fun component2 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component3 ()Ldev/kdrant/model/VectorData;
+	public final fun copy (Ldev/kdrant/model/PointId;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;)Ldev/kdrant/model/Record;
+	public static synthetic fun copy$default (Ldev/kdrant/model/Record;Ldev/kdrant/model/PointId;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;ILjava/lang/Object;)Ldev/kdrant/model/Record;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ldev/kdrant/model/PointId;
+	public final fun getPayload ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getVector ()Ldev/kdrant/model/VectorData;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/Record$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/Record$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/Record;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/Record;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/Record$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/ScoredPoint {
+	public static final field Companion Ldev/kdrant/model/ScoredPoint$Companion;
+	public fun <init> (Ldev/kdrant/model/PointId;FLjava/lang/Long;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;)V
+	public synthetic fun <init> (Ldev/kdrant/model/PointId;FLjava/lang/Long;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/PointId;
+	public final fun component2 ()F
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun component4 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component5 ()Ldev/kdrant/model/VectorData;
+	public final fun copy (Ldev/kdrant/model/PointId;FLjava/lang/Long;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;)Ldev/kdrant/model/ScoredPoint;
+	public static synthetic fun copy$default (Ldev/kdrant/model/ScoredPoint;Ldev/kdrant/model/PointId;FLjava/lang/Long;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/VectorData;ILjava/lang/Object;)Ldev/kdrant/model/ScoredPoint;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ldev/kdrant/model/PointId;
+	public final fun getPayload ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getScore ()F
+	public final fun getVector ()Ldev/kdrant/model/VectorData;
+	public final fun getVersion ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/ScoredPoint$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/ScoredPoint$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/ScoredPoint;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/ScoredPoint;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/ScoredPoint$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/ScrollPage {
+	public static final field Companion Ldev/kdrant/model/ScrollPage$Companion;
+	public fun <init> (Ljava/util/List;Ldev/kdrant/model/PointId;)V
+	public synthetic fun <init> (Ljava/util/List;Ldev/kdrant/model/PointId;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ldev/kdrant/model/PointId;
+	public final fun copy (Ljava/util/List;Ldev/kdrant/model/PointId;)Ldev/kdrant/model/ScrollPage;
+	public static synthetic fun copy$default (Ldev/kdrant/model/ScrollPage;Ljava/util/List;Ldev/kdrant/model/PointId;ILjava/lang/Object;)Ldev/kdrant/model/ScrollPage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNextPageOffset ()Ldev/kdrant/model/PointId;
+	public final fun getPoints ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/ScrollPage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/ScrollPage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/ScrollPage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/ScrollPage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/ScrollPage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/ScrollRequest {
+	public static final field Companion Ldev/kdrant/model/ScrollRequest$Companion;
+	public fun <init> (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/Filter;
+	public final fun component2 ()I
+	public final fun component3 ()Ldev/kdrant/model/PointId;
+	public final fun component4 ()Ldev/kdrant/model/WithPayload;
+	public final fun component5 ()Ljava/lang/Boolean;
+	public final fun copy (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;)Ldev/kdrant/model/ScrollRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/ScrollRequest;Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;ILjava/lang/Object;)Ldev/kdrant/model/ScrollRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Ldev/kdrant/model/Filter;
+	public final fun getLimit ()I
+	public final fun getOffset ()Ldev/kdrant/model/PointId;
+	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
+	public final fun getWithVector ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/ScrollRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/ScrollRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/ScrollRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/ScrollRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/ScrollRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/SearchParams {
+	public static final field Companion Ldev/kdrant/model/SearchParams$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun component3 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;)Ldev/kdrant/model/SearchParams;
+	public static synthetic fun copy$default (Ldev/kdrant/model/SearchParams;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;ILjava/lang/Object;)Ldev/kdrant/model/SearchParams;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExact ()Ljava/lang/Boolean;
+	public final fun getHnswEf ()Ljava/lang/Integer;
+	public final fun getIndexedOnly ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/SearchParams$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/SearchParams$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/SearchParams;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/SearchParams;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/SearchParams$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/SearchRequest {
+	public static final field Companion Ldev/kdrant/model/SearchRequest$Companion;
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Ldev/kdrant/model/Filter;ILjava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;Ldev/kdrant/model/Filter;ILjava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/kdrant/model/Filter;
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ldev/kdrant/model/WithPayload;
+	public final fun component7 ()Ljava/lang/Boolean;
+	public final fun component8 ()Ljava/lang/Double;
+	public final fun component9 ()Ldev/kdrant/model/SearchParams;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Ldev/kdrant/model/Filter;ILjava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;)Ldev/kdrant/model/SearchRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/SearchRequest;Ljava/util/List;Ljava/lang/String;Ldev/kdrant/model/Filter;ILjava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;ILjava/lang/Object;)Ldev/kdrant/model/SearchRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Ldev/kdrant/model/Filter;
+	public final fun getLimit ()I
+	public final fun getOffset ()Ljava/lang/Integer;
+	public final fun getParams ()Ldev/kdrant/model/SearchParams;
+	public final fun getQuery ()Ljava/util/List;
+	public final fun getScoreThreshold ()Ljava/lang/Double;
+	public final fun getUsing ()Ljava/lang/String;
+	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
+	public final fun getWithVector ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/SearchRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/SearchRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/SearchRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/SearchRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/SearchRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class dev/kdrant/model/VectorData {
 	public static final field Companion Ldev/kdrant/model/VectorData$Companion;
 }
@@ -930,7 +1214,10 @@ public final class dev/kdrant/model/WithPayload$None : dev/kdrant/model/WithPayl
 
 public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang/AutoCloseable {
 	public abstract fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun delete (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun query (Ljava/lang/String;Ldev/kdrant/model/SearchRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun scroll (Ljava/lang/String;Ldev/kdrant/model/ScrollRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

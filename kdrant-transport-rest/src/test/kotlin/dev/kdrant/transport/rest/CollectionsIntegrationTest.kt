@@ -1,8 +1,13 @@
 package dev.kdrant.transport.rest
 
 import dev.kdrant.model.Distance
+import dev.kdrant.model.WithPayload
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -75,6 +80,33 @@ class CollectionsIntegrationTest {
                 }
             }
             qdrant.deleteCollection("vectors")
+        }
+    }
+
+    @Test
+    fun `search, scroll and delete round-trip against a real server`() = runBlocking {
+        newClient().use { qdrant ->
+            qdrant.createCollection("rag") { vector { size = 4; distance = Distance.COSINE } }
+            qdrant.upsert("rag", wait = true) {
+                point(1) { vector(0.1f, 0.2f, 0.3f, 0.4f); payload("lang" to "en") }
+                point(2) { vector(0.2f, 0.1f, 0.4f, 0.3f); payload("lang" to "it") }
+            }
+
+            val hits = qdrant.search("rag") {
+                query(0.1f, 0.2f, 0.3f, 0.4f)
+                limit = 5
+                withPayload = WithPayload.All
+            }
+            assertTrue(hits.isNotEmpty(), "search returned no hits")
+
+            val all = qdrant.scroll("rag", pageSize = 1).map { it.id }.toList()
+            assertEquals(2, all.size, "scroll should return both points")
+
+            qdrant.delete("rag", wait = true) { must { "lang" eq "it" } }
+            val remaining = qdrant.scroll("rag").toList()
+            assertEquals(1, remaining.size, "one point should remain after delete-by-filter")
+
+            qdrant.deleteCollection("rag")
         }
     }
 }

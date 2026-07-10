@@ -1,9 +1,16 @@
 package dev.kdrant
 
 import dev.kdrant.dsl.CreateCollectionBuilder
+import dev.kdrant.dsl.FilterBuilder
+import dev.kdrant.dsl.ScrollBuilder
+import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
+import dev.kdrant.model.PointId
+import dev.kdrant.model.Record
+import dev.kdrant.model.ScoredPoint
 import dev.kdrant.transport.QdrantTransport
+import kotlinx.coroutines.flow.Flow
 
 /**
  * The user-facing Kdrant API. Coroutine-first: every operation is a `suspend` function.
@@ -72,6 +79,52 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.Transport on a connection failure or server error.
      */
     public suspend fun upsert(name: String, wait: Boolean = false, configure: UpsertBuilder.() -> Unit)
+
+    /**
+     * Nearest-vector search.
+     *
+     * ```kotlin
+     * val hits = qdrant.search("docs") {
+     *     query(queryVector)
+     *     limit = 5
+     *     filter { must { "lang" eq "en" } }
+     * }
+     * ```
+     *
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     * @throws KdrantException.InvalidRequest if the query is malformed (e.g. wrong vector size).
+     */
+    public suspend fun search(name: String, configure: SearchBuilder.() -> Unit): List<ScoredPoint>
+
+    /**
+     * Stream all points (optionally filtered) as a cold [Flow], transparently following the
+     * server's pagination cursor. Cancellation and backpressure are cooperative.
+     *
+     * ```kotlin
+     * qdrant.scroll("docs", pageSize = 256) { filter { must { "lang" eq "en" } } }
+     *     .collect { record -> /* ... */ }
+     * ```
+     *
+     * @param pageSize how many points to fetch per request.
+     */
+    public fun scroll(name: String, pageSize: Int = 64, configure: ScrollBuilder.() -> Unit = {}): Flow<Record>
+
+    /**
+     * Delete points by id.
+     *
+     * @param wait if true, return only once the change is applied.
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     */
+    public suspend fun delete(name: String, ids: List<PointId>, wait: Boolean = false)
+
+    /**
+     * Delete every point matching the given filter.
+     *
+     * ```kotlin
+     * qdrant.delete("docs") { must { "lang" eq "en" } }
+     * ```
+     */
+    public suspend fun delete(name: String, wait: Boolean = false, filter: FilterBuilder.() -> Unit)
 }
 
 /** Wraps a [QdrantTransport] into a [QdrantClient]. Used by transport factories. */

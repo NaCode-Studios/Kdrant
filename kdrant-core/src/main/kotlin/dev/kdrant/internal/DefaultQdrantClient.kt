@@ -2,8 +2,17 @@ package dev.kdrant.internal
 
 import dev.kdrant.QdrantClient
 import dev.kdrant.dsl.CreateCollectionBuilder
+import dev.kdrant.dsl.FilterBuilder
+import dev.kdrant.dsl.ScrollBuilder
+import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
+import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.PointId
+import dev.kdrant.model.Record
+import dev.kdrant.model.ScoredPoint
 import dev.kdrant.transport.QdrantTransport
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 /**
  * Protocol-independent [QdrantClient]: turns the ergonomic DSL into request models and
@@ -32,6 +41,45 @@ internal class DefaultQdrantClient(
     ) {
         val points = UpsertBuilder().apply(configure).build()
         transport.upsert(name, points, wait)
+    }
+
+    override suspend fun search(
+        name: String,
+        configure: SearchBuilder.() -> Unit,
+    ): List<ScoredPoint> = transport.query(name, SearchBuilder().apply(configure).build())
+
+    override fun scroll(
+        name: String,
+        pageSize: Int,
+        configure: ScrollBuilder.() -> Unit,
+    ): Flow<Record> {
+        require(pageSize > 0) { "pageSize must be > 0, was $pageSize" }
+        return flow {
+            val builder = ScrollBuilder(pageSize).apply(configure)
+            var offset: PointId? = null
+            while (true) {
+                val page = transport.scroll(name, builder.build(offset))
+                page.points.forEach { emit(it) }
+                offset = page.nextPageOffset ?: break
+            }
+        }
+    }
+
+    override suspend fun delete(name: String, ids: List<PointId>, wait: Boolean) {
+        require(ids.isNotEmpty()) { "delete(ids) needs at least one id" }
+        transport.delete(name, DeleteSelector.Ids(ids), wait)
+    }
+
+    override suspend fun delete(
+        name: String,
+        wait: Boolean,
+        filter: FilterBuilder.() -> Unit,
+    ) {
+        val built = FilterBuilder().apply(filter).build()
+        require(built.must != null || built.should != null || built.mustNot != null || built.minShould != null) {
+            "delete-by-filter requires at least one condition; an empty filter would match every point"
+        }
+        transport.delete(name, DeleteSelector.ByFilter(built), wait)
     }
 
     override fun close() {
