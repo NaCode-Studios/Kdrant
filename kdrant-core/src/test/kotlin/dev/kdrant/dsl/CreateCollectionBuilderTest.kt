@@ -1,0 +1,74 @@
+@file:OptIn(InternalKdrantApi::class)
+
+package dev.kdrant.dsl
+
+import dev.kdrant.assertJsonEquals
+import dev.kdrant.internal.InternalKdrantApi
+import dev.kdrant.internal.KdrantJson
+import dev.kdrant.model.CreateCollectionRequest
+import dev.kdrant.model.Distance
+import kotlinx.serialization.encodeToString
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Test
+
+class CreateCollectionBuilderTest {
+
+    private fun build(configure: CreateCollectionBuilder.() -> Unit) =
+        CreateCollectionBuilder().apply(configure).build()
+
+    private fun json(request: CreateCollectionRequest) =
+        KdrantJson.encodeToString(CreateCollectionRequest.serializer(), request)
+
+    @Test
+    fun `single-vector dsl builds the expected request`() {
+        val request = build {
+            vector { size = 768; distance = Distance.COSINE }
+            onDiskPayload = true
+        }
+        assertJsonEquals(
+            """{"vectors":{"size":768,"distance":"Cosine"},"on_disk_payload":true}""",
+            json(request),
+        )
+    }
+
+    @Test
+    fun `named-vectors dsl builds a name to params map`() {
+        val request = build {
+            namedVector("image") { size = 512; distance = Distance.DOT; onDisk = true }
+            namedVector("text") { size = 768; distance = Distance.COSINE }
+        }
+        assertJsonEquals(
+            """
+            {"vectors":{
+              "image":{"size":512,"distance":"Dot","on_disk":true},
+              "text":{"size":768,"distance":"Cosine"}
+            }}
+            """.trimIndent(),
+            json(request),
+        )
+    }
+
+    @Test
+    fun `mixing single and named vectors is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            build {
+                vector { size = 4; distance = Distance.COSINE }
+                namedVector("text") { size = 4; distance = Distance.COSINE }
+            }
+        }
+    }
+
+    @Test
+    fun `declaring no vectors is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            build { onDiskPayload = true }
+        }
+    }
+
+    @Test
+    fun `omitting the vector size is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            build { vector { distance = Distance.COSINE } }
+        }
+    }
+}
