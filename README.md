@@ -43,7 +43,7 @@ qdrant.use { client ->
 - **Type-safe DSLs** — build collections, points, payloads, and filters declaratively, with
   scope-isolated builders (`@DslMarker`), instead of verbose request objects.
 - **Small footprint** — a pure-Kotlin REST engine on Ktor + kotlinx-serialization; no gRPC, Netty,
-  or protobuf. See [ADR 0001](docs/adr/0001-rest-transport-with-protocol-seam.md).
+  or protobuf.
 - **Typed errors** — failures surface as a sealed `KdrantException` you can exhaustively handle.
 - **Pluggable transport** — the wire protocol sits behind a `QdrantTransport` seam, keeping the
   public API independent of it.
@@ -162,8 +162,7 @@ Two modules keep protocol concerns out of the public API:
 | `kdrant-transport-rest` | The default REST engine (Ktor CIO) implementing `QdrantTransport`, plus the `Kdrant(...)` factory. |
 
 The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only the
-engine module knows about HTTP. See [ADR 0001](docs/adr/0001-rest-transport-with-protocol-seam.md)
-for the rationale.
+engine module knows about HTTP.
 
 ## Roadmap
 
