@@ -12,7 +12,7 @@ import dev.kdrant.kdrantConfig
  *     apiKey = "test-key"
  *     requestTimeout = 5.seconds
  * }.use { qdrant ->
- *     qdrant.createCollection("docs") { vectors { size = 768; distance = Distance.COSINE } }
+ *     qdrant.createCollection("docs") { vector { size = 768; distance = Distance.COSINE } }
  * }
  * ```
  *
