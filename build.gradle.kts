@@ -9,5 +9,5 @@ plugins {
 
 subprojects {
     group = "io.github.nacode-studios"
-    version = "0.1.0-SNAPSHOT"
+    version = "0.1.0"
 }

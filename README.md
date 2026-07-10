@@ -32,6 +32,9 @@ qdrant.use { client ->
 }
 ```
 
+Kdrant stores and searches vectors you already have — `embedding` above is a `List<Float>` from
+your own embedding model; Kdrant does not generate embeddings.
+
 > **Status — early development.** All core operations — create/delete collection, `upsert`,
 > `search`, `scroll`, `delete` — and the full filter DSL are implemented and tested. APIs may
 > change before `1.0`.
@@ -59,6 +62,12 @@ dependencies {
 ```
 
 `kdrant-transport-rest` brings in `kdrant-core` transitively; it is the only dependency you add.
+
+You also need a running Qdrant. For local development:
+
+```bash
+docker run -p 6333:6333 qdrant/qdrant
+```
 
 ## Usage
 

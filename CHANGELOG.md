@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-10
+
 ### Added
 - Coroutine-first `QdrantClient` with a pluggable `QdrantTransport` seam and a default REST/Ktor
   engine.
@@ -23,4 +25,5 @@ All notable changes to this project are documented in this file. The format is b
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/commits/main
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/NaCode-Studios/Kdrant/releases/tag/v0.1.0
