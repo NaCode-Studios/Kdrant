@@ -6,9 +6,11 @@ import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
+import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
+import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
 
@@ -125,6 +127,63 @@ public interface QdrantClient : AutoCloseable {
      * ```
      */
     public suspend fun delete(name: String, wait: Boolean = false, filter: FilterBuilder.() -> Unit)
+
+    /**
+     * Whether a collection exists. Returns `false` (not an error) for a missing collection.
+     *
+     * @throws KdrantException.Unauthorized if the API key is missing or wrong.
+     * @throws KdrantException.Timeout if the request exceeds the configured timeout.
+     * @throws KdrantException.Transport on a connection failure or server error.
+     */
+    public suspend fun collectionExists(name: String): Boolean
+
+    /**
+     * Fetch a collection's status and point counts.
+     *
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     * @throws KdrantException.Unauthorized if the API key is missing or wrong.
+     * @throws KdrantException.Timeout if the request exceeds the configured timeout.
+     * @throws KdrantException.Transport on a connection failure or server error.
+     */
+    public suspend fun getCollection(name: String): CollectionInfo
+
+    /**
+     * Count the points in a collection.
+     *
+     * @param exact an exact count (default) vs a faster approximate one.
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     * @throws KdrantException.Unauthorized if the API key is missing or wrong.
+     * @throws KdrantException.Timeout if the request exceeds the configured timeout.
+     * @throws KdrantException.Transport on a connection failure or server error.
+     */
+    public suspend fun count(name: String, exact: Boolean = true): Long
+
+    /**
+     * Count the points in a collection that match a filter.
+     *
+     * ```kotlin
+     * val n = qdrant.count("docs") { must { "lang" eq "en" } }
+     * ```
+     *
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     */
+    public suspend fun count(name: String, exact: Boolean = true, filter: FilterBuilder.() -> Unit): Long
+
+    /**
+     * Retrieve points by id.
+     *
+     * @throws IllegalArgumentException if [ids] is empty.
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     * @throws KdrantException.Unauthorized if the API key is missing or wrong.
+     * @throws KdrantException.Timeout if the request exceeds the configured timeout.
+     * @throws KdrantException.Transport on a connection failure or server error.
+     */
+    public suspend fun retrieve(
+        name: String,
+        ids: List<PointId>,
+        withPayload: WithPayload? = null,
+        withVector: Boolean? = null,
+    ): List<Record>
 }
 
 /** Wraps a [QdrantTransport] into a [QdrantClient]. Used by transport factories. */

@@ -6,15 +6,18 @@ import dev.kdrant.KdrantConfig
 import dev.kdrant.KdrantException
 import dev.kdrant.internal.InternalKdrantApi
 import dev.kdrant.internal.KdrantJson
+import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Filter
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
+import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -26,6 +29,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.delete
+import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -149,6 +153,37 @@ internal class RestQdrantTransport(
                 setBody(body)
             }
         }
+    }
+
+    override suspend fun collectionExists(name: String): Boolean {
+        val response = execute(name) { client.get("/collections/${encode(name)}/exists") }
+        return decodeBody(response) { it.body<ExistsResponse>().result.exists }
+    }
+
+    override suspend fun getCollection(name: String): CollectionInfo {
+        val response = execute(name) { client.get("/collections/${encode(name)}") }
+        return decodeBody(response) { it.body<CollectionInfoResponse>().result }
+    }
+
+    override suspend fun count(name: String, filter: Filter?, exact: Boolean): Long {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/points/count") { setBody(CountRequest(filter, exact)) }
+        }
+        return decodeBody(response) { it.body<CountResponse>().result.count }
+    }
+
+    override suspend fun retrieve(
+        name: String,
+        ids: List<PointId>,
+        withPayload: WithPayload?,
+        withVector: Boolean?,
+    ): List<Record> {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/points") {
+                setBody(PointRequest(ids, withPayload, withVector))
+            }
+        }
+        return decodeBody(response) { it.body<RetrieveResponse>().result }
     }
 
     override fun close() {

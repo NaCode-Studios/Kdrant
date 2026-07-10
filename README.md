@@ -92,6 +92,15 @@ qdrant.createCollection("multimodal") {
 qdrant.deleteCollection("articles")
 ```
 
+Check existence and read a collection's status and counts:
+
+```kotlin
+if (!qdrant.collectionExists("articles")) {
+    qdrant.createCollection("articles") { vector { size = 1_536; distance = Distance.COSINE } }
+}
+val info = qdrant.getCollection("articles")   // info.status, info.pointsCount, ...
+```
+
 ### Upserting points
 
 Point ids are unsigned integers or UUID strings. Payloads accept heterogeneous JSON values.
@@ -168,6 +177,15 @@ qdrant.delete("articles", ids = listOf(PointId.num(1), PointId.uuid("...")))
 qdrant.delete("articles") { must { "lang" eq "en" } }   // by filter
 ```
 
+### Counting & retrieving
+
+```kotlin
+val total = qdrant.count("articles")
+val english = qdrant.count("articles") { must { "lang" eq "en" } }
+
+val points: List<Record> = qdrant.retrieve("articles", ids = listOf(PointId.num(1), PointId.num(2)))
+```
+
 ### Error handling
 
 ```kotlin
@@ -194,8 +212,9 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Now** — connect, collection management, `upsert` (with auto-batching), `search` (over Qdrant's
-unified query API), `scroll` as a `Flow`, `delete` by ids or filter, and the complete filter DSL.
+**Now** — connect; collection management and introspection (`collectionExists` / `getCollection`);
+`upsert` (with auto-batching); `search` (over Qdrant's unified query API); `scroll` as a `Flow`;
+`count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
 
 **Next** — snapshots and aliases, then a gRPC transport engine behind the same seam.
 

@@ -6,10 +6,12 @@ import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
+import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
+import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -80,6 +82,28 @@ internal class DefaultQdrantClient(
             "delete-by-filter requires at least one condition; an empty filter would match every point"
         }
         transport.delete(name, DeleteSelector.ByFilter(built), wait)
+    }
+
+    override suspend fun collectionExists(name: String): Boolean =
+        transport.collectionExists(name)
+
+    override suspend fun getCollection(name: String): CollectionInfo =
+        transport.getCollection(name)
+
+    override suspend fun count(name: String, exact: Boolean): Long =
+        transport.count(name, filter = null, exact = exact)
+
+    override suspend fun count(name: String, exact: Boolean, filter: FilterBuilder.() -> Unit): Long =
+        transport.count(name, FilterBuilder().apply(filter).build(), exact)
+
+    override suspend fun retrieve(
+        name: String,
+        ids: List<PointId>,
+        withPayload: WithPayload?,
+        withVector: Boolean?,
+    ): List<Record> {
+        require(ids.isNotEmpty()) { "retrieve needs at least one id" }
+        return transport.retrieve(name, ids, withPayload, withVector)
     }
 
     override fun close() {

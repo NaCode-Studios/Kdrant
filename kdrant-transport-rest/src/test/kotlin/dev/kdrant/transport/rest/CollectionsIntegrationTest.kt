@@ -1,12 +1,15 @@
 package dev.kdrant.transport.rest
 
+import dev.kdrant.model.CollectionStatus
 import dev.kdrant.model.Distance
+import dev.kdrant.model.PointId
 import dev.kdrant.model.WithPayload
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
@@ -107,6 +110,29 @@ class CollectionsIntegrationTest {
             assertEquals(1, remaining.size, "one point should remain after delete-by-filter")
 
             qdrant.deleteCollection("rag")
+        }
+    }
+
+    @Test
+    fun `exists, info, count and retrieve against a real server`() = runBlocking {
+        newClient().use { qdrant ->
+            assertFalse(qdrant.collectionExists("m9"))
+            qdrant.createCollection("m9") { vector { size = 3; distance = Distance.COSINE } }
+            assertTrue(qdrant.collectionExists("m9"))
+            assertEquals(CollectionStatus.GREEN, qdrant.getCollection("m9").status)
+
+            qdrant.upsert("m9", wait = true) {
+                point(1) { vector(0.1f, 0.2f, 0.3f) }
+                point(2) { vector(0.4f, 0.5f, 0.6f) }
+            }
+            assertEquals(2L, qdrant.count("m9"))
+            assertEquals(0L, qdrant.count("m9") { must { "missing" eq "x" } })
+
+            val records = qdrant.retrieve("m9", ids = listOf(PointId.num(1)))
+            assertEquals(1, records.size)
+            assertEquals(PointId.num(1), records[0].id)
+
+            qdrant.deleteCollection("m9")
         }
     }
 }
