@@ -36,9 +36,10 @@ qdrant.use { client ->
 Kdrant stores and searches vectors you already have — `embedding` above is a `List<Float>` from
 your own embedding model; Kdrant does not generate embeddings.
 
-> **Status — early development.** All core operations — create/delete collection, `upsert`,
-> `search`, `scroll`, `delete` — and the full filter DSL are implemented and tested. APIs may
-> change before `1.0`.
+> **Status — 0.2, pre-1.0.** Collections (create/update/delete), `upsert`, the modern `/points/query`
+> search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse & multi-vectors,
+> `scroll`, payload & vector management, resilient retries, and the full filter DSL are implemented and
+> tested. APIs may still change before `1.0`.
 
 ## Why Kdrant
 
@@ -75,7 +76,7 @@ Requires **JDK 17+**. Artifacts are published to Maven Central under `io.github.
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:0.1.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:0.2.0")
 }
 ```
 
@@ -268,14 +269,14 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped (`0.1.0`)** — connect; collection management and introspection (`collectionExists` /
-`getCollection`); `upsert` (with auto-batching); `search` (over Qdrant's unified query API);
-`scroll` as a `Flow`; `count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
+**Shipped (`0.2.0`)** — the modern `/points/query` engine (nearest, hybrid RRF/DBSF fusion, sparse &
+multi-vectors, `recommend` / `discover` / `context`, batch and grouped search); payload & vector
+mutations and payload field indexes; collection config tuning (optimizers, quantization); resilient
+retries; and typed-payload DX (`payloadAs<T>` / `searchAs<T>`) — on top of `0.1.0`'s collections,
+`upsert`, `search`, `scroll`, and the complete filter DSL.
 
-**Next** — a correctness & security patch (`0.1.1`), then retries and typed-payload ergonomics;
-the full `/points/query` engine (prefetch, hybrid + RRF/DBSF fusion, sparse & multivectors,
-recommend / discovery / grouping); payload indexing and data mutations; aliases and snapshots;
-framework integrations (Spring AI / LangChain4j / Koog); and the road to `1.0` — with Kotlin
+**Next** — aliases and snapshots; observability and a granular transport seam; framework integrations
+(Spring AI / LangChain4j / Koog) with a runnable RAG demo; and the road to `1.0`, with Kotlin
 Multiplatform and an optional gRPC engine after that.
 
 See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
