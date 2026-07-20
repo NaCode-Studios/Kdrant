@@ -21,4 +21,5 @@ include(
     "kdrant-spring-ai",
     "kdrant-langchain4j",
     "example-rag",
+    "benchmarks",
 )

@@ -1,3 +1,7 @@
+public final class dev/kdrant/CatchingKt {
+	public static final fun catching (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class dev/kdrant/CollectionExtensionsKt {
 	public static final fun createCollection (Ldev/kdrant/QdrantClient;Ljava/lang/String;JLdev/kdrant/model/Distance;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun createCollection$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;JLdev/kdrant/model/Distance;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;

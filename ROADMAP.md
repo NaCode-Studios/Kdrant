@@ -52,7 +52,7 @@ Published to Maven Central and GitHub Packages.
 | **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
 | **M22** · Quality, supply chain & test depth (CI) | ✅ Largely implemented (unreleased); some sub-items deferred. |
 | **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | ✅ Publishable scope done (unreleased); Koog = upstream contribution. |
-| **M24** · The road to `1.0` | Planned. |
+| **M24** · The road to `1.0` | ✅ Implemented (unreleased) — Tier 4 complete. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
 
 **Deferred sub-items carried forward from `0.2.0`:** `order_by` on `scroll` (M14); `Formula` / MMR
@@ -307,6 +307,12 @@ adoption driver: a runnable RAG demo. (Depends on query/collection completeness 
 - A coordinated launch with Qdrant DevRel (blog + Kotlin Weekly / r/Kotlin / Slack).
 
 ### M24 · The road to `1.0`: stability, benchmarks, final ergonomics — `M`
+
+**Status: ✅ implemented (unreleased) — this completes Tier 4.** Delivered: a written semver/stability
+policy + `1.0` scope-and-date plan ([STABILITY.md](STABILITY.md)); a JMH latency harness for upsert/search
+([`benchmarks/`](benchmarks/)); the `catching { }` helper (coroutine-safe `Result<T>`); and the documented
+Java-interop decision (Kotlin-first; bridge via `kotlinx-coroutines-jdk8`; no bundled facade in `1.0`).
+The reproducible benchmark *numbers* and the `1.0` tag itself land when the `0.x` line is released and baked.
 
 Cut `1.0` with written stability guarantees and back the footprint claims with reproducible numbers.
 

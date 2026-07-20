@@ -14,9 +14,11 @@ subprojects {
     version = "0.2.0"
 }
 
-// The runnable RAG example is an application, not a published library — exclude it from public-API tracking.
+// The runnable example and the benchmark harness are not published libraries — exclude them from
+// public-API tracking.
 apiValidation {
     ignoredProjects.add("example-rag")
+    ignoredProjects.add("benchmarks")
 }
 
 // Quality tooling (format, static analysis) on the Kotlin source modules — the code-less kdrant-bom is excluded.

@@ -33,6 +33,8 @@ All notable changes to this project are documented in this file. The format is b
 - Streaming ingest (M21): `upsert(name, points: Flow<PointStruct>)` and `upsert(name, points: Sequence<PointStruct>)`
   — ingest a large or unbounded source without materializing it all in memory; the engine chunks it by the
   configured batch size (sequential, not atomic across chunks, like the DSL `upsert`).
+- Ergonomics (M24): `catching { … }` — a coroutine-safe `runCatching` that returns `Result<T>` but re-throws
+  `CancellationException` instead of trapping it. The exception-based API stays the primary style.
 - No-boxing hot path (M21): the DSL `vector(f1, f2, …)` / `vector(*floatArray)` (upsert) and `query(f1, f2, …)`
   (search) now keep the values in a `FloatArray` and serialize it directly, avoiding a boxed `Float` per element
   (`VectorData.DenseArray` / `QueryInterface.VectorArray`). Upsert batching is byte-aware: a batch is bounded by

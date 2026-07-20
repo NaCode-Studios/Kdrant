@@ -258,6 +258,13 @@ try {
 }
 ```
 
+Prefer a `Result`? `catching { }` is a coroutine-safe `runCatching` — it wraps the outcome but always
+re-throws `CancellationException`:
+
+```kotlin
+val hits = catching { qdrant.search("articles") { query(queryVector) } }.getOrElse { emptyList() }
+```
+
 ## Architecture
 
 Two modules keep protocol concerns out of the public API:
@@ -293,7 +300,8 @@ Dependabot, and property-based serialization tests.
 **Next** — framework integrations (Spring AI / LangChain4j / Koog) with a runnable RAG demo, and the road
 to `1.0` — with Kotlin Multiplatform and an optional gRPC engine after that.
 
-See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
+See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`), and **[STABILITY.md](STABILITY.md)**
+for the versioning / stability policy and the road to `1.0`.
 
 ## Building and testing
 
