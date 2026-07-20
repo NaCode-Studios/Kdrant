@@ -281,17 +281,21 @@ service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`, distan
 and observability & a granular transport seam (a `configureClient` hook, api-key-redacting logs, tuned
 timeouts, `Flow` / `Sequence` upsert, and a `FloatArray` no-boxing hot path with byte-aware batching).
 
-**Next** — framework integrations (Spring AI / LangChain4j / Koog) with a runnable RAG demo, hardened CI
-and supply-chain, and the road to `1.0` — with Kotlin Multiplatform and an optional gRPC engine after that.
+The development pipeline is also hardened (M22): ktlint + detekt gates, a JDK and Qdrant-version CI matrix,
+Dependabot, and property-based serialization tests.
+
+**Next** — framework integrations (Spring AI / LangChain4j / Koog) with a runnable RAG demo, and the road
+to `1.0` — with Kotlin Multiplatform and an optional gRPC engine after that.
 
 See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
 
 ## Building and testing
 
 ```bash
-./gradlew build         # compile, run unit tests, verify public API (binary-compatibility-validator)
+./gradlew build         # compile, run unit tests, lint (ktlint + detekt), verify public API
 ./gradlew apiCheck      # check the tracked public API in *.api
 ./gradlew apiDump       # regenerate *.api after an intentional public-API change
+./gradlew ktlintFormat  # auto-fix formatting before committing
 ```
 
 Unit tests need no external services. Integration tests spin up a real Qdrant with

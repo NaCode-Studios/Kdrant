@@ -50,7 +50,7 @@ Published to Maven Central and GitHub Packages.
 | **M19** · Aliases, service & analytics endpoints | ✅ Implemented (unreleased — ships in the next minor). |
 | **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
 | **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
-| **M22** · Quality, supply chain & test depth (CI) | 🚧 In progress. |
+| **M22** · Quality, supply chain & test depth (CI) | ✅ Largely implemented (unreleased); some sub-items deferred. |
 | **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | Planned. |
 | **M24** · The road to `1.0` | Planned. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
@@ -59,7 +59,9 @@ Published to Maven Central and GitHub Packages.
 reranking (M16); `batchUpdate` and parameterized payload-index params such as the text tokenizer (M17);
 `ensureCollection` + enriched `CollectionInfo` read-back, Product quantization, and `wal` / `strictMode`
 / `params` config on update (M18); shard-scope snapshots (M20); the `X-Request-Id` correlation header and
-bundled Micrometer / OpenTelemetry hooks (M21 — reachable via the `configureClient` seam).
+bundled Micrometer / OpenTelemetry hooks (M21 — reachable via the `configureClient` seam); Kover coverage
+(M22 — pending Kotlin 2.4 support), SLSA / build-provenance + a `main` snapshot job (M22), and contract
+tests vs the Qdrant OpenAPI schema (M22).
 
 The detailed milestone descriptions below are kept as the plan of record; ✅ tiers are already shipped.
 
@@ -254,6 +256,14 @@ streaming ingestion.
   batching** so the documented 32 MiB REST cap is actually respected (today batching is by point count).
 
 ### M22 · Quality, supply chain & test depth (CI) — `M`
+
+**Status: ✅ largely implemented (unreleased).** Delivered: **ktlint** + **detekt** as `check` gates
+(configured to the codebase's style); a JDK `17` / `21` build matrix and a Qdrant-version matrix
+(pinned + `latest`) via Testcontainers; **Gradle wrapper-validation**; a **dependency-review** step on
+PRs; **Dependabot** (Gradle + GitHub Actions, grouped); and **property-based round-trip** tests on the
+`@Serializable` models (kotest-property). **Deferred:** **Kover** coverage (0.9.1 is not yet compatible
+with the Kotlin 2.4 Gradle plugin); build-provenance / SLSA attestation + a `main` snapshot job; and
+contract tests vs the Qdrant OpenAPI schema.
 
 Bring CI and tests up to a mature OSS standard and catch wire-format regressions across Qdrant versions.
 
