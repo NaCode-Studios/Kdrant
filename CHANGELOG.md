@@ -19,6 +19,8 @@ All notable changes to this project are documented in this file. The format is b
   sent over plaintext HTTP.
 
 ### Added
+- Collection config tuning: `updateCollection { optimizers = …; hnsw = …; quantization = … }` (PATCH),
+  and `optimizers` / `quantization` (`QuantizationConfig.Scalar` / `.Binary`) on `createCollection`.
 - Payload field indexes (`createPayloadIndex(field, PayloadSchemaType.KEYWORD)` / `deletePayloadIndex`), so
   filtering on a field scales instead of doing a full scan; and payload mutations `setPayload` /
   `overwritePayload` / `deletePayload` / `clearPayload` over a points-or-filter selector.

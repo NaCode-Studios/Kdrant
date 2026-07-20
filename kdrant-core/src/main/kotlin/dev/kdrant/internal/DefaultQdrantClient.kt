@@ -6,6 +6,7 @@ import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
+import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
@@ -36,6 +37,10 @@ internal class DefaultQdrantClient(
     ) {
         val request = CreateCollectionBuilder().apply(configure).build()
         transport.createCollection(name, request)
+    }
+
+    override suspend fun updateCollection(name: String, configure: UpdateCollectionBuilder.() -> Unit) {
+        transport.updateCollection(name, UpdateCollectionBuilder().apply(configure).build())
     }
 
     override suspend fun deleteCollection(name: String) {

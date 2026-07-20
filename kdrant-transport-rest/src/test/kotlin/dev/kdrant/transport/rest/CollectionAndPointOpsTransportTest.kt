@@ -12,6 +12,8 @@ import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.QuantizationConfig
+import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.VectorData
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -204,5 +206,24 @@ class CollectionAndPointOpsTransportTest {
         val body = KdrantJson.parseToJsonElement((captured.body as TextContent).text).jsonObject
         assertTrue(body.containsKey("vector"))
         assertTrue(body.containsKey("points"))
+    }
+
+    @Test
+    fun `updateCollection PATCHes the config`() {
+        lateinit var captured: HttpRequestData
+        val t = transport { request ->
+            captured = request
+            respond("""{"result":true,"status":"ok"}""", HttpStatusCode.OK, jsonHeaders)
+        }
+        t.use {
+            runBlocking {
+                it.updateCollection("docs", UpdateCollectionRequest(quantizationConfig = QuantizationConfig.Binary(alwaysRam = true)))
+            }
+        }
+
+        assertEquals(HttpMethod.Patch, captured.method)
+        assertEquals("/collections/docs", captured.url.encodedPath)
+        val body = KdrantJson.parseToJsonElement((captured.body as TextContent).text).jsonObject
+        assertTrue(body.containsKey("quantization_config"))
     }
 }

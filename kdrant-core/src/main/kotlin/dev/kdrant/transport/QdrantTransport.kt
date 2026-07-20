@@ -16,6 +16,7 @@ import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
 
 /**
@@ -31,6 +32,9 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Create a collection (`PUT /collections/{name}`). */
     public suspend fun createCollection(name: String, request: CreateCollectionRequest)
+
+    /** Update an existing collection's config (`PATCH /collections/{name}`). */
+    public suspend fun updateCollection(name: String, request: UpdateCollectionRequest)
 
     /** Delete a collection (`DELETE /collections/{name}`). */
     public suspend fun deleteCollection(name: String)

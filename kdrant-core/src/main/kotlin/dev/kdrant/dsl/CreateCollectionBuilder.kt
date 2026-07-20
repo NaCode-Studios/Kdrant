@@ -7,7 +7,10 @@ import dev.kdrant.model.HnswConfig
 import dev.kdrant.model.Modifier
 import dev.kdrant.model.MultiVectorComparator
 import dev.kdrant.model.MultiVectorConfig
+import dev.kdrant.model.OptimizersConfig
+import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.SparseVectorParams
+import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.VectorParams
 import dev.kdrant.model.VectorsConfig
@@ -31,6 +34,12 @@ public class CreateCollectionBuilder {
 
     /** How many replicas of each shard to keep. */
     public var replicationFactor: Int? = null
+
+    /** Optimizer tuning. */
+    public var optimizers: OptimizersConfig? = null
+
+    /** Vector quantization, to shrink the collection's memory footprint. */
+    public var quantization: QuantizationConfig? = null
 
     /** Configure a single anonymous vector. Mutually exclusive with [namedVector]. */
     public fun vector(configure: VectorParamsBuilder.() -> Unit) {
@@ -69,8 +78,29 @@ public class CreateCollectionBuilder {
             onDiskPayload = onDiskPayload,
             shardNumber = shardNumber,
             replicationFactor = replicationFactor,
+            optimizersConfig = optimizers,
+            quantizationConfig = quantization,
         )
     }
+}
+
+/** DSL for `updateCollection`. All fields optional; omitted ones keep the collection's current value. */
+@KdrantDsl
+public class UpdateCollectionBuilder {
+    /** Optimizer tuning. */
+    public var optimizers: OptimizersConfig? = null
+
+    /** HNSW index tuning. */
+    public var hnsw: HnswConfig? = null
+
+    /** Vector quantization. */
+    public var quantization: QuantizationConfig? = null
+
+    internal fun build(): UpdateCollectionRequest = UpdateCollectionRequest(
+        optimizersConfig = optimizers,
+        hnswConfig = hnsw,
+        quantizationConfig = quantization,
+    )
 }
 
 /** DSL for a single vector's parameters. */

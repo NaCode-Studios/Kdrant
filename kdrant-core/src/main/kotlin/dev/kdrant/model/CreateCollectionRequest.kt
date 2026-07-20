@@ -31,4 +31,10 @@ public data class CreateCollectionRequest(
 
     @SerialName("replication_factor")
     public val replicationFactor: Int? = null,
+
+    @SerialName("optimizers_config")
+    public val optimizersConfig: OptimizersConfig? = null,
+
+    @SerialName("quantization_config")
+    public val quantizationConfig: QuantizationConfig? = null,
 )

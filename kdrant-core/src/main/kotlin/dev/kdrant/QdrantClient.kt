@@ -5,6 +5,7 @@ import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
+import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
 import dev.kdrant.model.CollectionInfo
@@ -50,6 +51,18 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.Transport on a connection failure or server error.
      */
     public suspend fun createCollection(name: String, configure: CreateCollectionBuilder.() -> Unit)
+
+    /**
+     * Update an existing collection's config (optimizers, HNSW, quantization).
+     *
+     * ```kotlin
+     * qdrant.updateCollection("docs") {
+     *     optimizers = OptimizersConfig(indexingThreshold = 20_000)
+     *     quantization = QuantizationConfig.Scalar(quantile = 0.99f)
+     * }
+     * ```
+     */
+    public suspend fun updateCollection(name: String, configure: UpdateCollectionBuilder.() -> Unit)
 
     /**
      * Delete a collection. Deleting a collection that does not exist is a no-op on the server.

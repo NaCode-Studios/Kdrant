@@ -22,6 +22,7 @@ import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import io.ktor.client.HttpClient
@@ -37,6 +38,7 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -131,6 +133,12 @@ internal class RestQdrantTransport(
     override suspend fun deleteCollection(name: String) {
         execute(name) {
             client.delete("/collections/${encode(name)}")
+        }
+    }
+
+    override suspend fun updateCollection(name: String, request: UpdateCollectionRequest) {
+        execute(name) {
+            client.patch("/collections/${encode(name)}") { setBody(request) }
         }
     }
 
