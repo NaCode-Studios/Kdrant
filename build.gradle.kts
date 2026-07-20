@@ -41,6 +41,14 @@ configure(
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
         parallel = true
     }
+
+    // Treat every Kotlin compiler warning — deprecations included — as a build error, so these
+    // modules stay warning-clean across dependency and toolchain upgrades.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            allWarningsAsErrors.set(true)
+        }
+    }
 }
 
 // Aggregate the documented modules into one multi-module HTML API site (published to GitHub Pages).
