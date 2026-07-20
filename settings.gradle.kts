@@ -17,4 +17,5 @@ include(
     "kdrant-bom",
     "kdrant-core",
     "kdrant-transport-rest",
+    "kdrant-spring-boot-starter",
 )

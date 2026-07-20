@@ -279,7 +279,8 @@ retries; and typed-payload DX (`payloadAs<T>` / `searchAs<T>`) — on top of `0.
 reindex); snapshots & backup/restore (streaming download/upload of the binary snapshot); the server-side
 service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`, distance `matrix`) endpoints;
 and observability & a granular transport seam (a `configureClient` hook, api-key-redacting logs, tuned
-timeouts, `Flow` / `Sequence` upsert, and a `FloatArray` no-boxing hot path with byte-aware batching).
+timeouts, `Flow` / `Sequence` upsert, and a `FloatArray` no-boxing hot path with byte-aware batching); plus
+a **Spring Boot starter** that binds `kdrant.*` properties to an injectable `QdrantClient` bean.
 
 The development pipeline is also hardened (M22): ktlint + detekt gates, a JDK and Qdrant-version CI matrix,
 Dependabot, and property-based serialization tests.

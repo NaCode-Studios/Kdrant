@@ -16,7 +16,13 @@ subprojects {
 
 // Quality tooling (format, static analysis) on the Kotlin source modules — the code-less kdrant-bom is excluded.
 // (Kover coverage is deferred: 0.9.1 is not yet compatible with the Kotlin 2.4 Gradle plugin.)
-configure(listOf(project(":kdrant-core"), project(":kdrant-transport-rest"))) {
+configure(
+    listOf(
+        project(":kdrant-core"),
+        project(":kdrant-transport-rest"),
+        project(":kdrant-spring-boot-starter"),
+    ),
+) {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "io.gitlab.arturbosch.detekt")
 

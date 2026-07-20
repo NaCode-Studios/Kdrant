@@ -1,27 +1,46 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
-    `java-platform`
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.maven.publish)
 }
 
-// group and version are inherited from the root `subprojects { }` block.
+kotlin {
+    jvmToolchain(17)
+    explicitApi()
+}
 
 dependencies {
-    constraints {
-        api("io.github.nacode-studios:kdrant-core:${project.version}")
-        api("io.github.nacode-studios:kdrant-transport-rest:${project.version}")
-        api("io.github.nacode-studios:kdrant-spring-boot-starter:${project.version}")
+    api(project(":kdrant-transport-rest"))
+    implementation(libs.spring.boot.autoconfigure)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.spring.boot.test)
+    testImplementation(libs.assertj.core)
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
     }
 }
 
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.nacode-studios", "kdrant-bom", version.toString())
+    coordinates("io.github.nacode-studios", "kdrant-spring-boot-starter", version.toString())
     pom {
-        name.set("Kdrant BOM")
+        name.set("Kdrant Spring Boot starter")
         description.set(
-            "Bill of Materials for Kdrant — import it to keep kdrant-core and kdrant-transport-rest " +
-                "on a single, aligned version.",
+            "Spring Boot auto-configuration for Kdrant, the coroutine-first Kotlin client for the Qdrant " +
+                "vector database. Adds `kdrant.*` configuration properties and exposes a ready-to-inject " +
+                "QdrantClient bean.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

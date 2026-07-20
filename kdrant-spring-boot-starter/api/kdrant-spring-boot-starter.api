@@ -1,0 +1,23 @@
+public final class dev/kdrant/spring/KdrantAutoConfiguration {
+	public fun <init> ()V
+	public final fun qdrantClient (Ldev/kdrant/spring/KdrantProperties;)Ldev/kdrant/QdrantClient;
+}
+
+public final class dev/kdrant/spring/KdrantProperties {
+	public fun <init> ()V
+	public final fun getApiKey ()Ljava/lang/String;
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getMaxRetries ()I
+	public final fun getPort ()I
+	public final fun getRequestTimeout ()Ljava/time/Duration;
+	public final fun getUpsertBatchSize ()I
+	public final fun getUseTls ()Z
+	public final fun setApiKey (Ljava/lang/String;)V
+	public final fun setHost (Ljava/lang/String;)V
+	public final fun setMaxRetries (I)V
+	public final fun setPort (I)V
+	public final fun setRequestTimeout (Ljava/time/Duration;)V
+	public final fun setUpsertBatchSize (I)V
+	public final fun setUseTls (Z)V
+}
+
