@@ -3,6 +3,7 @@ package dev.kdrant.model
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.FloatArraySerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -35,6 +36,19 @@ public sealed interface QueryInterface {
 
     /** Nearest-neighbor search by an explicit dense vector. Serializes to a bare JSON array. */
     public data class Vector(public val values: List<Float>) : VectorInput
+
+    /**
+     * Nearest-neighbor search by a dense vector backed by a [FloatArray] — a zero-boxing fast path that
+     * serializes straight to a bare JSON array. Equality is by content.
+     */
+    public class VectorArray(public val values: FloatArray) : VectorInput {
+        override fun equals(other: Any?): Boolean =
+            this === other || (other is VectorArray && values.contentEquals(other.values))
+
+        override fun hashCode(): Int = values.contentHashCode()
+
+        override fun toString(): String = "VectorArray(values=${values.contentToString()})"
+    }
 
     /** Nearest-neighbor search reusing the stored vector of an existing point ("more like this"). */
     public data class ById(public val id: PointId) : VectorInput
@@ -111,17 +125,27 @@ public data class ContextPair(
 
 /** Write-only serializer emitting each [QueryInterface] variant in Qdrant's `VectorInput | Query` shape. */
 internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
+    private val floatArray = FloatArraySerializer()
+
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("dev.kdrant.model.QueryInterface")
 
     override fun serialize(encoder: Encoder, value: QueryInterface) {
         val json = encoder as? JsonEncoder
             ?: throw SerializationException("QueryInterface can only be serialized to JSON")
-        json.encodeJsonElement(toElement(json.json, value))
+        if (value is QueryInterface.VectorArray) {
+            // Zero-boxing fast path: write the FloatArray straight to a JSON number array.
+            encoder.encodeSerializableValue(floatArray, value.values)
+        } else {
+            json.encodeJsonElement(toElement(json.json, value))
+        }
     }
 
     private fun toElement(json: Json, value: QueryInterface): JsonElement = when (value) {
         is QueryInterface.Vector ->
+            JsonArray(value.values.map { JsonPrimitive(it) })
+
+        is QueryInterface.VectorArray ->
             JsonArray(value.values.map { JsonPrimitive(it) })
 
         is QueryInterface.ById ->

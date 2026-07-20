@@ -111,6 +111,20 @@ class UpsertTransportTest {
     }
 
     @Test
+    fun `upsert splits by the byte cap independently of the count cap`() {
+        val batchSizes = mutableListOf<Int>()
+        val engine = MockEngine { request ->
+            batchSizes += bodyPointCount(request)
+            respond(okBody, HttpStatusCode.OK, jsonHeaders)
+        }
+        // A huge count cap but a 1-byte size cap forces every point into its own batch by size.
+        val transport = RestQdrantTransport(kdrantConfig("h", 6333) {}, engine, upsertBatchSize = 1000, maxUpsertBytes = 1)
+        transport.use { runBlocking { it.upsert("docs", points(4), wait = false) } }
+
+        assertEquals(listOf(1, 1, 1, 1), batchSizes)
+    }
+
+    @Test
     fun `upsert from a Sequence chunks by batch size via the client`() {
         val batchSizes = mutableListOf<Int>()
         val engine = MockEngine { request ->

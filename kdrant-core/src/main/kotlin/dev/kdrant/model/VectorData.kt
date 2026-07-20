@@ -3,6 +3,7 @@ package dev.kdrant.model
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.FloatArraySerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -34,6 +35,20 @@ public sealed interface VectorData {
     /** One anonymous dense vector. */
     public data class Dense(public val values: List<Float>) : VectorData
 
+    /**
+     * One anonymous dense vector backed by a [FloatArray] — a zero-boxing fast path for the hot path
+     * (values are never wrapped in `Float` objects, and serialization writes the array directly).
+     * Prefer this over [Dense] for large vectors. Equality is by content.
+     */
+    public class DenseArray(public val values: FloatArray) : VectorData {
+        override fun equals(other: Any?): Boolean =
+            this === other || (other is DenseArray && values.contentEquals(other.values))
+
+        override fun hashCode(): Int = values.contentHashCode()
+
+        override fun toString(): String = "DenseArray(values=${values.contentToString()})"
+    }
+
     /** A sparse vector; [indices] must be unique and the same length as [values]. Used under a name. */
     public data class Sparse(
         public val indices: List<Int>,
@@ -53,6 +68,7 @@ public sealed interface VectorData {
 internal object VectorDataSerializer : KSerializer<VectorData> {
     private val floatList = ListSerializer(Float.serializer())
     private val intList = ListSerializer(Int.serializer())
+    private val floatArray = FloatArraySerializer()
 
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("dev.kdrant.model.VectorData")
@@ -60,11 +76,17 @@ internal object VectorDataSerializer : KSerializer<VectorData> {
     override fun serialize(encoder: Encoder, value: VectorData) {
         val json = encoder as? JsonEncoder
             ?: throw SerializationException("VectorData can only be serialized to JSON")
-        json.encodeJsonElement(toJson(value))
+        if (value is VectorData.DenseArray) {
+            // Zero-boxing fast path: write the FloatArray straight to a JSON number array.
+            encoder.encodeSerializableValue(floatArray, value.values)
+        } else {
+            json.encodeJsonElement(toJson(value))
+        }
     }
 
     private fun toJson(value: VectorData): JsonElement = when (value) {
         is VectorData.Dense -> JsonArray(value.values.map { JsonPrimitive(it) })
+        is VectorData.DenseArray -> JsonArray(value.values.map { JsonPrimitive(it) })
         is VectorData.Sparse -> buildJsonObject {
             put("indices", JsonArray(value.indices.map { JsonPrimitive(it) }))
             put("values", JsonArray(value.values.map { JsonPrimitive(it) }))

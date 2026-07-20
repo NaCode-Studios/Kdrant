@@ -49,7 +49,7 @@ Published to Maven Central and GitHub Packages.
 | **M10–M18** | ✅ Shipped in `0.2.0`. |
 | **M19** · Aliases, service & analytics endpoints | ✅ Implemented (unreleased — ships in the next minor). |
 | **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
-| **M21** · Observability, granular transport, no-boxing hot path | 🚧 In progress. |
+| **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
 | **M22** · Quality, supply chain & test depth (CI) | Planned. |
 | **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | Planned. |
 | **M24** · The road to `1.0` | Planned. |
@@ -58,7 +58,8 @@ Published to Maven Central and GitHub Packages.
 **Deferred sub-items carried forward from `0.2.0`:** `order_by` on `scroll` (M14); `Formula` / MMR
 reranking (M16); `batchUpdate` and parameterized payload-index params such as the text tokenizer (M17);
 `ensureCollection` + enriched `CollectionInfo` read-back, Product quantization, and `wal` / `strictMode`
-/ `params` config on update (M18); shard-scope snapshots (M20).
+/ `params` config on update (M18); shard-scope snapshots (M20); the `X-Request-Id` correlation header and
+bundled Micrometer / OpenTelemetry hooks (M21 — reachable via the `configureClient` seam).
 
 The detailed milestone descriptions below are kept as the plan of record; ✅ tiers are already shipped.
 
@@ -232,6 +233,12 @@ Provide the backup/restore story enterprise adoption expects, designed separatel
 ## Tier 4 — Production reliability, ecosystem & the road to `1.0`
 
 ### M21 · Observability, granular transport & no-boxing hot path — `L`
+
+**Status: ✅ implemented (unreleased).** Delivered: the `configureClient` client-customization seam,
+`connectTimeout` / `socketTimeout`, api-key-redacting logging, `Flow` / `Sequence` upsert, the
+`FloatArray` no-boxing dense path (`vector` / `query`), and byte-aware upsert batching (`maxUpsertBytes`).
+**Deferred:** the `X-Request-Id` correlation header and bundled Micrometer / OpenTelemetry hooks — both
+reachable today through the `configureClient` seam.
 
 Open the transport up to extension and observability, and optimise the hot upsert/search paths and
 streaming ingestion.

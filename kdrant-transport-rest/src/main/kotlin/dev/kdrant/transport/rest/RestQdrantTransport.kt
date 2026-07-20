@@ -65,6 +65,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
+import io.ktor.http.content.TextContent
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -74,6 +75,7 @@ import io.ktor.utils.io.writer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
@@ -110,6 +112,7 @@ internal class RestQdrantTransport(
     private val config: KdrantConfig,
     engine: HttpClientEngine? = null,
     private val upsertBatchSize: Int = 1000,
+    private val maxUpsertBytes: Int = DEFAULT_MAX_UPSERT_BYTES,
     private val logLevel: LogLevel? = null,
     private val logger: Logger? = null,
     private val configureClient: (HttpClientConfig<*>.() -> Unit)? = null,
@@ -117,6 +120,7 @@ internal class RestQdrantTransport(
 
     init {
         require(upsertBatchSize > 0) { "upsertBatchSize must be > 0, was $upsertBatchSize" }
+        require(maxUpsertBytes > 0) { "maxUpsertBytes must be > 0, was $maxUpsertBytes" }
     }
 
     private val client: HttpClient =
@@ -192,30 +196,44 @@ internal class RestQdrantTransport(
 
     override suspend fun upsert(name: String, points: List<PointStruct>, wait: Boolean) {
         if (points.isEmpty()) return
-        // Split into batches to stay under Qdrant's 32 MiB REST payload cap.
-        for (batch in points.chunked(upsertBatchSize)) {
-            flushUpsert(name, batch, wait)
-        }
+        upsertStreaming(name, points.asFlow(), wait)
     }
 
     override suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean) {
-        val buffer = ArrayList<PointStruct>(upsertBatchSize)
-        points.collect { point ->
-            buffer.add(point)
-            if (buffer.size >= upsertBatchSize) {
-                flushUpsert(name, buffer, wait)
-                buffer.clear()
-            }
-        }
-        if (buffer.isNotEmpty()) flushUpsert(name, buffer, wait)
+        upsertStreaming(name, points, wait)
     }
 
-    /** Sends one upsert batch (`PUT /collections/{name}/points`). */
-    private suspend fun flushUpsert(name: String, batch: List<PointStruct>, wait: Boolean) {
+    /**
+     * Buffers points into batches bounded by BOTH the point count ([upsertBatchSize]) and the serialized
+     * size ([maxUpsertBytes], so Qdrant's ~32 MiB REST cap is respected even for high-dimensional vectors),
+     * then PUTs each batch. Each point is serialized exactly once and the batch body is the concatenation
+     * of those fragments (no re-serialization). The size bound uses the JSON character length, a close
+     * proxy for UTF-8 bytes on numeric-vector-dominated payloads.
+     */
+    private suspend fun upsertStreaming(name: String, points: Flow<PointStruct>, wait: Boolean) {
+        val batch = ArrayList<String>()
+        var bytes = 0
+        points.collect { point ->
+            val json = KdrantJson.encodeToString(PointStruct.serializer(), point)
+            // A single point over the cap can't be split; flush what we have, then send it alone.
+            if (batch.isNotEmpty() && (batch.size >= upsertBatchSize || bytes + json.length > maxUpsertBytes)) {
+                flushUpsert(name, batch, wait)
+                batch.clear()
+                bytes = 0
+            }
+            batch.add(json)
+            bytes += json.length
+        }
+        if (batch.isNotEmpty()) flushUpsert(name, batch, wait)
+    }
+
+    /** Sends one upsert batch of pre-serialized point fragments (`PUT /collections/{name}/points`). */
+    private suspend fun flushUpsert(name: String, pointsJson: List<String>, wait: Boolean) {
+        val body = pointsJson.joinToString(separator = ",", prefix = """{"points":[""", postfix = "]}")
         execute(name) {
             client.put("/collections/${encode(name)}/points") {
                 parameter("wait", wait)
-                setBody(UpsertRequest(batch))
+                setBody(TextContent(body, ContentType.Application.Json))
             }
         }
     }
@@ -655,6 +673,9 @@ internal class RestQdrantTransport(
 
 /** HTTP statuses worth retrying: rate-limit plus transient gateway/service errors. */
 private val RETRYABLE_STATUS_CODES: Set<Int> = setOf(429, 502, 503, 504)
+
+/** Default soft cap on an upsert batch's serialized size — under Qdrant's ~32 MiB REST limit, with margin. */
+internal const val DEFAULT_MAX_UPSERT_BYTES: Int = 30 * 1024 * 1024
 
 /** Chunk size (bytes) for streaming a snapshot download. */
 private const val SNAPSHOT_CHUNK_BYTES: Int = 64 * 1024

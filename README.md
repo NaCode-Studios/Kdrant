@@ -276,14 +276,13 @@ retries; and typed-payload DX (`payloadAs<T>` / `searchAs<T>`) — on top of `0.
 `upsert`, `search`, `scroll`, and the complete filter DSL.
 
 **Implemented, landing in the next release** — collection aliases (atomic swaps for zero-downtime
-reindex), snapshots & backup/restore (streaming download/upload of the binary snapshot), and the
-server-side service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`, distance `matrix`)
-endpoints.
+reindex); snapshots & backup/restore (streaming download/upload of the binary snapshot); the server-side
+service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`, distance `matrix`) endpoints;
+and observability & a granular transport seam (a `configureClient` hook, api-key-redacting logs, tuned
+timeouts, `Flow` / `Sequence` upsert, and a `FloatArray` no-boxing hot path with byte-aware batching).
 
-**Next** — observability and a granular transport seam (a client-customization hook, api-key-redacting
-logs, tuned timeouts) plus a no-boxing hot path; then framework integrations (Spring AI / LangChain4j /
-Koog) with a runnable RAG demo, and the road to `1.0` — with Kotlin Multiplatform and an optional gRPC
-engine after that.
+**Next** — framework integrations (Spring AI / LangChain4j / Koog) with a runnable RAG demo, hardened CI
+and supply-chain, and the road to `1.0` — with Kotlin Multiplatform and an optional gRPC engine after that.
 
 See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
 

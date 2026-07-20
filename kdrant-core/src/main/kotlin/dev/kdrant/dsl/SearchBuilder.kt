@@ -48,7 +48,7 @@ public class SearchBuilder {
     public fun query(values: List<Float>) { query = QueryInterface.Vector(values) }
 
     /** Search by an explicit dense query vector. */
-    public fun query(vararg values: Float) { query = QueryInterface.Vector(values.toList()) }
+    public fun query(vararg values: Float) { query = QueryInterface.VectorArray(values) }
 
     /** Search by the stored vector of an existing point (a "more like this" query). */
     public fun query(id: PointId) { query = QueryInterface.ById(id) }
@@ -124,6 +124,8 @@ public class SearchBuilder {
         when (q) {
             is QueryInterface.Vector ->
                 require(q.values.isNotEmpty()) { "search requires a non-empty query vector" }
+            is QueryInterface.VectorArray ->
+                require(q.values.isNotEmpty()) { "search requires a non-empty query vector" }
             is QueryInterface.Sparse ->
                 require(q.values.isNotEmpty() && q.indices.size == q.values.size) {
                     "a sparse query needs matching, non-empty indices and values"
@@ -172,7 +174,7 @@ public class PrefetchBuilder {
     public fun query(values: List<Float>) { query = QueryInterface.Vector(values) }
 
     /** Search by an explicit dense query vector. */
-    public fun query(vararg values: Float) { query = QueryInterface.Vector(values.toList()) }
+    public fun query(vararg values: Float) { query = QueryInterface.VectorArray(values) }
 
     /** Search by the stored vector of an existing point. */
     public fun query(id: PointId) { query = QueryInterface.ById(id) }

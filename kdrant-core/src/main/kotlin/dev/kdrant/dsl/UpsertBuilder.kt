@@ -41,9 +41,9 @@ public class PointBuilder internal constructor(private val id: PointId) {
         vector = VectorData.Dense(values)
     }
 
-    /** Single anonymous dense vector. */
+    /** Single anonymous dense vector — zero-boxing: the values are kept as a [FloatArray], not boxed. */
     public fun vector(vararg values: Float) {
-        vector = VectorData.Dense(values.toList())
+        vector = VectorData.DenseArray(values)
     }
 
     /** Named dense vectors. */

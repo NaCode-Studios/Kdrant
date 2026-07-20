@@ -1790,6 +1790,14 @@ public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/Vec
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/kdrant/model/QueryInterface$VectorArray : dev/kdrant/model/VectorInput {
+	public fun <init> ([F)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValues ()[F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/kdrant/model/RecommendStrategy : java/lang/Enum {
 	public static final field AVERAGE_VECTOR Ldev/kdrant/model/RecommendStrategy;
 	public static final field BEST_SCORE Ldev/kdrant/model/RecommendStrategy;
@@ -2316,6 +2324,14 @@ public final class dev/kdrant/model/VectorData$Dense : dev/kdrant/model/VectorDa
 	public static synthetic fun copy$default (Ldev/kdrant/model/VectorData$Dense;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/VectorData$Dense;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/VectorData$DenseArray : dev/kdrant/model/VectorData {
+	public fun <init> ([F)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValues ()[F
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
