@@ -1,6 +1,7 @@
 package dev.kdrant.transport.rest
 
 import dev.kdrant.model.CollectionInfo
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -17,6 +18,21 @@ internal data class QueryResponse(
 @Serializable
 internal data class QueryResult(
     @SerialName("points") val points: List<ScoredPoint>,
+)
+
+@Serializable
+internal data class BatchQueryResponse(
+    @SerialName("result") val result: List<QueryResult>,
+)
+
+@Serializable
+internal data class GroupsResponse(
+    @SerialName("result") val result: GroupsResultBody,
+)
+
+@Serializable
+internal data class GroupsResultBody(
+    @SerialName("groups") val groups: List<PointGroup>,
 )
 
 @Serializable

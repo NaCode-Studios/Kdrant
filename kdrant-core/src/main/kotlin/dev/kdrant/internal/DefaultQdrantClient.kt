@@ -1,6 +1,7 @@
 package dev.kdrant.internal
 
 import dev.kdrant.QdrantClient
+import dev.kdrant.dsl.BatchSearchBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
@@ -8,9 +9,11 @@ import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
+import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
@@ -49,6 +52,38 @@ internal class DefaultQdrantClient(
         name: String,
         configure: SearchBuilder.() -> Unit,
     ): List<ScoredPoint> = transport.query(name, SearchBuilder().apply(configure).build())
+
+    override suspend fun searchBatch(
+        name: String,
+        configure: BatchSearchBuilder.() -> Unit,
+    ): List<List<ScoredPoint>> = transport.queryBatch(name, BatchSearchBuilder().apply(configure).build())
+
+    override suspend fun searchGroups(
+        name: String,
+        groupBy: String,
+        groupSize: Int?,
+        limit: Int?,
+        configure: SearchBuilder.() -> Unit,
+    ): List<PointGroup> {
+        val sr = SearchBuilder().apply(configure).build()
+        return transport.queryGroups(
+            name,
+            SearchGroupsRequest(
+                groupBy = groupBy,
+                groupSize = groupSize,
+                limit = limit,
+                prefetch = sr.prefetch,
+                query = sr.query,
+                using = sr.using,
+                filter = sr.filter,
+                params = sr.params,
+                scoreThreshold = sr.scoreThreshold,
+                withPayload = sr.withPayload,
+                withVector = sr.withVector,
+                lookupFrom = sr.lookupFrom,
+            ),
+        )
+    }
 
     override fun scroll(
         name: String,

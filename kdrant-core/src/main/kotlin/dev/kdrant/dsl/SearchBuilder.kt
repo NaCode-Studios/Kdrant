@@ -299,3 +299,19 @@ public class ContextBuilder {
 
     internal fun build(): QueryInterface.Context = QueryInterface.Context(pairs.toList())
 }
+
+/** DSL for `searchBatch`: accumulate several searches to run in a single request. */
+@KdrantDsl
+public class BatchSearchBuilder {
+    private val searches = mutableListOf<SearchRequest>()
+
+    /** Add one search to the batch. */
+    public fun search(configure: SearchBuilder.() -> Unit) {
+        searches += SearchBuilder().apply(configure).build()
+    }
+
+    internal fun build(): List<SearchRequest> {
+        require(searches.isNotEmpty()) { "searchBatch needs at least one search { }" }
+        return searches.toList()
+    }
+}

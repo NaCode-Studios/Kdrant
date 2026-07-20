@@ -10,12 +10,14 @@ import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Filter
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
+import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
@@ -145,6 +147,20 @@ internal class RestQdrantTransport(
             client.post("/collections/${encode(name)}/points/query") { setBody(request) }
         }
         return decodeBody(response) { it.body<QueryResponse>().result.points }
+    }
+
+    override suspend fun queryBatch(name: String, requests: List<SearchRequest>): List<List<ScoredPoint>> {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/points/query/batch") { setBody(BatchQueryRequest(requests)) }
+        }
+        return decodeBody(response) { resp -> resp.body<BatchQueryResponse>().result.map { it.points } }
+    }
+
+    override suspend fun queryGroups(name: String, request: SearchGroupsRequest): List<PointGroup> {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/points/query/groups") { setBody(request) }
+        }
+        return decodeBody(response) { it.body<GroupsResponse>().result.groups }
     }
 
     override suspend fun scroll(name: String, request: ScrollRequest): ScrollPage {

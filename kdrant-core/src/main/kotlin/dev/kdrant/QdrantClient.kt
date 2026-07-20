@@ -1,5 +1,6 @@
 package dev.kdrant
 
+import dev.kdrant.dsl.BatchSearchBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
@@ -7,6 +8,7 @@ import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
 import dev.kdrant.model.CollectionInfo
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
@@ -97,6 +99,31 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.InvalidRequest if the query is malformed (e.g. wrong vector size).
      */
     public suspend fun search(name: String, configure: SearchBuilder.() -> Unit): List<ScoredPoint>
+
+    /**
+     * Run several searches in a single request; returns the hits for each, in the order added.
+     *
+     * ```kotlin
+     * val (a, b) = qdrant.searchBatch("docs") { search { query(v1) }; search { query(v2) } }
+     * ```
+     */
+    public suspend fun searchBatch(
+        name: String,
+        configure: BatchSearchBuilder.() -> Unit,
+    ): List<List<ScoredPoint>>
+
+    /**
+     * Grouped search: return hits grouped by the [groupBy] payload field.
+     *
+     * @param groupSize max hits per group. @param limit max number of groups.
+     */
+    public suspend fun searchGroups(
+        name: String,
+        groupBy: String,
+        groupSize: Int? = null,
+        limit: Int? = null,
+        configure: SearchBuilder.() -> Unit,
+    ): List<PointGroup>
 
     /**
      * Stream all points (optionally filtered) as a cold [Flow], transparently following the

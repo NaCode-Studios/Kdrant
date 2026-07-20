@@ -2,6 +2,7 @@ package dev.kdrant.transport.rest
 
 import dev.kdrant.model.Filter
 import dev.kdrant.model.PointId
+import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -19,4 +20,10 @@ internal data class PointRequest(
     @SerialName("ids") val ids: List<PointId>,
     @SerialName("with_payload") val withPayload: WithPayload? = null,
     @SerialName("with_vector") val withVector: Boolean? = null,
+)
+
+/** Body for `POST /collections/{name}/points/query/batch`. */
+@Serializable
+internal data class BatchQueryRequest(
+    @SerialName("searches") val searches: List<SearchRequest>,
 )

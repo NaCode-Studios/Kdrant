@@ -22,6 +22,8 @@ All notable changes to this project are documented in this file. The format is b
 - Advanced retrieval queries on `search`: `recommend { positive(...); negative(...); strategy = ... }`,
   `discover { target(...); context(...) }`, and `context { pair(...) }`. Examples (`VectorInput`) accept a
   dense/sparse vector or a point id.
+- Batch and grouped search: `searchBatch { search { } … }` (several searches in one round-trip, hits per
+  search) and `searchGroups(groupBy = …) { }` returning `List<PointGroup>`.
 - Sparse & multi-vectors: `VectorData.Sparse` / `MultiDense`, `sparseVector(name) { modifier = Modifier.IDF }`
   and per-vector `multivector` in `createCollection`, and `querySparse(...)` / `queryMulti(...)` — enabling
   true dense+sparse hybrid search combined with M14 fusion. Response decoding now degrades an unknown vector

@@ -4,12 +4,14 @@ import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Filter
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
+import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
 
@@ -39,6 +41,12 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Nearest-vector search (`POST /collections/{name}/points/query`). */
     public suspend fun query(name: String, request: SearchRequest): List<ScoredPoint>
+
+    /** Batch nearest-vector search (`POST /collections/{name}/points/query/batch`). */
+    public suspend fun queryBatch(name: String, requests: List<SearchRequest>): List<List<ScoredPoint>>
+
+    /** Grouped nearest-vector search (`POST /collections/{name}/points/query/groups`). */
+    public suspend fun queryGroups(name: String, request: SearchGroupsRequest): List<PointGroup>
 
     /** Fetch a single page of points (`POST /collections/{name}/points/scroll`). */
     public suspend fun scroll(name: String, request: ScrollRequest): ScrollPage
