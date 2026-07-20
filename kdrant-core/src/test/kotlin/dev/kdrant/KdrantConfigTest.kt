@@ -1,8 +1,11 @@
 package dev.kdrant
 
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class KdrantConfigTest {
 
@@ -38,5 +41,25 @@ class KdrantConfigTest {
         assertThrows(IllegalArgumentException::class.java) {
             kdrantConfig("h", 6333) { maxRetries = -1 }
         }
+    }
+
+    @Test
+    fun `rejects a non-positive connect or socket timeout`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            kdrantConfig("h", 6333) { connectTimeout = Duration.ZERO }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            kdrantConfig("h", 6333) { socketTimeout = -(1.seconds) }
+        }
+    }
+
+    @Test
+    fun `accepts and stores connect and socket timeouts`() {
+        val config = kdrantConfig("h", 6333) {
+            connectTimeout = 2.seconds
+            socketTimeout = 10.seconds
+        }
+        assertEquals(2.seconds, config.connectTimeout)
+        assertEquals(10.seconds, config.socketTimeout)
     }
 }

@@ -1,5 +1,5 @@
 public final class dev/kdrant/transport/rest/KdrantKt {
-	public static final fun Kdrant (Ljava/lang/String;IILkotlin/jvm/functions/Function1;)Ldev/kdrant/QdrantClient;
-	public static synthetic fun Kdrant$default (Ljava/lang/String;IILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/kdrant/QdrantClient;
+	public static final fun Kdrant (Ljava/lang/String;IIILio/ktor/client/plugins/logging/LogLevel;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/kdrant/QdrantClient;
+	public static synthetic fun Kdrant$default (Ljava/lang/String;IIILio/ktor/client/plugins/logging/LogLevel;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/kdrant/QdrantClient;
 }
 

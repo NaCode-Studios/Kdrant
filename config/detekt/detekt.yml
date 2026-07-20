@@ -1,0 +1,50 @@
+# detekt configuration — extends the default rule set (buildUponDefaultConfig = true).
+# Only deviations from the defaults are listed here.
+
+naming:
+  # Factory functions named like the type they build (Kdrant(...), QdrantClient(...)) are intentional.
+  FunctionNaming:
+    ignoreAnnotated: []
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+  # DSL helpers are grouped by concept into *Dsl.kt files (e.g. PayloadDsl.kt holds PayloadBuilder + payloadOf).
+  MatchingDeclarationName:
+    active: false
+
+style:
+  # Line length is enforced by ktlint (.editorconfig: 120 for main, 140 for tests).
+  MaxLineLength:
+    active: false
+  # A trailing/leading return in a guard-heavy function is idiomatic here.
+  ReturnCount:
+    active: false
+  # HTTP status codes, default timeouts/limits, and byte sizes are self-explanatory in context; naming
+  # each as a constant would hurt readability more than it helps.
+  MagicNumber:
+    active: false
+
+complexity:
+  # The public QdrantClient interface and the transport seam intentionally expose many operations.
+  TooManyFunctions:
+    active: false
+  LongParameterList:
+    functionThreshold: 8
+    # KdrantConfig is a settings holder — many optional connection parameters are expected.
+    constructorThreshold: 12
+  # ensureSuccess is a single flat `when` mapping HTTP status codes to typed exceptions — clear despite its size.
+  CyclomaticComplexMethod:
+    threshold: 25
+
+performance:
+  # `vector(*floatArray)` / `query(*floatArray)` spread into the FloatArray vararg overloads is the
+  # intended zero-boxing path — the single array copy is deliberate and cheaper than boxing per element.
+  SpreadOperator:
+    active: false
+
+exceptions:
+  # Serializers legitimately throw SerializationException from `when`/cast guards.
+  TooGenericExceptionCaught:
+    active: false
+  # A few best-effort reads (e.g. error-body parsing) intentionally discard the cause after re-throwing
+  # CancellationException; the discard is deliberate and documented at each site.
+  SwallowedException:
+    active: false

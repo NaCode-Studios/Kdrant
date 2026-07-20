@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/kdrant-hero.png" alt="Kdrant — an idiomatic, coroutine-first Kotlin client for Qdrant" width="100%">
+</p>
+
 # Kdrant
 
 **An idiomatic, coroutine-first Kotlin client for the [Qdrant](https://qdrant.tech) vector database.**
@@ -36,10 +40,14 @@ qdrant.use { client ->
 Kdrant stores and searches vectors you already have — `embedding` above is a `List<Float>` from
 your own embedding model; Kdrant does not generate embeddings.
 
-> **Status — 0.2, pre-1.0.** Collections (create/update/delete), `upsert`, the modern `/points/query`
-> search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse & multi-vectors,
-> `scroll`, payload & vector management, resilient retries, and the full filter DSL are implemented and
-> tested. APIs may still change before `1.0`.
+> **See it end to end:** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
+> service (ingest → embed → store → retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
+
+> **Status — `1.0`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
+> `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse &
+> multi-vectors, `scroll`, payload & vector management, aliases, snapshots, service/analytics endpoints,
+> resilient retries, and the full filter DSL — plus Spring Boot / Spring AI / LangChain4j integrations.
+> The public API is now stable under SemVer; see **[STABILITY.md](STABILITY.md)**.
 
 ## Why Kdrant
 
@@ -76,7 +84,7 @@ Requires **JDK 17+**. Artifacts are published to Maven Central under `io.github.
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:0.2.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:1.0.0")
 }
 ```
 
@@ -255,6 +263,13 @@ try {
 }
 ```
 
+Prefer a `Result`? `catching { }` is a coroutine-safe `runCatching` — it wraps the outcome but always
+re-throws `CancellationException`:
+
+```kotlin
+val hits = catching { qdrant.search("articles") { query(queryVector) } }.getOrElse { emptyList() }
+```
+
 ## Architecture
 
 Two modules keep protocol concerns out of the public API:
@@ -269,24 +284,30 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped (`0.2.0`)** — the modern `/points/query` engine (nearest, hybrid RRF/DBSF fusion, sparse &
-multi-vectors, `recommend` / `discover` / `context`, batch and grouped search); payload & vector
-mutations and payload field indexes; collection config tuning (optimizers, quantization); resilient
-retries; and typed-payload DX (`payloadAs<T>` / `searchAs<T>`) — on top of `0.1.0`'s collections,
-`upsert`, `search`, `scroll`, and the complete filter DSL.
+**Shipped in `1.0.0`** — collection aliases (zero-downtime reindex); snapshots & backup/restore (streaming
+download/upload); the server-side service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`,
+distance `matrix`) endpoints; a granular transport seam (`configureClient`, api-key-redacting logs, tuned
+timeouts) with `Flow` / `Sequence` upsert and a `FloatArray` no-boxing hot path with byte-aware batching;
+and the `catching { }` helper — plus **Spring Boot**, **Spring AI (`VectorStore`)**, and **LangChain4j
+(`EmbeddingStore`)** integrations and a runnable **RAG example** ([`example-rag`](example-rag/)). The
+pipeline is hardened too: ktlint + detekt gates, a JDK and Qdrant-version CI matrix, Dependabot, and
+property-based serialization tests. All on top of `0.2.0`'s modern `/points/query` engine (hybrid RRF/DBSF
+fusion, sparse & multi-vectors, `recommend` / `discover` / `context`, batch and grouped search), payload &
+vector management, collection config, resilient retries, and typed-payload DX (`payloadAs<T>` / `searchAs<T>`).
 
-**Next** — aliases and snapshots; observability and a granular transport seam; framework integrations
-(Spring AI / LangChain4j / Koog) with a runnable RAG demo; and the road to `1.0`, with Kotlin
-Multiplatform and an optional gRPC engine after that.
+**Next (post-`1.0`)** — Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays the
+default), and cluster / sharding.
 
-See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
+See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`), and **[STABILITY.md](STABILITY.md)**
+for the versioning / stability policy.
 
 ## Building and testing
 
 ```bash
-./gradlew build         # compile, run unit tests, verify public API (binary-compatibility-validator)
+./gradlew build         # compile, run unit tests, lint (ktlint + detekt), verify public API
 ./gradlew apiCheck      # check the tracked public API in *.api
 ./gradlew apiDump       # regenerate *.api after an intentional public-API change
+./gradlew ktlintFormat  # auto-fix formatting before committing
 ```
 
 Unit tests need no external services. Integration tests spin up a real Qdrant with

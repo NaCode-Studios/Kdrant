@@ -9,6 +9,9 @@ dependencies {
     constraints {
         api("io.github.nacode-studios:kdrant-core:${project.version}")
         api("io.github.nacode-studios:kdrant-transport-rest:${project.version}")
+        api("io.github.nacode-studios:kdrant-spring-boot-starter:${project.version}")
+        api("io.github.nacode-studios:kdrant-spring-ai:${project.version}")
+        api("io.github.nacode-studios:kdrant-langchain4j:${project.version}")
     }
 }
 

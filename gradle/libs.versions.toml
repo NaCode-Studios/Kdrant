@@ -7,6 +7,15 @@ serialization = "1.11.0"
 ktor = "3.5.1"
 junit = "6.1.1"
 testcontainers = "2.0.5"
+ktlint = "12.1.2"
+detekt = "1.23.8"
+kover = "0.9.1"
+kotest = "5.9.1"
+springBoot = "3.4.1"
+assertj = "3.27.3"
+springAi = "1.0.0"
+langchain4j = "1.0.0"
+mockk = "1.13.13"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -16,7 +25,11 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -28,6 +41,19 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
 testcontainers-qdrant = { module = "org.testcontainers:testcontainers-qdrant", version.ref = "testcontainers" }
 
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "springBoot" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
+spring-boot-test = { module = "org.springframework.boot:spring-boot-test", version.ref = "springBoot" }
+spring-boot-test-autoconfigure = { module = "org.springframework.boot:spring-boot-test-autoconfigure", version.ref = "springBoot" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "springAi" }
+spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "springAi" }
+langchain4j-core = { module = "dev.langchain4j:langchain4j-core", version.ref = "langchain4j" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
@@ -35,3 +61,7 @@ binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibil
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+jmh = { id = "me.champeau.jmh", version = "0.7.2" }

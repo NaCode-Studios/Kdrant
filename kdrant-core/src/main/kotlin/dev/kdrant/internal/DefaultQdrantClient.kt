@@ -6,22 +6,36 @@ import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
+import dev.kdrant.dsl.SearchMatrixBuilder
+import dev.kdrant.dsl.UpdateAliasesBuilder
 import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
+import dev.kdrant.dsl.hasConditions
+import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchGroupsRequest
+import dev.kdrant.model.SearchMatrixOffsets
+import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.SnapshotDescription
+import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Protocol-independent [QdrantClient]: turns the ergonomic DSL into request models and
@@ -54,6 +68,14 @@ internal class DefaultQdrantClient(
     ) {
         val points = UpsertBuilder().apply(configure).build()
         transport.upsert(name, points, wait)
+    }
+
+    override suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean) {
+        transport.upsert(name, points, wait)
+    }
+
+    override suspend fun upsert(name: String, points: Sequence<PointStruct>, wait: Boolean) {
+        transport.upsert(name, points.asFlow(), wait)
     }
 
     override suspend fun search(
@@ -152,8 +174,12 @@ internal class DefaultQdrantClient(
         return transport.retrieve(name, ids, withPayload, withVector)
     }
 
-    override suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean): Unit =
-        transport.createPayloadIndex(name, field, schema, wait)
+    override suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        schema: PayloadSchemaType,
+        wait: Boolean,
+    ): Unit = transport.createPayloadIndex(name, field, schema, wait)
 
     override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean): Unit =
         transport.deletePayloadIndex(name, field, wait)
@@ -192,6 +218,107 @@ internal class DefaultQdrantClient(
         selector: DeleteSelector,
         wait: Boolean,
     ): Unit = transport.deleteVectors(name, vectors, selector, wait)
+
+    override suspend fun updateAliases(timeout: Int?, configure: UpdateAliasesBuilder.() -> Unit) {
+        val operations = UpdateAliasesBuilder().apply(configure).build()
+        require(operations.isNotEmpty()) {
+            "updateAliases needs at least one action (createAlias / deleteAlias / renameAlias)"
+        }
+        transport.updateAliases(operations, timeout)
+    }
+
+    override suspend fun listAliases(): List<AliasDescription> = transport.listAliases()
+
+    override suspend fun listCollectionAliases(name: String): List<AliasDescription> =
+        transport.listCollectionAliases(name)
+
+    override suspend fun healthz(): Boolean = transport.healthz()
+
+    override suspend fun readyz(): Boolean = transport.readyz()
+
+    override suspend fun livez(): Boolean = transport.livez()
+
+    override suspend fun listCollections(): List<CollectionDescription> = transport.listCollections()
+
+    override suspend fun telemetry(): JsonObject = transport.telemetry()
+
+    override suspend fun metrics(): String = transport.metrics()
+
+    override suspend fun listIssues(): JsonElement = transport.listIssues()
+
+    override suspend fun clearIssues() {
+        transport.clearIssues()
+    }
+
+    override suspend fun facet(
+        name: String,
+        key: String,
+        limit: Int?,
+        exact: Boolean,
+        filter: FilterBuilder.() -> Unit,
+    ): List<FacetHit> {
+        limit?.let { require(it >= 1) { "facet 'limit' must be >= 1, was $it" } }
+        val built = FilterBuilder().apply(filter).build()
+        val effectiveFilter = built.takeIf { it.hasConditions() }
+        return transport.facet(name, key, effectiveFilter, limit, exact)
+    }
+
+    override suspend fun searchMatrixPairs(
+        name: String,
+        configure: SearchMatrixBuilder.() -> Unit,
+    ): SearchMatrixPairs = transport.searchMatrixPairs(name, SearchMatrixBuilder().apply(configure).build())
+
+    override suspend fun searchMatrixOffsets(
+        name: String,
+        configure: SearchMatrixBuilder.() -> Unit,
+    ): SearchMatrixOffsets = transport.searchMatrixOffsets(name, SearchMatrixBuilder().apply(configure).build())
+
+    override suspend fun createSnapshot(name: String, wait: Boolean): SnapshotDescription =
+        transport.createSnapshot(name, wait)
+
+    override suspend fun listSnapshots(name: String): List<SnapshotDescription> = transport.listSnapshots(name)
+
+    override suspend fun deleteSnapshot(name: String, snapshotName: String, wait: Boolean) {
+        transport.deleteSnapshot(name, snapshotName, wait)
+    }
+
+    override suspend fun recoverSnapshot(
+        name: String,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        require(location.isNotBlank()) {
+            "recoverSnapshot needs a non-blank location (an http(s):// URL or file:/// path)"
+        }
+        transport.recoverSnapshot(name, location, priority, checksum, wait)
+    }
+
+    override fun downloadSnapshot(name: String, snapshotName: String): Flow<ByteArray> =
+        transport.downloadSnapshot(name, snapshotName)
+
+    override suspend fun uploadSnapshot(
+        name: String,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        transport.uploadSnapshot(name, data, priority, checksum, wait)
+    }
+
+    override suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription =
+        transport.createStorageSnapshot(wait)
+
+    override suspend fun listStorageSnapshots(): List<SnapshotDescription> = transport.listStorageSnapshots()
+
+    override suspend fun deleteStorageSnapshot(snapshotName: String, wait: Boolean) {
+        transport.deleteStorageSnapshot(snapshotName, wait)
+    }
+
+    override fun downloadStorageSnapshot(snapshotName: String): Flow<ByteArray> =
+        transport.downloadStorageSnapshot(snapshotName)
 
     override fun close() {
         transport.close()

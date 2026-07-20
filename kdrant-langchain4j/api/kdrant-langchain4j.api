@@ -1,0 +1,12 @@
+public final class dev/kdrant/langchain4j/KdrantEmbeddingStore : dev/langchain4j/store/embedding/EmbeddingStore {
+	public static final field TEXT_KEY Ljava/lang/String;
+	public fun <init> (Ldev/kdrant/QdrantClient;Ljava/lang/String;)V
+	public fun add (Ldev/langchain4j/data/embedding/Embedding;)Ljava/lang/String;
+	public fun add (Ldev/langchain4j/data/embedding/Embedding;Ldev/langchain4j/data/segment/TextSegment;)Ljava/lang/String;
+	public synthetic fun add (Ldev/langchain4j/data/embedding/Embedding;Ljava/lang/Object;)Ljava/lang/String;
+	public fun add (Ljava/lang/String;Ldev/langchain4j/data/embedding/Embedding;)V
+	public fun addAll (Ljava/util/List;)Ljava/util/List;
+	public fun addAll (Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public fun search (Ldev/langchain4j/store/embedding/EmbeddingSearchRequest;)Ldev/langchain4j/store/embedding/EmbeddingSearchResult;
+}
+

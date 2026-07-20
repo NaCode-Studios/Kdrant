@@ -9,8 +9,23 @@ indent_style = space
 indent_size = 4
 
 [*.{kt,kts}]
+# The codebase follows the IntelliJ "official" Kotlin style (kotlin.code.style=official); run ktlint in
+# that mode rather than its own more aggressive ktlint_official wrapping ruleset.
+ktlint_code_style = intellij_idea
 max_line_length = 120
 ktlint_standard_no-wildcard-imports = enabled
+# Keep the codebase's deliberate compact style: factory functions named like types (Kdrant, QdrantClient),
+# single-line `{ a; b }` blocks, and expression bodies kept on one line where they fit. ktlint still gates
+# imports, indentation, spacing, blank lines, and the 120-column limit.
+ktlint_standard_function-naming = disabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_statement-wrapping = disabled
+ktlint_standard_if-else-bracing = disabled
+ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/test/**/*.kt]
+# Test fixtures (long inline JSON assertions, verbose set-up) get a little more room than production code.
+max_line_length = 140
 
 [*.{yml,yaml,json,toml}]
 indent_size = 2

@@ -6,6 +6,49 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-20
+
+Kdrant's `1.0`: the REST client is feature-complete and its public API is now stable under Semantic
+Versioning — see [STABILITY.md](STABILITY.md). On top of `0.2.0` (M10–M18), this release adds M19–M24
+(aliases, snapshots, service/analytics endpoints, granular transport & observability, a no-boxing hot
+path, quality/CI hardening, the Spring Boot / Spring AI / LangChain4j integrations, and the `catching`
+helper).
+
+### Added
+- Aliases (M19): `updateAliases { createAlias(collection, alias); deleteAlias(alias); renameAlias(from, to) }`,
+  applied by the server as one atomic batch — the primitive behind zero-downtime reindexing (build a new
+  collection, then swap the alias in a single step). Plus `listAliases()` and `listCollectionAliases(name)`.
+- Service & health endpoints (M19): `healthz()` / `readyz()` / `livez()` (Kubernetes-style probes that return
+  a `Boolean` and never throw on a not-ready status), `listCollections()`, `telemetry()` and `listIssues()`
+  (raw JSON, since the shape is server-version-specific), `clearIssues()`, and `metrics()` (Prometheus
+  text-exposition format).
+- Analytics (M19): `facet(name, key, limit, exact) { filter }` — distinct payload-value counts (a histogram
+  over a key) — and the distance-matrix endpoints `searchMatrixPairs(name) { sample; limit; using; filter }`
+  and `searchMatrixOffsets(...)` (explicit edge-list and sparse-coordinate forms) for clustering/visualization.
+- Snapshots & backup/restore (M20): `createSnapshot` / `listSnapshots` / `deleteSnapshot` /
+  `recoverSnapshot(location, priority, checksum)` for a collection, plus `createStorageSnapshot` /
+  `listStorageSnapshots` / `deleteStorageSnapshot` for the whole storage. Binary transfer is streamed, so a
+  multi-GB backup is never buffered in memory: `downloadSnapshot(...)` / `downloadStorageSnapshot(...)` return
+  a cold `Flow<ByteArray>`, and `uploadSnapshot(name, data: Flow<ByteArray>, ...)` streams a snapshot file back
+  as a multipart upload. `SnapshotPriority` (`NO_SYNC` / `SNAPSHOT` / `REPLICA`) sets the source of truth when
+  recovering into a replicated collection. Note: unlike the mutation `wait` flags, snapshot `wait` defaults to
+  `true`, matching the Qdrant server default.
+- Granular transport & observability (M21): a `configureClient` escape hatch on the `Kdrant(...)` factory
+  (an `HttpClientConfig<*>` hook to install your own plugins — metrics, tracing — tune the CIO engine, or
+  override any default); `connectTimeout` / `socketTimeout` on the client config; and optional
+  request/response logging via `logLevel = LogLevel.…`, which always redacts the `api-key` header so the
+  key never reaches the logs.
+- Streaming ingest (M21): `upsert(name, points: Flow<PointStruct>)` and `upsert(name, points: Sequence<PointStruct>)`
+  — ingest a large or unbounded source without materializing it all in memory; the engine chunks it by the
+  configured batch size (sequential, not atomic across chunks, like the DSL `upsert`).
+- Ergonomics (M24): `catching { … }` — a coroutine-safe `runCatching` that returns `Result<T>` but re-throws
+  `CancellationException` instead of trapping it. The exception-based API stays the primary style.
+- No-boxing hot path (M21): the DSL `vector(f1, f2, …)` / `vector(*floatArray)` (upsert) and `query(f1, f2, …)`
+  (search) now keep the values in a `FloatArray` and serialize it directly, avoiding a boxed `Float` per element
+  (`VectorData.DenseArray` / `QueryInterface.VectorArray`). Upsert batching is byte-aware: a batch is bounded by
+  both the point count and a serialized-size cap (`maxUpsertBytes`, default ~30 MiB), so Qdrant's ~32 MiB REST
+  limit is respected even for high-dimensional vectors.
+
 ## [0.2.0] - 2026-07-20
 
 ### Fixed
@@ -81,6 +124,7 @@ All notable changes to this project are documented in this file. The format is b
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/NaCode-Studios/Kdrant/releases/tag/v0.1.0

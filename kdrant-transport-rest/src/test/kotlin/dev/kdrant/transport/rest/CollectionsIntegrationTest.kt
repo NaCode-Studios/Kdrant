@@ -24,7 +24,9 @@ import org.testcontainers.qdrant.QdrantContainer
 class CollectionsIntegrationTest {
 
     companion object {
-        private val container = QdrantContainer("qdrant/qdrant:v1.18.2")
+        // Image is overridable so CI can run this suite against a matrix of Qdrant versions.
+        private val image = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.18.2"
+        private val container = QdrantContainer(image)
 
         @BeforeAll
         @JvmStatic

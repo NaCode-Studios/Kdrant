@@ -1,8 +1,12 @@
 package dev.kdrant.transport
 
+import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.AliasOperation
+import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
 import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
@@ -15,9 +19,17 @@ import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchGroupsRequest
+import dev.kdrant.model.SearchMatrixOffsets
+import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.SnapshotDescription
+import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Wire-protocol seam. Concrete engines (the REST/Ktor engine lives in `kdrant-transport-rest`;
@@ -45,6 +57,9 @@ public interface QdrantTransport : AutoCloseable {
      * 32 MiB payload cap). [wait] maps to `?wait=`.
      */
     public suspend fun upsert(name: String, points: List<PointStruct>, wait: Boolean)
+
+    /** Upsert points streamed from a [Flow], chunked by the engine's batch size (`PUT /collections/{name}/points`). */
+    public suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean)
 
     /** Nearest-vector search (`POST /collections/{name}/points/query`). */
     public suspend fun query(name: String, request: SearchRequest): List<ScoredPoint>
@@ -101,4 +116,96 @@ public interface QdrantTransport : AutoCloseable {
         withPayload: WithPayload?,
         withVector: Boolean?,
     ): List<Record>
+
+    // --- Aliases (M19) ---
+
+    /** Apply alias changes atomically (`POST /collections/aliases`); [timeout] is in seconds. */
+    public suspend fun updateAliases(operations: List<AliasOperation>, timeout: Int?)
+
+    /** List every alias across all collections (`GET /aliases`). */
+    public suspend fun listAliases(): List<AliasDescription>
+
+    /** List the aliases pointing at one collection (`GET /collections/{name}/aliases`). */
+    public suspend fun listCollectionAliases(name: String): List<AliasDescription>
+
+    // --- Service & health (M19) ---
+
+    /** Whether the node is healthy (`GET /healthz`); `false` on a non-2xx probe response. */
+    public suspend fun healthz(): Boolean
+
+    /** Whether the node is ready to serve (`GET /readyz`); `false` on a non-2xx probe response. */
+    public suspend fun readyz(): Boolean
+
+    /** Whether the node is alive (`GET /livez`); `false` on a non-2xx probe response. */
+    public suspend fun livez(): Boolean
+
+    /** List all collection names (`GET /collections`). */
+    public suspend fun listCollections(): List<CollectionDescription>
+
+    /** Telemetry data as a raw JSON object (`GET /telemetry`). */
+    public suspend fun telemetry(): JsonObject
+
+    /** Prometheus metrics in text exposition format (`GET /metrics`). */
+    public suspend fun metrics(): String
+
+    /** Detected performance issues as raw JSON (`GET /issues`). */
+    public suspend fun listIssues(): JsonElement
+
+    /** Clear the collected issues (`DELETE /issues`). */
+    public suspend fun clearIssues()
+
+    // --- Analytics (M19) ---
+
+    /** Facet a payload [key], counting distinct values (`POST /collections/{name}/facet`). */
+    public suspend fun facet(name: String, key: String, filter: Filter?, limit: Int?, exact: Boolean): List<FacetHit>
+
+    /** Distance matrix in pairs form (`POST /collections/{name}/points/search/matrix/pairs`). */
+    public suspend fun searchMatrixPairs(name: String, request: SearchMatrixRequest): SearchMatrixPairs
+
+    /** Distance matrix in offsets form (`POST /collections/{name}/points/search/matrix/offsets`). */
+    public suspend fun searchMatrixOffsets(name: String, request: SearchMatrixRequest): SearchMatrixOffsets
+
+    // --- Snapshots (M20) ---
+
+    /** Create a collection snapshot (`POST /collections/{name}/snapshots`). */
+    public suspend fun createSnapshot(name: String, wait: Boolean): SnapshotDescription
+
+    /** List a collection's snapshots (`GET /collections/{name}/snapshots`). */
+    public suspend fun listSnapshots(name: String): List<SnapshotDescription>
+
+    /** Delete a collection snapshot (`DELETE /collections/{name}/snapshots/{snapshot}`). */
+    public suspend fun deleteSnapshot(name: String, snapshotName: String, wait: Boolean)
+
+    /** Recover a collection from a snapshot location (`PUT /collections/{name}/snapshots/recover`). */
+    public suspend fun recoverSnapshot(
+        name: String,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    )
+
+    /** Stream a collection snapshot's bytes (`GET /collections/{name}/snapshots/{snapshot}`). */
+    public fun downloadSnapshot(name: String, snapshotName: String): Flow<ByteArray>
+
+    /** Upload a snapshot file and recover from it (`POST /collections/{name}/snapshots/upload`). */
+    public suspend fun uploadSnapshot(
+        name: String,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    )
+
+    /** Create a full-storage snapshot (`POST /snapshots`). */
+    public suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription
+
+    /** List full-storage snapshots (`GET /snapshots`). */
+    public suspend fun listStorageSnapshots(): List<SnapshotDescription>
+
+    /** Delete a full-storage snapshot (`DELETE /snapshots/{snapshot}`). */
+    public suspend fun deleteStorageSnapshot(snapshotName: String, wait: Boolean)
+
+    /** Stream a full-storage snapshot's bytes (`GET /snapshots/{snapshot}`). */
+    public fun downloadStorageSnapshot(snapshotName: String): Flow<ByteArray>
 }
