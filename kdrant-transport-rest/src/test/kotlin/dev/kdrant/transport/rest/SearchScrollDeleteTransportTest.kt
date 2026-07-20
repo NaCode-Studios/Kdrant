@@ -9,6 +9,7 @@ import dev.kdrant.internal.KdrantJson
 import dev.kdrant.kdrantConfig
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.PointId
+import dev.kdrant.model.QueryInterface
 import dev.kdrant.model.SearchRequest
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -48,7 +49,9 @@ class SearchScrollDeleteTransportTest {
                 jsonHeaders,
             )
         }
-        val hits = t.use { runBlocking { it.query("docs", SearchRequest(query = listOf(0.1f, 0.2f), limit = 2)) } }
+        val hits = t.use {
+            runBlocking { it.query("docs", SearchRequest(query = QueryInterface.Vector(listOf(0.1f, 0.2f)), limit = 2)) }
+        }
 
         assertEquals(HttpMethod.Post, captured.method)
         assertEquals("/collections/docs/points/query", captured.url.encodedPath)

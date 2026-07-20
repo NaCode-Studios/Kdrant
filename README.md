@@ -200,6 +200,20 @@ val articles: List<Hit<Article>> = qdrant.searchAs<Article>("articles") {
 val first: Article? = articles.firstOrNull()?.payload
 ```
 
+**Hybrid search** fuses several `prefetch` sources with Reciprocal Rank Fusion or DBSF:
+
+```kotlin
+val hits = qdrant.search("articles") {
+    prefetch { query(titleVector); using = "title"; limit = 50 }
+    prefetch { query(bodyVector); using = "body"; limit = 50 }
+    rrf()            // Reciprocal Rank Fusion; or dbsf()
+    limit = 10
+}
+```
+
+You can also query by a stored point's vector (`query(PointId.num(1))`), `orderBy("field")`, or
+`sample()`. (Sparse & multi-vectors, which unlock dense+keyword hybrid, land in a later release.)
+
 ### Scrolling
 
 `scroll` returns a cold `Flow` that transparently pages through the collection:

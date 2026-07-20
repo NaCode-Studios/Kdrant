@@ -19,6 +19,9 @@ All notable changes to this project are documented in this file. The format is b
   sent over plaintext HTTP.
 
 ### Added
+- Modern `/points/query` search: a polymorphic `query` (nearest by vector or by point id, `orderBy`,
+  `sample`), nestable `prefetch { }` sub-requests, and hybrid-search fusion (`rrf(k, weights)` / `dbsf()`),
+  plus `lookupFrom` for cross-collection id lookups. The previous `query(vector)` call is unchanged.
 - Typed payload access: `kdrantJson` (public default `Json`), `ScoredPoint.payloadAs<T>()` /
   `Record.payloadAs<T>()`, and `QdrantClient.searchAs<T>(): List<Hit<T>>` to decode hit payloads
   straight into your own types.
