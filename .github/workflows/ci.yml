@@ -90,7 +90,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      # Advisory: the action needs the repo's Dependency graph enabled
-      # (Settings → Security & analysis). Until then it can't run, so don't block the PR on it.
       - uses: actions/dependency-review-action@v4
-        continue-on-error: true
