@@ -19,4 +19,5 @@ include(
     "kdrant-transport-rest",
     "kdrant-spring-boot-starter",
     "kdrant-spring-ai",
+    "kdrant-langchain4j",
 )
