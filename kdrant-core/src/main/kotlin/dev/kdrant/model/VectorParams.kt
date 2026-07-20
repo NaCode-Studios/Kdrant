@@ -21,4 +21,8 @@ public data class VectorParams(
 
     @SerialName("hnsw_config")
     public val hnswConfig: HnswConfig? = null,
+
+    /** Enable multi-vector (late-interaction / ColBERT) storage. */
+    @SerialName("multivector_config")
+    public val multivectorConfig: MultiVectorConfig? = null,
 )

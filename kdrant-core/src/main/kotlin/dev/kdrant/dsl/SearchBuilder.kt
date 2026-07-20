@@ -1,14 +1,17 @@
 package dev.kdrant.dsl
 
 import dev.kdrant.KdrantDsl
+import dev.kdrant.model.ContextPair
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Filter
 import dev.kdrant.model.LookupLocation
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Prefetch
 import dev.kdrant.model.QueryInterface
+import dev.kdrant.model.RecommendStrategy
 import dev.kdrant.model.SearchParams
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.VectorInput
 import dev.kdrant.model.WithPayload
 
 /**
@@ -50,6 +53,14 @@ public class SearchBuilder {
     /** Search by the stored vector of an existing point (a "more like this" query). */
     public fun query(id: PointId) { query = QueryInterface.ById(id) }
 
+    /** Search by a sparse query vector (set [using] to the sparse vector's name). */
+    public fun querySparse(indices: List<Int>, values: List<Float>) {
+        query = QueryInterface.Sparse(indices, values)
+    }
+
+    /** Search by a multi-vector / late-interaction (ColBERT) query. */
+    public fun queryMulti(vectors: List<List<Float>>) { query = QueryInterface.MultiVector(vectors) }
+
     /** Set the query directly (e.g. a prebuilt [QueryInterface]). */
     public fun query(query: QueryInterface) { this.query = query }
 
@@ -68,6 +79,21 @@ public class SearchBuilder {
 
     /** Return a random sample of points. */
     public fun sample() { query = QueryInterface.Sample }
+
+    /** Recommend points close to positive examples and far from negative ones. */
+    public fun recommend(configure: RecommendBuilder.() -> Unit) {
+        query = RecommendBuilder().apply(configure).build()
+    }
+
+    /** Guided (discovery) search: rank by a target, constrained by context example pairs. */
+    public fun discover(configure: DiscoverBuilder.() -> Unit) {
+        query = DiscoverBuilder().apply(configure).build()
+    }
+
+    /** Context search: steer results by positive/negative example pairs, without a target. */
+    public fun context(configure: ContextBuilder.() -> Unit) {
+        query = ContextBuilder().apply(configure).build()
+    }
 
     /** Restrict the search to points matching this filter. */
     public fun filter(configure: FilterBuilder.() -> Unit) {
@@ -95,7 +121,15 @@ public class SearchBuilder {
         require(q != null || !pf.isNullOrEmpty()) {
             "search requires a query (query(...), rrf(), orderBy(...), ...) or at least one prefetch { }"
         }
-        if (q is QueryInterface.Vector) require(q.values.isNotEmpty()) { "search requires a non-empty query vector" }
+        when (q) {
+            is QueryInterface.Vector ->
+                require(q.values.isNotEmpty()) { "search requires a non-empty query vector" }
+            is QueryInterface.Sparse ->
+                require(q.values.isNotEmpty() && q.indices.size == q.values.size) {
+                    "a sparse query needs matching, non-empty indices and values"
+                }
+            else -> {}
+        }
         require(limit > 0) { "search limit must be > 0, was $limit" }
         return SearchRequest(
             prefetch = pf,
@@ -143,6 +177,14 @@ public class PrefetchBuilder {
     /** Search by the stored vector of an existing point. */
     public fun query(id: PointId) { query = QueryInterface.ById(id) }
 
+    /** Search by a sparse query vector (set [using] to the sparse vector's name). */
+    public fun querySparse(indices: List<Int>, values: List<Float>) {
+        query = QueryInterface.Sparse(indices, values)
+    }
+
+    /** Search by a multi-vector / late-interaction (ColBERT) query. */
+    public fun queryMulti(vectors: List<List<Float>>) { query = QueryInterface.MultiVector(vectors) }
+
     /** Set the query directly (e.g. a prebuilt [QueryInterface]). */
     public fun query(query: QueryInterface) { this.query = query }
 
@@ -186,4 +228,90 @@ public class SearchParamsBuilder {
     public var indexedOnly: Boolean? = null
 
     internal fun build(): SearchParams = SearchParams(hnswEf, exact, indexedOnly)
+}
+
+/** DSL for a recommend query: [positive] / [negative] examples plus an optional [strategy]. */
+@KdrantDsl
+public class RecommendBuilder {
+    private val positive = mutableListOf<VectorInput>()
+    private val negative = mutableListOf<VectorInput>()
+
+    /** How positive/negative examples are combined (default: average-vector). */
+    public var strategy: RecommendStrategy? = null
+
+    /** A positive example: a dense vector. */
+    public fun positive(values: List<Float>) { positive += QueryInterface.Vector(values) }
+
+    /** A positive example: an existing point's stored vector. */
+    public fun positive(id: PointId) { positive += QueryInterface.ById(id) }
+
+    /** A positive example: any [VectorInput] (e.g. sparse). */
+    public fun positive(input: VectorInput) { positive += input }
+
+    /** A negative example: a dense vector. */
+    public fun negative(values: List<Float>) { negative += QueryInterface.Vector(values) }
+
+    /** A negative example: an existing point's stored vector. */
+    public fun negative(id: PointId) { negative += QueryInterface.ById(id) }
+
+    /** A negative example: any [VectorInput]. */
+    public fun negative(input: VectorInput) { negative += input }
+
+    internal fun build(): QueryInterface.Recommend =
+        QueryInterface.Recommend(positive.toList(), negative.toList(), strategy)
+}
+
+/** DSL for a discovery query: a [target] plus [context] example pairs. */
+@KdrantDsl
+public class DiscoverBuilder {
+    private var target: VectorInput? = null
+    private val contextPairs = mutableListOf<ContextPair>()
+
+    /** The target to rank by: a dense vector. */
+    public fun target(values: List<Float>) { target = QueryInterface.Vector(values) }
+
+    /** The target to rank by: an existing point's stored vector. */
+    public fun target(id: PointId) { target = QueryInterface.ById(id) }
+
+    /** The target to rank by: any [VectorInput]. */
+    public fun target(input: VectorInput) { target = input }
+
+    /** Add a positive/negative context pair that constrains the search region. */
+    public fun context(positive: VectorInput, negative: VectorInput) {
+        contextPairs += ContextPair(positive, negative)
+    }
+
+    internal fun build(): QueryInterface.Discover {
+        val target = requireNotNull(target) { "discover requires a target(...)" }
+        return QueryInterface.Discover(target, contextPairs.toList())
+    }
+}
+
+/** DSL for a context query: [pair]s of positive/negative examples. */
+@KdrantDsl
+public class ContextBuilder {
+    private val pairs = mutableListOf<ContextPair>()
+
+    /** Add a positive/negative example pair. */
+    public fun pair(positive: VectorInput, negative: VectorInput) {
+        pairs += ContextPair(positive, negative)
+    }
+
+    internal fun build(): QueryInterface.Context = QueryInterface.Context(pairs.toList())
+}
+
+/** DSL for `searchBatch`: accumulate several searches to run in a single request. */
+@KdrantDsl
+public class BatchSearchBuilder {
+    private val searches = mutableListOf<SearchRequest>()
+
+    /** Add one search to the batch. */
+    public fun search(configure: SearchBuilder.() -> Unit) {
+        searches += SearchBuilder().apply(configure).build()
+    }
+
+    internal fun build(): List<SearchRequest> {
+        require(searches.isNotEmpty()) { "searchBatch needs at least one search { }" }
+        return searches.toList()
+    }
 }

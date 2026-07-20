@@ -48,12 +48,17 @@ public class PointBuilder internal constructor(private val id: PointId) {
 
     /** Named dense vectors. */
     public fun vector(vectors: Map<String, List<Float>>) {
-        vector = VectorData.Named(vectors)
+        vector = VectorData.Named(vectors.mapValues { VectorData.Dense(it.value) })
     }
 
     /** Named dense vectors, e.g. `vector("text" to listOf(...), "image" to listOf(...))`. */
     public fun vector(vararg vectors: Pair<String, List<Float>>) {
-        vector = VectorData.Named(vectors.toMap())
+        vector = VectorData.Named(vectors.associate { (name, values) -> name to VectorData.Dense(values) })
+    }
+
+    /** Set the vector(s) directly — for sparse, multi-vector, or mixed named vectors. */
+    public fun vector(data: VectorData) {
+        vector = data
     }
 
     /** Payload from key/value pairs, e.g. `payload("lang" to "it", "year" to 2024)`. */

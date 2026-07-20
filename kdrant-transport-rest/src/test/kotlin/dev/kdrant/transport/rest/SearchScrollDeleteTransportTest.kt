@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -123,5 +124,52 @@ class SearchScrollDeleteTransportTest {
             runBlocking { client.use { it.delete("docs") { must { } } } }
         }
         assertEquals(0, calls)
+    }
+
+    @Test
+    fun `searchBatch posts to points-query-batch and maps each result`() {
+        lateinit var captured: HttpRequestData
+        val engine = MockEngine { request ->
+            captured = request
+            respond(
+                """{"result":[{"points":[{"id":1,"score":0.9}]},{"points":[{"id":2,"score":0.5}]}]}""",
+                HttpStatusCode.OK,
+                jsonHeaders,
+            )
+        }
+        val client = QdrantClient(RestQdrantTransport(kdrantConfig("h", 6333) {}, engine))
+        val results = client.use {
+            runBlocking { it.searchBatch("docs") { search { query(listOf(0.1f)) }; search { query(listOf(0.2f)) } } }
+        }
+
+        assertEquals("/collections/docs/points/query/batch", captured.url.encodedPath)
+        assertEquals(2, results.size)
+        assertEquals(PointId.num(1), results[0][0].id)
+        assertEquals(PointId.num(2), results[1][0].id)
+    }
+
+    @Test
+    fun `searchGroups posts group_by and maps the groups`() {
+        lateinit var captured: HttpRequestData
+        val engine = MockEngine { request ->
+            captured = request
+            respond(
+                """{"result":{"groups":[{"id":"en","hits":[{"id":1,"score":0.9}]}]}}""",
+                HttpStatusCode.OK,
+                jsonHeaders,
+            )
+        }
+        val client = QdrantClient(RestQdrantTransport(kdrantConfig("h", 6333) {}, engine))
+        val groups = client.use {
+            runBlocking { it.searchGroups("docs", groupBy = "lang", groupSize = 3) { query(listOf(0.1f)) } }
+        }
+
+        assertEquals("/collections/docs/points/query/groups", captured.url.encodedPath)
+        val body = KdrantJson.parseToJsonElement((captured.body as TextContent).text).jsonObject
+        assertEquals("lang", body["group_by"]!!.jsonPrimitive.content)
+        assertEquals("3", body["group_size"]!!.jsonPrimitive.content)
+        assertEquals(1, groups.size)
+        assertEquals("en", groups[0].id.content)
+        assertEquals(PointId.num(1), groups[0].hits[0].id)
     }
 }

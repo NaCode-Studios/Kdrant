@@ -19,6 +19,22 @@ All notable changes to this project are documented in this file. The format is b
   sent over plaintext HTTP.
 
 ### Added
+- Collection config tuning: `updateCollection { optimizers = …; hnsw = …; quantization = … }` (PATCH),
+  and `optimizers` / `quantization` (`QuantizationConfig.Scalar` / `.Binary`) on `createCollection`.
+- Payload field indexes (`createPayloadIndex(field, PayloadSchemaType.KEYWORD)` / `deletePayloadIndex`), so
+  filtering on a field scales instead of doing a full scan; and payload mutations `setPayload` /
+  `overwritePayload` / `deletePayload` / `clearPayload` over a points-or-filter selector.
+- Vector mutations: `updateVectors` (write new vectors to existing points, keeping payload) and
+  `deleteVectors` (remove named vectors from the selected points).
+- Advanced retrieval queries on `search`: `recommend { positive(...); negative(...); strategy = ... }`,
+  `discover { target(...); context(...) }`, and `context { pair(...) }`. Examples (`VectorInput`) accept a
+  dense/sparse vector or a point id.
+- Batch and grouped search: `searchBatch { search { } … }` (several searches in one round-trip, hits per
+  search) and `searchGroups(groupBy = …) { }` returning `List<PointGroup>`.
+- Sparse & multi-vectors: `VectorData.Sparse` / `MultiDense`, `sparseVector(name) { modifier = Modifier.IDF }`
+  and per-vector `multivector` in `createCollection`, and `querySparse(...)` / `queryMulti(...)` — enabling
+  true dense+sparse hybrid search combined with M14 fusion. Response decoding now degrades an unknown vector
+  shape to `VectorData.Raw` instead of failing the whole response.
 - Modern `/points/query` search: a polymorphic `query` (nearest by vector or by point id, `orderBy`,
   `sample`), nestable `prefetch { }` sub-requests, and hybrid-search fusion (`rrf(k, weights)` / `dbsf()`),
   plus `lookupFrom` for cross-collection id lookups. The previous `query(vector)` call is unchanged.

@@ -1,13 +1,20 @@
 package dev.kdrant
 
+import dev.kdrant.dsl.BatchSearchBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
+import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
 import dev.kdrant.model.CollectionInfo
+import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.WithPayload
@@ -44,6 +51,18 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.Transport on a connection failure or server error.
      */
     public suspend fun createCollection(name: String, configure: CreateCollectionBuilder.() -> Unit)
+
+    /**
+     * Update an existing collection's config (optimizers, HNSW, quantization).
+     *
+     * ```kotlin
+     * qdrant.updateCollection("docs") {
+     *     optimizers = OptimizersConfig(indexingThreshold = 20_000)
+     *     quantization = QuantizationConfig.Scalar(quantile = 0.99f)
+     * }
+     * ```
+     */
+    public suspend fun updateCollection(name: String, configure: UpdateCollectionBuilder.() -> Unit)
 
     /**
      * Delete a collection. Deleting a collection that does not exist is a no-op on the server.
@@ -97,6 +116,31 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.InvalidRequest if the query is malformed (e.g. wrong vector size).
      */
     public suspend fun search(name: String, configure: SearchBuilder.() -> Unit): List<ScoredPoint>
+
+    /**
+     * Run several searches in a single request; returns the hits for each, in the order added.
+     *
+     * ```kotlin
+     * val (a, b) = qdrant.searchBatch("docs") { search { query(v1) }; search { query(v2) } }
+     * ```
+     */
+    public suspend fun searchBatch(
+        name: String,
+        configure: BatchSearchBuilder.() -> Unit,
+    ): List<List<ScoredPoint>>
+
+    /**
+     * Grouped search: return hits grouped by the [groupBy] payload field.
+     *
+     * @param groupSize max hits per group. @param limit max number of groups.
+     */
+    public suspend fun searchGroups(
+        name: String,
+        groupBy: String,
+        groupSize: Int? = null,
+        limit: Int? = null,
+        configure: SearchBuilder.() -> Unit,
+    ): List<PointGroup>
 
     /**
      * Stream all points (optionally filtered) as a cold [Flow], transparently following the
@@ -184,6 +228,74 @@ public interface QdrantClient : AutoCloseable {
         withPayload: WithPayload? = null,
         withVector: Boolean? = null,
     ): List<Record>
+
+    /**
+     * Create a payload field index so filtering on [field] scales. Without an index, filters do a
+     * full scan.
+     *
+     * ```kotlin
+     * qdrant.createPayloadIndex("docs", "lang", PayloadSchemaType.KEYWORD)
+     * ```
+     */
+    public suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        schema: PayloadSchemaType,
+        wait: Boolean = false,
+    )
+
+    /** Delete a payload field index. */
+    public suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean = false)
+
+    /**
+     * Merge [payload] into the selected points' payload (existing keys are kept). Select the points
+     * with `DeleteSelector.Ids(...)` or `DeleteSelector.ByFilter(filter { ... })`.
+     *
+     * @param key an optional payload path to assign under (nested set).
+     */
+    public suspend fun setPayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        key: String? = null,
+        wait: Boolean = false,
+    )
+
+    /** Replace the selected points' payload with [payload]. */
+    public suspend fun overwritePayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        wait: Boolean = false,
+    )
+
+    /** Delete [keys] from the selected points' payload. */
+    public suspend fun deletePayload(
+        name: String,
+        keys: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean = false,
+    )
+
+    /** Clear all payload from the selected points. */
+    public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean = false)
+
+    /**
+     * Update the vectors of existing points, keeping their payload.
+     *
+     * ```kotlin
+     * qdrant.updateVectors("docs", listOf(PointVectors(PointId.num(1), VectorData.Dense(newEmbedding))))
+     * ```
+     */
+    public suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean = false)
+
+    /** Delete the named [vectors] from the selected points. */
+    public suspend fun deleteVectors(
+        name: String,
+        vectors: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean = false,
+    )
 }
 
 /** Wraps a [QdrantTransport] into a [QdrantClient]. Used by transport factories. */

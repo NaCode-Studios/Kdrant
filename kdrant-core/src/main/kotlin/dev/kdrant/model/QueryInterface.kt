@@ -7,6 +7,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
@@ -21,6 +22,9 @@ public enum class FusionAlgorithm { RRF, DBSF }
 /** Sort direction for [QueryInterface.OrderBy]. */
 public enum class Direction { ASC, DESC }
 
+/** How [QueryInterface.Recommend] uses positive/negative examples. Default (`null`) is average-vector. */
+public enum class RecommendStrategy { AVERAGE_VECTOR, BEST_SCORE, SUM_SCORES }
+
 /**
  * The `query` of a `/points/query` request: what to do with the (optionally prefetched) candidates.
  *
@@ -30,10 +34,19 @@ public enum class Direction { ASC, DESC }
 public sealed interface QueryInterface {
 
     /** Nearest-neighbor search by an explicit dense vector. Serializes to a bare JSON array. */
-    public data class Vector(public val values: List<Float>) : QueryInterface
+    public data class Vector(public val values: List<Float>) : VectorInput
 
     /** Nearest-neighbor search reusing the stored vector of an existing point ("more like this"). */
-    public data class ById(public val id: PointId) : QueryInterface
+    public data class ById(public val id: PointId) : VectorInput
+
+    /** Nearest-neighbor search by a sparse query vector. Serializes to `{"indices":[...],"values":[...]}`. */
+    public data class Sparse(
+        public val indices: List<Int>,
+        public val values: List<Float>,
+    ) : VectorInput
+
+    /** Nearest-neighbor search by a multi-vector / late-interaction (ColBERT) query: `[[...],[...]]`. */
+    public data class MultiVector(public val vectors: List<List<Float>>) : VectorInput
 
     /**
      * Fuse the rankings of several [Prefetch] sources — the basis of hybrid search. Build it with
@@ -62,7 +75,39 @@ public sealed interface QueryInterface {
 
     /** Return a random sample of points. */
     public data object Sample : QueryInterface
+
+    /** Recommend points close to the [positive] examples and far from the [negative] ones. */
+    public data class Recommend(
+        public val positive: List<VectorInput> = emptyList(),
+        public val negative: List<VectorInput> = emptyList(),
+        public val strategy: RecommendStrategy? = null,
+    ) : QueryInterface
+
+    /** Guided search: rank by proximity to [target], constrained by [context] example pairs. */
+    public data class Discover(
+        public val target: VectorInput,
+        public val context: List<ContextPair> = emptyList(),
+    ) : QueryInterface
+
+    /** Context search: no target, only [pairs] steering the result region. */
+    public data class Context(
+        public val pairs: List<ContextPair> = emptyList(),
+    ) : QueryInterface
 }
+
+/**
+ * A bare vector input — usable directly as a nearest-search [QueryInterface] and as a positive/negative
+ * example inside [QueryInterface.Recommend], [QueryInterface.Discover] and [ContextPair]. One of a dense
+ * [QueryInterface.Vector], a stored-point [QueryInterface.ById], a [QueryInterface.Sparse], or a
+ * [QueryInterface.MultiVector].
+ */
+public sealed interface VectorInput : QueryInterface
+
+/** A positive/negative example pair for discovery and context search. */
+public data class ContextPair(
+    public val positive: VectorInput,
+    public val negative: VectorInput,
+)
 
 /** Write-only serializer emitting each [QueryInterface] variant in Qdrant's `VectorInput | Query` shape. */
 internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
@@ -72,38 +117,81 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
     override fun serialize(encoder: Encoder, value: QueryInterface) {
         val json = encoder as? JsonEncoder
             ?: throw SerializationException("QueryInterface can only be serialized to JSON")
-        val element: JsonElement = when (value) {
-            is QueryInterface.Vector ->
-                JsonArray(value.values.map { JsonPrimitive(it) })
+        json.encodeJsonElement(toElement(json.json, value))
+    }
 
-            is QueryInterface.ById ->
-                json.json.encodeToJsonElement(PointId.serializer(), value.id)
+    private fun toElement(json: Json, value: QueryInterface): JsonElement = when (value) {
+        is QueryInterface.Vector ->
+            JsonArray(value.values.map { JsonPrimitive(it) })
 
-            is QueryInterface.Fusion -> buildJsonObject {
-                if (value.algorithm == FusionAlgorithm.RRF && (value.rrfK != null || value.rrfWeights != null)) {
-                    putJsonObject("rrf") {
-                        value.rrfK?.let { put("k", it) }
-                        value.rrfWeights?.let { put("weights", JsonArray(it.map(::JsonPrimitive))) }
-                    }
-                } else {
-                    put("fusion", if (value.algorithm == FusionAlgorithm.RRF) "rrf" else "dbsf")
-                }
-            }
+        is QueryInterface.ById ->
+            json.encodeToJsonElement(PointId.serializer(), value.id)
 
-            is QueryInterface.OrderBy -> buildJsonObject {
-                if (value.direction == null) {
-                    put("order_by", value.key)
-                } else {
-                    putJsonObject("order_by") {
-                        put("key", value.key)
-                        put("direction", if (value.direction == Direction.ASC) "asc" else "desc")
-                    }
-                }
-            }
-
-            QueryInterface.Sample -> buildJsonObject { put("sample", "random") }
+        is QueryInterface.Sparse -> buildJsonObject {
+            put("indices", JsonArray(value.indices.map { JsonPrimitive(it) }))
+            put("values", JsonArray(value.values.map { JsonPrimitive(it) }))
         }
-        json.encodeJsonElement(element)
+
+        is QueryInterface.MultiVector ->
+            JsonArray(value.vectors.map { row -> JsonArray(row.map { JsonPrimitive(it) }) })
+
+        is QueryInterface.Fusion -> buildJsonObject {
+            if (value.algorithm == FusionAlgorithm.RRF && (value.rrfK != null || value.rrfWeights != null)) {
+                putJsonObject("rrf") {
+                    value.rrfK?.let { put("k", it) }
+                    value.rrfWeights?.let { put("weights", JsonArray(it.map { w -> JsonPrimitive(w) })) }
+                }
+            } else {
+                put("fusion", if (value.algorithm == FusionAlgorithm.RRF) "rrf" else "dbsf")
+            }
+        }
+
+        is QueryInterface.OrderBy -> buildJsonObject {
+            if (value.direction == null) {
+                put("order_by", value.key)
+            } else {
+                putJsonObject("order_by") {
+                    put("key", value.key)
+                    put("direction", if (value.direction == Direction.ASC) "asc" else "desc")
+                }
+            }
+        }
+
+        QueryInterface.Sample -> buildJsonObject { put("sample", "random") }
+
+        is QueryInterface.Recommend -> buildJsonObject {
+            putJsonObject("recommend") {
+                if (value.positive.isNotEmpty()) {
+                    put("positive", JsonArray(value.positive.map { toElement(json, it) }))
+                }
+                if (value.negative.isNotEmpty()) {
+                    put("negative", JsonArray(value.negative.map { toElement(json, it) }))
+                }
+                value.strategy?.let { put("strategy", strategyWire(it)) }
+            }
+        }
+
+        is QueryInterface.Discover -> buildJsonObject {
+            putJsonObject("discover") {
+                put("target", toElement(json, value.target))
+                put("context", JsonArray(value.context.map { pairElement(json, it) }))
+            }
+        }
+
+        is QueryInterface.Context -> buildJsonObject {
+            put("context", JsonArray(value.pairs.map { pairElement(json, it) }))
+        }
+    }
+
+    private fun pairElement(json: Json, pair: ContextPair): JsonElement = buildJsonObject {
+        put("positive", toElement(json, pair.positive))
+        put("negative", toElement(json, pair.negative))
+    }
+
+    private fun strategyWire(strategy: RecommendStrategy): String = when (strategy) {
+        RecommendStrategy.AVERAGE_VECTOR -> "average_vector"
+        RecommendStrategy.BEST_SCORE -> "best_score"
+        RecommendStrategy.SUM_SCORES -> "sum_scores"
     }
 
     override fun deserialize(decoder: Decoder): QueryInterface =

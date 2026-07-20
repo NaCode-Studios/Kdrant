@@ -4,13 +4,19 @@ import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Filter
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
+import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
 
 /**
@@ -27,6 +33,9 @@ public interface QdrantTransport : AutoCloseable {
     /** Create a collection (`PUT /collections/{name}`). */
     public suspend fun createCollection(name: String, request: CreateCollectionRequest)
 
+    /** Update an existing collection's config (`PATCH /collections/{name}`). */
+    public suspend fun updateCollection(name: String, request: UpdateCollectionRequest)
+
     /** Delete a collection (`DELETE /collections/{name}`). */
     public suspend fun deleteCollection(name: String)
 
@@ -39,6 +48,36 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Nearest-vector search (`POST /collections/{name}/points/query`). */
     public suspend fun query(name: String, request: SearchRequest): List<ScoredPoint>
+
+    /** Batch nearest-vector search (`POST /collections/{name}/points/query/batch`). */
+    public suspend fun queryBatch(name: String, requests: List<SearchRequest>): List<List<ScoredPoint>>
+
+    /** Grouped nearest-vector search (`POST /collections/{name}/points/query/groups`). */
+    public suspend fun queryGroups(name: String, request: SearchGroupsRequest): List<PointGroup>
+
+    /** Create a payload field index (`PUT /collections/{name}/index`). */
+    public suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean)
+
+    /** Delete a payload field index (`DELETE /collections/{name}/index/{field}`). */
+    public suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean)
+
+    /** Merge [payload] into the selected points (`POST /collections/{name}/points/payload`). */
+    public suspend fun setPayload(name: String, payload: Payload, selector: DeleteSelector, key: String?, wait: Boolean)
+
+    /** Replace the payload of the selected points (`PUT /collections/{name}/points/payload`). */
+    public suspend fun overwritePayload(name: String, payload: Payload, selector: DeleteSelector, wait: Boolean)
+
+    /** Delete [keys] from the selected points' payload (`POST /collections/{name}/points/payload/delete`). */
+    public suspend fun deletePayload(name: String, keys: List<String>, selector: DeleteSelector, wait: Boolean)
+
+    /** Clear all payload from the selected points (`POST /collections/{name}/points/payload/clear`). */
+    public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean)
+
+    /** Update the vectors of existing points (`PUT /collections/{name}/points/vectors`). */
+    public suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean)
+
+    /** Delete named vectors from the selected points (`POST /collections/{name}/points/vectors/delete`). */
+    public suspend fun deleteVectors(name: String, vectors: List<String>, selector: DeleteSelector, wait: Boolean)
 
     /** Fetch a single page of points (`POST /collections/{name}/points/scroll`). */
     public suspend fun scroll(name: String, request: ScrollRequest): ScrollPage

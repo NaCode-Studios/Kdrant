@@ -116,39 +116,73 @@ public final class dev/kdrant/PayloadAccessKt {
 }
 
 public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseable {
+	public abstract fun clearPayload (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun clearPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createCollection (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createPayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun delete (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun delete (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deletePayload (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun deletePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun deletePayloadIndex (Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun deletePayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun deleteVectors (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun deleteVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun overwritePayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun overwritePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun scroll (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun search (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun searchBatch (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun searchGroups (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun searchGroups$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun setPayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun setPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun updateCollection (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun updateVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/kdrant/QdrantClient$DefaultImpls {
+	public static synthetic fun clearPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun createPayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun deletePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun deletePayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun deleteVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun overwritePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun searchGroups$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun setPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun updateVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/kdrant/QdrantClientKt {
 	public static final fun QdrantClient (Ldev/kdrant/transport/QdrantTransport;)Ldev/kdrant/QdrantClient;
+}
+
+public final class dev/kdrant/dsl/BatchSearchBuilder {
+	public fun <init> ()V
+	public final fun search (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class dev/kdrant/dsl/ClauseBuilder {
@@ -186,18 +220,37 @@ public final class dev/kdrant/dsl/ClauseBuilder {
 	public static synthetic fun valuesCount$default (Ldev/kdrant/dsl/ClauseBuilder;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
 }
 
+public final class dev/kdrant/dsl/ContextBuilder {
+	public fun <init> ()V
+	public final fun pair (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)V
+}
+
 public final class dev/kdrant/dsl/CreateCollectionBuilder {
 	public fun <init> ()V
 	public final fun getHnswConfig ()Ldev/kdrant/model/HnswConfig;
 	public final fun getOnDiskPayload ()Ljava/lang/Boolean;
+	public final fun getOptimizers ()Ldev/kdrant/model/OptimizersConfig;
+	public final fun getQuantization ()Ldev/kdrant/model/QuantizationConfig;
 	public final fun getReplicationFactor ()Ljava/lang/Integer;
 	public final fun getShardNumber ()Ljava/lang/Integer;
 	public final fun namedVector (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun setHnswConfig (Ldev/kdrant/model/HnswConfig;)V
 	public final fun setOnDiskPayload (Ljava/lang/Boolean;)V
+	public final fun setOptimizers (Ldev/kdrant/model/OptimizersConfig;)V
+	public final fun setQuantization (Ldev/kdrant/model/QuantizationConfig;)V
 	public final fun setReplicationFactor (Ljava/lang/Integer;)V
 	public final fun setShardNumber (Ljava/lang/Integer;)V
+	public final fun sparseVector (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun sparseVector$default (Ldev/kdrant/dsl/CreateCollectionBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun vector (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class dev/kdrant/dsl/DiscoverBuilder {
+	public fun <init> ()V
+	public final fun context (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)V
+	public final fun target (Ldev/kdrant/model/PointId;)V
+	public final fun target (Ldev/kdrant/model/VectorInput;)V
+	public final fun target (Ljava/util/List;)V
 }
 
 public final class dev/kdrant/dsl/FilterBuilder {
@@ -230,6 +283,7 @@ public final class dev/kdrant/dsl/PointBuilder {
 	public final fun payload (Lkotlin/jvm/functions/Function1;)V
 	public final fun payload (Lkotlinx/serialization/json/JsonObject;)V
 	public final fun payload ([Lkotlin/Pair;)V
+	public final fun vector (Ldev/kdrant/model/VectorData;)V
 	public final fun vector (Ljava/util/List;)V
 	public final fun vector (Ljava/util/Map;)V
 	public final fun vector ([F)V
@@ -250,9 +304,23 @@ public final class dev/kdrant/dsl/PrefetchBuilder {
 	public final fun query (Ldev/kdrant/model/QueryInterface;)V
 	public final fun query (Ljava/util/List;)V
 	public final fun query ([F)V
+	public final fun queryMulti (Ljava/util/List;)V
+	public final fun querySparse (Ljava/util/List;Ljava/util/List;)V
 	public final fun setLimit (Ljava/lang/Integer;)V
 	public final fun setScoreThreshold (Ljava/lang/Double;)V
 	public final fun setUsing (Ljava/lang/String;)V
+}
+
+public final class dev/kdrant/dsl/RecommendBuilder {
+	public fun <init> ()V
+	public final fun getStrategy ()Ldev/kdrant/model/RecommendStrategy;
+	public final fun negative (Ldev/kdrant/model/PointId;)V
+	public final fun negative (Ldev/kdrant/model/VectorInput;)V
+	public final fun negative (Ljava/util/List;)V
+	public final fun positive (Ldev/kdrant/model/PointId;)V
+	public final fun positive (Ldev/kdrant/model/VectorInput;)V
+	public final fun positive (Ljava/util/List;)V
+	public final fun setStrategy (Ldev/kdrant/model/RecommendStrategy;)V
 }
 
 public final class dev/kdrant/dsl/ScrollBuilder {
@@ -265,7 +333,9 @@ public final class dev/kdrant/dsl/ScrollBuilder {
 
 public final class dev/kdrant/dsl/SearchBuilder {
 	public fun <init> ()V
+	public final fun context (Lkotlin/jvm/functions/Function1;)V
 	public final fun dbsf ()V
+	public final fun discover (Lkotlin/jvm/functions/Function1;)V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getLimit ()I
 	public final fun getOffset ()Ljava/lang/Integer;
@@ -283,6 +353,9 @@ public final class dev/kdrant/dsl/SearchBuilder {
 	public final fun query (Ldev/kdrant/model/QueryInterface;)V
 	public final fun query (Ljava/util/List;)V
 	public final fun query ([F)V
+	public final fun queryMulti (Ljava/util/List;)V
+	public final fun querySparse (Ljava/util/List;Ljava/util/List;)V
+	public final fun recommend (Lkotlin/jvm/functions/Function1;)V
 	public final fun rrf (Ljava/lang/Integer;Ljava/util/List;)V
 	public static synthetic fun rrf$default (Ldev/kdrant/dsl/SearchBuilder;Ljava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)V
 	public final fun sample ()V
@@ -304,6 +377,22 @@ public final class dev/kdrant/dsl/SearchParamsBuilder {
 	public final fun setIndexedOnly (Ljava/lang/Boolean;)V
 }
 
+public final class dev/kdrant/dsl/SparseVectorParamsBuilder {
+	public fun <init> ()V
+	public final fun getModifier ()Ldev/kdrant/model/Modifier;
+	public final fun setModifier (Ldev/kdrant/model/Modifier;)V
+}
+
+public final class dev/kdrant/dsl/UpdateCollectionBuilder {
+	public fun <init> ()V
+	public final fun getHnsw ()Ldev/kdrant/model/HnswConfig;
+	public final fun getOptimizers ()Ldev/kdrant/model/OptimizersConfig;
+	public final fun getQuantization ()Ldev/kdrant/model/QuantizationConfig;
+	public final fun setHnsw (Ldev/kdrant/model/HnswConfig;)V
+	public final fun setOptimizers (Ldev/kdrant/model/OptimizersConfig;)V
+	public final fun setQuantization (Ldev/kdrant/model/QuantizationConfig;)V
+}
+
 public final class dev/kdrant/dsl/UpsertBuilder {
 	public fun <init> ()V
 	public final fun point (JLkotlin/jvm/functions/Function1;)V
@@ -317,11 +406,13 @@ public final class dev/kdrant/dsl/VectorParamsBuilder {
 	public final fun getDatatype ()Ldev/kdrant/model/VectorDatatype;
 	public final fun getDistance ()Ldev/kdrant/model/Distance;
 	public final fun getHnswConfig ()Ldev/kdrant/model/HnswConfig;
+	public final fun getMultivector ()Ldev/kdrant/model/MultiVectorComparator;
 	public final fun getOnDisk ()Ljava/lang/Boolean;
 	public final fun getSize ()Ljava/lang/Long;
 	public final fun setDatatype (Ldev/kdrant/model/VectorDatatype;)V
 	public final fun setDistance (Ldev/kdrant/model/Distance;)V
 	public final fun setHnswConfig (Ldev/kdrant/model/HnswConfig;)V
+	public final fun setMultivector (Ldev/kdrant/model/MultiVectorComparator;)V
 	public final fun setOnDisk (Ljava/lang/Boolean;)V
 	public final fun setSize (Ljava/lang/Long;)V
 }
@@ -473,22 +564,42 @@ public final class dev/kdrant/model/Condition$Sub : dev/kdrant/model/Condition {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/kdrant/model/ContextPair {
+	public fun <init> (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)V
+	public final fun component1 ()Ldev/kdrant/model/VectorInput;
+	public final fun component2 ()Ldev/kdrant/model/VectorInput;
+	public final fun copy (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)Ldev/kdrant/model/ContextPair;
+	public static synthetic fun copy$default (Ldev/kdrant/model/ContextPair;Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;ILjava/lang/Object;)Ldev/kdrant/model/ContextPair;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNegative ()Ldev/kdrant/model/VectorInput;
+	public final fun getPositive ()Ldev/kdrant/model/VectorInput;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/kdrant/model/CreateCollectionRequest {
 	public static final field Companion Ldev/kdrant/model/CreateCollectionRequest$Companion;
-	public fun <init> (Ldev/kdrant/model/VectorsConfig;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public synthetic fun <init> (Ldev/kdrant/model/VectorsConfig;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Ldev/kdrant/model/VectorsConfig;Ljava/util/Map;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/QuantizationConfig;)V
+	public synthetic fun <init> (Ldev/kdrant/model/VectorsConfig;Ljava/util/Map;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/QuantizationConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/kdrant/model/VectorsConfig;
-	public final fun component2 ()Ldev/kdrant/model/HnswConfig;
-	public final fun component3 ()Ljava/lang/Boolean;
-	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ldev/kdrant/model/HnswConfig;
+	public final fun component4 ()Ljava/lang/Boolean;
 	public final fun component5 ()Ljava/lang/Integer;
-	public final fun copy (Ldev/kdrant/model/VectorsConfig;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/kdrant/model/CreateCollectionRequest;
-	public static synthetic fun copy$default (Ldev/kdrant/model/CreateCollectionRequest;Ldev/kdrant/model/VectorsConfig;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/kdrant/model/CreateCollectionRequest;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun component7 ()Ldev/kdrant/model/OptimizersConfig;
+	public final fun component8 ()Ldev/kdrant/model/QuantizationConfig;
+	public final fun copy (Ldev/kdrant/model/VectorsConfig;Ljava/util/Map;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/QuantizationConfig;)Ldev/kdrant/model/CreateCollectionRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/CreateCollectionRequest;Ldev/kdrant/model/VectorsConfig;Ljava/util/Map;Ldev/kdrant/model/HnswConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/QuantizationConfig;ILjava/lang/Object;)Ldev/kdrant/model/CreateCollectionRequest;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getHnswConfig ()Ldev/kdrant/model/HnswConfig;
 	public final fun getOnDiskPayload ()Ljava/lang/Boolean;
+	public final fun getOptimizersConfig ()Ldev/kdrant/model/OptimizersConfig;
+	public final fun getQuantizationConfig ()Ldev/kdrant/model/QuantizationConfig;
 	public final fun getReplicationFactor ()Ljava/lang/Integer;
 	public final fun getShardNumber ()Ljava/lang/Integer;
+	public final fun getSparseVectors ()Ljava/util/Map;
 	public final fun getVectors ()Ldev/kdrant/model/VectorsConfig;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -973,6 +1084,152 @@ public final class dev/kdrant/model/MinShould$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/Modifier : java/lang/Enum {
+	public static final field Companion Ldev/kdrant/model/Modifier$Companion;
+	public static final field IDF Ldev/kdrant/model/Modifier;
+	public static final field NONE Ldev/kdrant/model/Modifier;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kdrant/model/Modifier;
+	public static fun values ()[Ldev/kdrant/model/Modifier;
+}
+
+public final class dev/kdrant/model/Modifier$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/MultiVectorComparator : java/lang/Enum {
+	public static final field Companion Ldev/kdrant/model/MultiVectorComparator$Companion;
+	public static final field MAX_SIM Ldev/kdrant/model/MultiVectorComparator;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kdrant/model/MultiVectorComparator;
+	public static fun values ()[Ldev/kdrant/model/MultiVectorComparator;
+}
+
+public final class dev/kdrant/model/MultiVectorComparator$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/MultiVectorConfig {
+	public static final field Companion Ldev/kdrant/model/MultiVectorConfig$Companion;
+	public fun <init> (Ldev/kdrant/model/MultiVectorComparator;)V
+	public final fun component1 ()Ldev/kdrant/model/MultiVectorComparator;
+	public final fun copy (Ldev/kdrant/model/MultiVectorComparator;)Ldev/kdrant/model/MultiVectorConfig;
+	public static synthetic fun copy$default (Ldev/kdrant/model/MultiVectorConfig;Ldev/kdrant/model/MultiVectorComparator;ILjava/lang/Object;)Ldev/kdrant/model/MultiVectorConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getComparator ()Ldev/kdrant/model/MultiVectorComparator;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/MultiVectorConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/MultiVectorConfig$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/MultiVectorConfig;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/MultiVectorConfig;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/MultiVectorConfig$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/OptimizersConfig {
+	public static final field Companion Ldev/kdrant/model/OptimizersConfig$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/Double;
+	public final fun component7 ()Ljava/lang/Integer;
+	public final fun component8 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/kdrant/model/OptimizersConfig;
+	public static synthetic fun copy$default (Ldev/kdrant/model/OptimizersConfig;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/kdrant/model/OptimizersConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefaultSegmentNumber ()Ljava/lang/Integer;
+	public final fun getDeletedThreshold ()Ljava/lang/Double;
+	public final fun getFlushIntervalSec ()Ljava/lang/Integer;
+	public final fun getIndexingThreshold ()Ljava/lang/Integer;
+	public final fun getMaxOptimizationThreads ()Ljava/lang/Integer;
+	public final fun getMaxSegmentSize ()Ljava/lang/Integer;
+	public final fun getMemmapThreshold ()Ljava/lang/Integer;
+	public final fun getVacuumMinVectorNumber ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/OptimizersConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/OptimizersConfig$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/OptimizersConfig;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/OptimizersConfig;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/OptimizersConfig$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/PayloadSchemaType : java/lang/Enum {
+	public static final field BOOL Ldev/kdrant/model/PayloadSchemaType;
+	public static final field Companion Ldev/kdrant/model/PayloadSchemaType$Companion;
+	public static final field DATETIME Ldev/kdrant/model/PayloadSchemaType;
+	public static final field FLOAT Ldev/kdrant/model/PayloadSchemaType;
+	public static final field GEO Ldev/kdrant/model/PayloadSchemaType;
+	public static final field INTEGER Ldev/kdrant/model/PayloadSchemaType;
+	public static final field KEYWORD Ldev/kdrant/model/PayloadSchemaType;
+	public static final field TEXT Ldev/kdrant/model/PayloadSchemaType;
+	public static final field UUID Ldev/kdrant/model/PayloadSchemaType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kdrant/model/PayloadSchemaType;
+	public static fun values ()[Ldev/kdrant/model/PayloadSchemaType;
+}
+
+public final class dev/kdrant/model/PayloadSchemaType$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/PointGroup {
+	public static final field Companion Ldev/kdrant/model/PointGroup$Companion;
+	public fun <init> (Lkotlinx/serialization/json/JsonPrimitive;Ljava/util/List;Ldev/kdrant/model/Record;)V
+	public synthetic fun <init> (Lkotlinx/serialization/json/JsonPrimitive;Ljava/util/List;Ldev/kdrant/model/Record;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlinx/serialization/json/JsonPrimitive;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ldev/kdrant/model/Record;
+	public final fun copy (Lkotlinx/serialization/json/JsonPrimitive;Ljava/util/List;Ldev/kdrant/model/Record;)Ldev/kdrant/model/PointGroup;
+	public static synthetic fun copy$default (Ldev/kdrant/model/PointGroup;Lkotlinx/serialization/json/JsonPrimitive;Ljava/util/List;Ldev/kdrant/model/Record;ILjava/lang/Object;)Ldev/kdrant/model/PointGroup;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHits ()Ljava/util/List;
+	public final fun getId ()Lkotlinx/serialization/json/JsonPrimitive;
+	public final fun getLookup ()Ldev/kdrant/model/Record;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/PointGroup$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/PointGroup$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/PointGroup;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/PointGroup;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/PointGroup$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class dev/kdrant/model/PointId {
 	public static final field Companion Ldev/kdrant/model/PointId$Companion;
 }
@@ -1038,6 +1295,35 @@ public final class dev/kdrant/model/PointStruct$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/PointVectors {
+	public static final field Companion Ldev/kdrant/model/PointVectors$Companion;
+	public fun <init> (Ldev/kdrant/model/PointId;Ldev/kdrant/model/VectorData;)V
+	public final fun component1 ()Ldev/kdrant/model/PointId;
+	public final fun component2 ()Ldev/kdrant/model/VectorData;
+	public final fun copy (Ldev/kdrant/model/PointId;Ldev/kdrant/model/VectorData;)Ldev/kdrant/model/PointVectors;
+	public static synthetic fun copy$default (Ldev/kdrant/model/PointVectors;Ldev/kdrant/model/PointId;Ldev/kdrant/model/VectorData;ILjava/lang/Object;)Ldev/kdrant/model/PointVectors;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ldev/kdrant/model/PointId;
+	public final fun getVector ()Ldev/kdrant/model/VectorData;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/PointVectors$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/PointVectors$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/PointVectors;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/PointVectors;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/PointVectors$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/kdrant/model/Prefetch {
 	public static final field Companion Ldev/kdrant/model/Prefetch$Companion;
 	public fun <init> ()V
@@ -1081,11 +1367,47 @@ public final class dev/kdrant/model/Prefetch$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public abstract interface class dev/kdrant/model/QuantizationConfig {
+	public static final field Companion Ldev/kdrant/model/QuantizationConfig$Companion;
+}
+
+public final class dev/kdrant/model/QuantizationConfig$Binary : dev/kdrant/model/QuantizationConfig {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/Boolean;)Ldev/kdrant/model/QuantizationConfig$Binary;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QuantizationConfig$Binary;Ljava/lang/Boolean;ILjava/lang/Object;)Ldev/kdrant/model/QuantizationConfig$Binary;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlwaysRam ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/QuantizationConfig$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuantizationConfig$Scalar : dev/kdrant/model/QuantizationConfig {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Float;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/Float;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Float;
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/Float;Ljava/lang/Boolean;)Ldev/kdrant/model/QuantizationConfig$Scalar;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QuantizationConfig$Scalar;Ljava/lang/Float;Ljava/lang/Boolean;ILjava/lang/Object;)Ldev/kdrant/model/QuantizationConfig$Scalar;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlwaysRam ()Ljava/lang/Boolean;
+	public final fun getQuantile ()Ljava/lang/Float;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class dev/kdrant/model/QueryInterface {
 	public static final field Companion Ldev/kdrant/model/QueryInterface$Companion;
 }
 
-public final class dev/kdrant/model/QueryInterface$ById : dev/kdrant/model/QueryInterface {
+public final class dev/kdrant/model/QueryInterface$ById : dev/kdrant/model/VectorInput {
 	public fun <init> (Ldev/kdrant/model/PointId;)V
 	public final fun component1 ()Ldev/kdrant/model/PointId;
 	public final fun copy (Ldev/kdrant/model/PointId;)Ldev/kdrant/model/QueryInterface$ById;
@@ -1098,6 +1420,33 @@ public final class dev/kdrant/model/QueryInterface$ById : dev/kdrant/model/Query
 
 public final class dev/kdrant/model/QueryInterface$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QueryInterface$Context : dev/kdrant/model/QueryInterface {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Context;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Context;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Context;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPairs ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/QueryInterface$Discover : dev/kdrant/model/QueryInterface {
+	public fun <init> (Ldev/kdrant/model/VectorInput;Ljava/util/List;)V
+	public synthetic fun <init> (Ldev/kdrant/model/VectorInput;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/VectorInput;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ldev/kdrant/model/VectorInput;Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Discover;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Discover;Ldev/kdrant/model/VectorInput;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Discover;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContext ()Ljava/util/List;
+	public final fun getTarget ()Ldev/kdrant/model/VectorInput;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/kdrant/model/QueryInterface$Fusion : dev/kdrant/model/QueryInterface {
@@ -1123,6 +1472,17 @@ public final class dev/kdrant/model/QueryInterface$Fusion$Companion {
 	public static synthetic fun rrf$default (Ldev/kdrant/model/QueryInterface$Fusion$Companion;Ljava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Fusion;
 }
 
+public final class dev/kdrant/model/QueryInterface$MultiVector : dev/kdrant/model/VectorInput {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/QueryInterface$MultiVector;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$MultiVector;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$MultiVector;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getVectors ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/kdrant/model/QueryInterface$OrderBy : dev/kdrant/model/QueryInterface {
 	public fun <init> (Ljava/lang/String;Ldev/kdrant/model/Direction;)V
 	public synthetic fun <init> (Ljava/lang/String;Ldev/kdrant/model/Direction;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1137,6 +1497,23 @@ public final class dev/kdrant/model/QueryInterface$OrderBy : dev/kdrant/model/Qu
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/kdrant/model/QueryInterface$Recommend : dev/kdrant/model/QueryInterface {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ldev/kdrant/model/RecommendStrategy;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;)Ldev/kdrant/model/QueryInterface$Recommend;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Recommend;Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Recommend;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNegative ()Ljava/util/List;
+	public final fun getPositive ()Ljava/util/List;
+	public final fun getStrategy ()Ldev/kdrant/model/RecommendStrategy;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/kdrant/model/QueryInterface$Sample : dev/kdrant/model/QueryInterface {
 	public static final field INSTANCE Ldev/kdrant/model/QueryInterface$Sample;
 	public fun equals (Ljava/lang/Object;)Z
@@ -1144,7 +1521,20 @@ public final class dev/kdrant/model/QueryInterface$Sample : dev/kdrant/model/Que
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/QueryInterface {
+public final class dev/kdrant/model/QueryInterface$Sparse : dev/kdrant/model/VectorInput {
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Sparse;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Sparse;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Sparse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndices ()Ljava/util/List;
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/VectorInput {
 	public fun <init> (Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Vector;
@@ -1153,6 +1543,15 @@ public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/Que
 	public final fun getValues ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/RecommendStrategy : java/lang/Enum {
+	public static final field AVERAGE_VECTOR Ldev/kdrant/model/RecommendStrategy;
+	public static final field BEST_SCORE Ldev/kdrant/model/RecommendStrategy;
+	public static final field SUM_SCORES Ldev/kdrant/model/RecommendStrategy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kdrant/model/RecommendStrategy;
+	public static fun values ()[Ldev/kdrant/model/RecommendStrategy;
 }
 
 public final class dev/kdrant/model/Record {
@@ -1289,6 +1688,56 @@ public final class dev/kdrant/model/ScrollRequest$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/SearchGroupsRequest {
+	public static final field Companion Ldev/kdrant/model/SearchGroupsRequest$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ldev/kdrant/model/WithPayload;
+	public final fun component11 ()Ljava/lang/Boolean;
+	public final fun component12 ()Ldev/kdrant/model/LookupLocation;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ldev/kdrant/model/QueryInterface;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ldev/kdrant/model/Filter;
+	public final fun component8 ()Ldev/kdrant/model/SearchParams;
+	public final fun component9 ()Ljava/lang/Double;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;)Ldev/kdrant/model/SearchGroupsRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/SearchGroupsRequest;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;ILjava/lang/Object;)Ldev/kdrant/model/SearchGroupsRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Ldev/kdrant/model/Filter;
+	public final fun getGroupBy ()Ljava/lang/String;
+	public final fun getGroupSize ()Ljava/lang/Integer;
+	public final fun getLimit ()Ljava/lang/Integer;
+	public final fun getLookupFrom ()Ldev/kdrant/model/LookupLocation;
+	public final fun getParams ()Ldev/kdrant/model/SearchParams;
+	public final fun getPrefetch ()Ljava/util/List;
+	public final fun getQuery ()Ldev/kdrant/model/QueryInterface;
+	public final fun getScoreThreshold ()Ljava/lang/Double;
+	public final fun getUsing ()Ljava/lang/String;
+	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
+	public final fun getWithVector ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/SearchGroupsRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/SearchGroupsRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/SearchGroupsRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/SearchGroupsRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/SearchGroupsRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/kdrant/model/SearchParams {
 	public static final field Companion Ldev/kdrant/model/SearchParams$Companion;
 	public fun <init> ()V
@@ -1371,6 +1820,68 @@ public final class dev/kdrant/model/SearchRequest$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/SparseVectorParams {
+	public static final field Companion Ldev/kdrant/model/SparseVectorParams$Companion;
+	public fun <init> ()V
+	public fun <init> (Ldev/kdrant/model/Modifier;)V
+	public synthetic fun <init> (Ldev/kdrant/model/Modifier;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/Modifier;
+	public final fun copy (Ldev/kdrant/model/Modifier;)Ldev/kdrant/model/SparseVectorParams;
+	public static synthetic fun copy$default (Ldev/kdrant/model/SparseVectorParams;Ldev/kdrant/model/Modifier;ILjava/lang/Object;)Ldev/kdrant/model/SparseVectorParams;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModifier ()Ldev/kdrant/model/Modifier;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/SparseVectorParams$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/SparseVectorParams$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/SparseVectorParams;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/SparseVectorParams;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/SparseVectorParams$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/UpdateCollectionRequest {
+	public static final field Companion Ldev/kdrant/model/UpdateCollectionRequest$Companion;
+	public fun <init> ()V
+	public fun <init> (Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/QuantizationConfig;)V
+	public synthetic fun <init> (Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/QuantizationConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/OptimizersConfig;
+	public final fun component2 ()Ldev/kdrant/model/HnswConfig;
+	public final fun component3 ()Ldev/kdrant/model/QuantizationConfig;
+	public final fun copy (Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/QuantizationConfig;)Ldev/kdrant/model/UpdateCollectionRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/UpdateCollectionRequest;Ldev/kdrant/model/OptimizersConfig;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/QuantizationConfig;ILjava/lang/Object;)Ldev/kdrant/model/UpdateCollectionRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHnswConfig ()Ldev/kdrant/model/HnswConfig;
+	public final fun getOptimizersConfig ()Ldev/kdrant/model/OptimizersConfig;
+	public final fun getQuantizationConfig ()Ldev/kdrant/model/QuantizationConfig;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/UpdateCollectionRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/UpdateCollectionRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/UpdateCollectionRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/UpdateCollectionRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/UpdateCollectionRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class dev/kdrant/model/VectorData {
 	public static final field Companion Ldev/kdrant/model/VectorData$Companion;
 }
@@ -1390,6 +1901,17 @@ public final class dev/kdrant/model/VectorData$Dense : dev/kdrant/model/VectorDa
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/kdrant/model/VectorData$MultiDense : dev/kdrant/model/VectorData {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/VectorData$MultiDense;
+	public static synthetic fun copy$default (Ldev/kdrant/model/VectorData$MultiDense;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/VectorData$MultiDense;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getVectors ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/kdrant/model/VectorData$Named : dev/kdrant/model/VectorData {
 	public fun <init> (Ljava/util/Map;)V
 	public final fun component1 ()Ljava/util/Map;
@@ -1397,6 +1919,30 @@ public final class dev/kdrant/model/VectorData$Named : dev/kdrant/model/VectorDa
 	public static synthetic fun copy$default (Ldev/kdrant/model/VectorData$Named;Ljava/util/Map;ILjava/lang/Object;)Ldev/kdrant/model/VectorData$Named;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getVectors ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/VectorData$Raw : dev/kdrant/model/VectorData {
+	public fun <init> (Lkotlinx/serialization/json/JsonElement;)V
+	public final fun component1 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun copy (Lkotlinx/serialization/json/JsonElement;)Ldev/kdrant/model/VectorData$Raw;
+	public static synthetic fun copy$default (Ldev/kdrant/model/VectorData$Raw;Lkotlinx/serialization/json/JsonElement;ILjava/lang/Object;)Ldev/kdrant/model/VectorData$Raw;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getJson ()Lkotlinx/serialization/json/JsonElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/VectorData$Sparse : dev/kdrant/model/VectorData {
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;)Ldev/kdrant/model/VectorData$Sparse;
+	public static synthetic fun copy$default (Ldev/kdrant/model/VectorData$Sparse;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/VectorData$Sparse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndices ()Ljava/util/List;
+	public final fun getValues ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1415,21 +1961,26 @@ public final class dev/kdrant/model/VectorDatatype$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public abstract interface class dev/kdrant/model/VectorInput : dev/kdrant/model/QueryInterface {
+}
+
 public final class dev/kdrant/model/VectorParams {
 	public static final field Companion Ldev/kdrant/model/VectorParams$Companion;
-	public fun <init> (JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;)V
-	public synthetic fun <init> (JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/MultiVectorConfig;)V
+	public synthetic fun <init> (JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/MultiVectorConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()J
 	public final fun component2 ()Ldev/kdrant/model/Distance;
 	public final fun component3 ()Ljava/lang/Boolean;
 	public final fun component4 ()Ldev/kdrant/model/VectorDatatype;
 	public final fun component5 ()Ldev/kdrant/model/HnswConfig;
-	public final fun copy (JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;)Ldev/kdrant/model/VectorParams;
-	public static synthetic fun copy$default (Ldev/kdrant/model/VectorParams;JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;ILjava/lang/Object;)Ldev/kdrant/model/VectorParams;
+	public final fun component6 ()Ldev/kdrant/model/MultiVectorConfig;
+	public final fun copy (JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/MultiVectorConfig;)Ldev/kdrant/model/VectorParams;
+	public static synthetic fun copy$default (Ldev/kdrant/model/VectorParams;JLdev/kdrant/model/Distance;Ljava/lang/Boolean;Ldev/kdrant/model/VectorDatatype;Ldev/kdrant/model/HnswConfig;Ldev/kdrant/model/MultiVectorConfig;ILjava/lang/Object;)Ldev/kdrant/model/VectorParams;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDatatype ()Ldev/kdrant/model/VectorDatatype;
 	public final fun getDistance ()Ldev/kdrant/model/Distance;
 	public final fun getHnswConfig ()Ldev/kdrant/model/HnswConfig;
+	public final fun getMultivectorConfig ()Ldev/kdrant/model/MultiVectorConfig;
 	public final fun getOnDisk ()Ljava/lang/Boolean;
 	public final fun getSize ()J
 	public fun hashCode ()I
@@ -1530,15 +2081,26 @@ public final class dev/kdrant/model/WithPayload$None : dev/kdrant/model/WithPayl
 }
 
 public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang/AutoCloseable {
+	public abstract fun clearPayload (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun delete (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deletePayload (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deletePayloadIndex (Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteVectors (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun overwritePayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun query (Ljava/lang/String;Ldev/kdrant/model/SearchRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun queryBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun queryGroups (Ljava/lang/String;Ldev/kdrant/model/SearchGroupsRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun scroll (Ljava/lang/String;Ldev/kdrant/model/ScrollRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setPayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateCollection (Ljava/lang/String;Ldev/kdrant/model/UpdateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

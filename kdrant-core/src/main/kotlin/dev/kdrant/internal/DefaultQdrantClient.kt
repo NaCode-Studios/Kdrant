@@ -1,16 +1,23 @@
 package dev.kdrant.internal
 
 import dev.kdrant.QdrantClient
+import dev.kdrant.dsl.BatchSearchBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
+import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
+import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
+import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +39,10 @@ internal class DefaultQdrantClient(
         transport.createCollection(name, request)
     }
 
+    override suspend fun updateCollection(name: String, configure: UpdateCollectionBuilder.() -> Unit) {
+        transport.updateCollection(name, UpdateCollectionBuilder().apply(configure).build())
+    }
+
     override suspend fun deleteCollection(name: String) {
         transport.deleteCollection(name)
     }
@@ -49,6 +60,38 @@ internal class DefaultQdrantClient(
         name: String,
         configure: SearchBuilder.() -> Unit,
     ): List<ScoredPoint> = transport.query(name, SearchBuilder().apply(configure).build())
+
+    override suspend fun searchBatch(
+        name: String,
+        configure: BatchSearchBuilder.() -> Unit,
+    ): List<List<ScoredPoint>> = transport.queryBatch(name, BatchSearchBuilder().apply(configure).build())
+
+    override suspend fun searchGroups(
+        name: String,
+        groupBy: String,
+        groupSize: Int?,
+        limit: Int?,
+        configure: SearchBuilder.() -> Unit,
+    ): List<PointGroup> {
+        val sr = SearchBuilder().apply(configure).build()
+        return transport.queryGroups(
+            name,
+            SearchGroupsRequest(
+                groupBy = groupBy,
+                groupSize = groupSize,
+                limit = limit,
+                prefetch = sr.prefetch,
+                query = sr.query,
+                using = sr.using,
+                filter = sr.filter,
+                params = sr.params,
+                scoreThreshold = sr.scoreThreshold,
+                withPayload = sr.withPayload,
+                withVector = sr.withVector,
+                lookupFrom = sr.lookupFrom,
+            ),
+        )
+    }
 
     override fun scroll(
         name: String,
@@ -108,6 +151,47 @@ internal class DefaultQdrantClient(
         require(ids.isNotEmpty()) { "retrieve needs at least one id" }
         return transport.retrieve(name, ids, withPayload, withVector)
     }
+
+    override suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean): Unit =
+        transport.createPayloadIndex(name, field, schema, wait)
+
+    override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean): Unit =
+        transport.deletePayloadIndex(name, field, wait)
+
+    override suspend fun setPayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        key: String?,
+        wait: Boolean,
+    ): Unit = transport.setPayload(name, payload, selector, key, wait)
+
+    override suspend fun overwritePayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        wait: Boolean,
+    ): Unit = transport.overwritePayload(name, payload, selector, wait)
+
+    override suspend fun deletePayload(
+        name: String,
+        keys: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean,
+    ): Unit = transport.deletePayload(name, keys, selector, wait)
+
+    override suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean): Unit =
+        transport.clearPayload(name, selector, wait)
+
+    override suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean): Unit =
+        transport.updateVectors(name, points, wait)
+
+    override suspend fun deleteVectors(
+        name: String,
+        vectors: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean,
+    ): Unit = transport.deleteVectors(name, vectors, selector, wait)
 
     override fun close() {
         transport.close()
