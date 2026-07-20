@@ -21,7 +21,16 @@ tracked by the binary-compatibility-validator (`*.api` files), so breakage is ne
   friendliness, and Kotlin idioms — not on raw gRPC throughput. Benchmarks stay honest about the
   cases where the official gRPC client is the better choice.
 
-## Status — `1.0.0` (current)
+## Status — `1.1.0` (current)
+
+`1.1.0` is a maintenance & compatibility release on top of `1.0.0`. The Spring adapters move to the current
+framework generation — **`kdrant-spring-ai` targets Spring AI `2.0`** and **`kdrant-spring-boot-starter`
+targets Spring Boot `4.1`** (applications on Spring AI 1.x / Spring Boot 3.x should pin those modules to
+`1.0.0`); **`kdrant-langchain4j`** builds against LangChain4j `1.18`. The toolchain moves to Kotlin `2.4.10`
+and Gradle `9.6.1`, and the Kotlin modules now compile with `allWarningsAsErrors` so deprecations can't slip
+in. Kdrant's own public API is unchanged.
+
+## Status — `1.0.0`
 
 `1.0.0` marks a **stable public API** under SemVer (see [STABILITY.md](STABILITY.md)). On top of `0.2.0`
 it adds aliases and snapshots (M19–M20); observability & a granular transport seam with a no-boxing hot

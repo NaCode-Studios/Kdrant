@@ -6,14 +6,24 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-20
+
 ### Changed
 
 - **`kdrant-spring-ai` now targets Spring AI `2.0`** (was `1.0`) and **`kdrant-spring-boot-starter` now
   targets Spring Boot `4.1`** (was `3.4`). Kdrant's own public API is unchanged (the `*.api` dumps are
   identical and all adapter tests pass against the new majors), but these two adapter modules now require
   the newer framework generation (Spring Framework 7 / Jakarta EE 11 for the starter). Applications still
-  on Spring AI 1.x or Spring Boot 3.x should pin those modules to `1.0.0` until they upgrade. `kdrant-core`,
-  `kdrant-transport-rest`, and `kdrant-langchain4j` are unaffected.
+  on Spring AI 1.x or Spring Boot 3.x should pin those modules to `1.0.0` until they upgrade. `kdrant-core`
+  and `kdrant-transport-rest` are unaffected.
+- **`kdrant-langchain4j` now builds against LangChain4j `1.18.0`** (was `1.0.0`) — a backwards-compatible
+  minor upgrade.
+
+### Internal
+
+- Toolchain & tooling: Kotlin `2.4.10`, Gradle `9.6.1`, kotest `6.2.2`, plus assorted minor/patch dependency
+  bumps; CI actions run on Node 24. The Kotlin modules now compile with `allWarningsAsErrors`, so any
+  compiler deprecation fails the build — keeping the code warning-clean across future dependency upgrades.
 
 ## [1.0.0] - 2026-07-20
 
@@ -133,7 +143,8 @@ helper).
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/NaCode-Studios/Kdrant/releases/tag/v0.1.0

@@ -43,7 +43,7 @@ your own embedding model; Kdrant does not generate embeddings.
 > **See it end to end:** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest → embed → store → retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `1.0`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
+> **Status — `1.1`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse &
 > multi-vectors, `scroll`, payload & vector management, aliases, snapshots, service/analytics endpoints,
 > resilient retries, and the full filter DSL — plus Spring Boot / Spring AI / LangChain4j integrations.
@@ -84,7 +84,7 @@ Requires **JDK 17+**. Artifacts are published to Maven Central under `io.github.
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:1.0.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:1.1.0")
 }
 ```
 
