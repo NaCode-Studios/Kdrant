@@ -19,8 +19,11 @@ public sealed class KdrantException(
         public val collection: String,
         serverMessage: String? = null,
     ) : KdrantException(
-        if (serverMessage.isNullOrBlank()) "Collection not found: $collection"
-        else "Collection not found: $collection ($serverMessage)",
+        if (serverMessage.isNullOrBlank()) {
+            "Collection not found: $collection"
+        } else {
+            "Collection not found: $collection ($serverMessage)"
+        },
     )
 
     /** Authentication failed or is required (missing/invalid API key). */

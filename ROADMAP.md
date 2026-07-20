@@ -50,7 +50,7 @@ Published to Maven Central and GitHub Packages.
 | **M19** · Aliases, service & analytics endpoints | ✅ Implemented (unreleased — ships in the next minor). |
 | **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
 | **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
-| **M22** · Quality, supply chain & test depth (CI) | Planned. |
+| **M22** · Quality, supply chain & test depth (CI) | 🚧 In progress. |
 | **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | Planned. |
 | **M24** · The road to `1.0` | Planned. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |

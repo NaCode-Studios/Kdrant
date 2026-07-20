@@ -10,6 +10,7 @@ import dev.kdrant.dsl.SearchMatrixBuilder
 import dev.kdrant.dsl.UpdateAliasesBuilder
 import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
+import dev.kdrant.dsl.hasConditions
 import dev.kdrant.model.AliasDescription
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
@@ -173,8 +174,12 @@ internal class DefaultQdrantClient(
         return transport.retrieve(name, ids, withPayload, withVector)
     }
 
-    override suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean): Unit =
-        transport.createPayloadIndex(name, field, schema, wait)
+    override suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        schema: PayloadSchemaType,
+        wait: Boolean,
+    ): Unit = transport.createPayloadIndex(name, field, schema, wait)
 
     override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean): Unit =
         transport.deletePayloadIndex(name, field, wait)
@@ -254,9 +259,7 @@ internal class DefaultQdrantClient(
     ): List<FacetHit> {
         limit?.let { require(it >= 1) { "facet 'limit' must be >= 1, was $it" } }
         val built = FilterBuilder().apply(filter).build()
-        val effectiveFilter = built.takeIf {
-            !it.must.isNullOrEmpty() || !it.should.isNullOrEmpty() || !it.mustNot.isNullOrEmpty() || it.minShould != null
-        }
+        val effectiveFilter = built.takeIf { it.hasConditions() }
         return transport.facet(name, key, effectiveFilter, limit, exact)
     }
 
@@ -286,7 +289,9 @@ internal class DefaultQdrantClient(
         checksum: String?,
         wait: Boolean,
     ) {
-        require(location.isNotBlank()) { "recoverSnapshot needs a non-blank location (an http(s):// URL or file:/// path)" }
+        require(location.isNotBlank()) {
+            "recoverSnapshot needs a non-blank location (an http(s):// URL or file:/// path)"
+        }
         transport.recoverSnapshot(name, location, priority, checksum, wait)
     }
 

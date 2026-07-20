@@ -13,6 +13,13 @@ import kotlinx.serialization.json.JsonPrimitive
 public fun filter(configure: FilterBuilder.() -> Unit): Filter =
     FilterBuilder().apply(configure).build()
 
+/**
+ * True when this filter carries at least one condition. Callers that treat "no conditions" as "no filter"
+ * (e.g. `facet`, `searchMatrix`) use this to null out an all-empty filter, which would otherwise match every point.
+ */
+internal fun Filter.hasConditions(): Boolean =
+    !must.isNullOrEmpty() || !should.isNullOrEmpty() || !mustNot.isNullOrEmpty() || minShould != null
+
 /** DSL for a [Filter]'s four clauses: [must], [should], [mustNot], [minShould]. */
 @KdrantDsl
 public class FilterBuilder {

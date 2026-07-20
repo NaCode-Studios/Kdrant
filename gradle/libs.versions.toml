@@ -7,6 +7,10 @@ serialization = "1.11.0"
 ktor = "3.5.1"
 junit = "6.1.1"
 testcontainers = "2.0.5"
+ktlint = "12.1.2"
+detekt = "1.23.8"
+kover = "0.9.1"
+kotest = "5.9.1"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -29,6 +33,8 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
 testcontainers-qdrant = { module = "org.testcontainers:testcontainers-qdrant", version.ref = "testcontainers" }
 
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
@@ -36,3 +42,6 @@ binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibil
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

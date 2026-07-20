@@ -37,9 +37,7 @@ public class SearchMatrixBuilder {
     internal fun build(): SearchMatrixRequest {
         sample?.let { require(it >= 2) { "matrix 'sample' must be >= 2, was $it" } }
         limit?.let { require(it >= 1) { "matrix 'limit' must be >= 1, was $it" } }
-        val effectiveFilter = filter?.takeIf {
-            !it.must.isNullOrEmpty() || !it.should.isNullOrEmpty() || !it.mustNot.isNullOrEmpty() || it.minShould != null
-        }
+        val effectiveFilter = filter?.takeIf { it.hasConditions() }
         return SearchMatrixRequest(filter = effectiveFilter, sample = sample, limit = limit, using = using)
     }
 }

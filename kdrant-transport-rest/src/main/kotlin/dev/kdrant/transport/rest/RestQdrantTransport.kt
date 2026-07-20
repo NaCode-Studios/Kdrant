@@ -274,7 +274,13 @@ internal class RestQdrantTransport(
         }
     }
 
-    override suspend fun setPayload(name: String, payload: Payload, selector: DeleteSelector, key: String?, wait: Boolean) {
+    override suspend fun setPayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        key: String?,
+        wait: Boolean,
+    ) {
         val body = buildJsonObject {
             put("payload", payload)
             putSelector(selector)
@@ -437,7 +443,13 @@ internal class RestQdrantTransport(
         execute { client.delete("/issues") }
     }
 
-    override suspend fun facet(name: String, key: String, filter: Filter?, limit: Int?, exact: Boolean): List<FacetHit> {
+    override suspend fun facet(
+        name: String,
+        key: String,
+        filter: Filter?,
+        limit: Int?,
+        exact: Boolean,
+    ): List<FacetHit> {
         val response = execute(name) {
             client.post("/collections/${encode(name)}/facet") {
                 setBody(FacetRequest(key = key, limit = limit, filter = filter, exact = exact.takeIf { it }))
