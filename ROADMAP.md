@@ -47,9 +47,9 @@ Published to Maven Central and GitHub Packages.
 | Milestone | Status |
 | --- | --- |
 | **M10–M18** | ✅ Shipped in `0.2.0`. |
-| **M19** · Aliases, service & analytics endpoints | Planned (next). |
-| **M20** · Snapshots & backup/restore | Planned. |
-| **M21** · Observability, granular transport, no-boxing hot path | Planned. |
+| **M19** · Aliases, service & analytics endpoints | ✅ Implemented (unreleased — ships in the next minor). |
+| **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
+| **M21** · Observability, granular transport, no-boxing hot path | 🚧 In progress. |
 | **M22** · Quality, supply chain & test depth (CI) | Planned. |
 | **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | Planned. |
 | **M24** · The road to `1.0` | Planned. |
@@ -58,7 +58,7 @@ Published to Maven Central and GitHub Packages.
 **Deferred sub-items carried forward from `0.2.0`:** `order_by` on `scroll` (M14); `Formula` / MMR
 reranking (M16); `batchUpdate` and parameterized payload-index params such as the text tokenizer (M17);
 `ensureCollection` + enriched `CollectionInfo` read-back, Product quantization, and `wal` / `strictMode`
-/ `params` config on update (M18).
+/ `params` config on update (M18); shard-scope snapshots (M20).
 
 The detailed milestone descriptions below are kept as the plan of record; ✅ tiers are already shipped.
 
@@ -171,7 +171,7 @@ Complete Qdrant's advanced retrieval coverage on top of the `QueryInterface` bas
 
 ---
 
-## Tier 3 — Complete data & collection management — M17–M18 ✅ in `0.2.0`; M19–M20 planned
+## Tier 3 — Complete data & collection management — M17–M18 ✅ in `0.2.0`; M19–M20 ✅ implemented (unreleased)
 
 ### M17 · Payload / vector mutations & payload indexes — `M`
 
@@ -205,6 +205,8 @@ the convenience helpers need.
 
 ### M19 · Aliases, service & analytics endpoints — `M`
 
+**Status: ✅ implemented (unreleased).** All three groups below shipped, with MockEngine wire tests.
+
 Round out the operational surface: zero-downtime reindex, server-side health, and analytics.
 
 - Aliases: `updateAliases { createAlias / deleteAlias / renameAlias }` + `listAliases()` /
@@ -215,11 +217,15 @@ Round out the operational surface: zero-downtime reindex, server-side health, an
 
 ### M20 · Snapshots & backup / restore — `L`
 
+**Status: ✅ implemented (unreleased)** for the collection and full-storage scopes. **Shard-scope
+snapshots are deferred.**
+
 Provide the backup/restore story enterprise adoption expects, designed separately because of binary bodies.
 
-- `createSnapshot` / `listSnapshots` / `deleteSnapshot` / `recoverFromSnapshot(location)` for
-  full / collection / shard scopes.
-- Streaming download / upload with binary Ktor bodies, as a dedicated API distinct from the JSON surface.
+- `createSnapshot` / `listSnapshots` / `deleteSnapshot` / `recoverSnapshot(location)` for
+  collection and full-storage scopes (shard scope deferred).
+- Streaming download (`downloadSnapshot` → `Flow<ByteArray>`) / upload (`uploadSnapshot` from a
+  `Flow<ByteArray>`, multipart) with binary Ktor bodies, as a dedicated API distinct from the JSON surface.
 
 ---
 
