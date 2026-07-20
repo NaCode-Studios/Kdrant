@@ -14,6 +14,11 @@ subprojects {
     version = "0.2.0"
 }
 
+// The runnable RAG example is an application, not a published library — exclude it from public-API tracking.
+apiValidation {
+    ignoredProjects.add("example-rag")
+}
+
 // Quality tooling (format, static analysis) on the Kotlin source modules — the code-less kdrant-bom is excluded.
 // (Kover coverage is deferred: 0.9.1 is not yet compatible with the Kotlin 2.4 Gradle plugin.)
 configure(
@@ -23,6 +28,7 @@ configure(
         project(":kdrant-spring-boot-starter"),
         project(":kdrant-spring-ai"),
         project(":kdrant-langchain4j"),
+        project(":example-rag"),
     ),
 ) {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")

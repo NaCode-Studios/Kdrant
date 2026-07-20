@@ -20,4 +20,5 @@ include(
     "kdrant-spring-boot-starter",
     "kdrant-spring-ai",
     "kdrant-langchain4j",
+    "example-rag",
 )

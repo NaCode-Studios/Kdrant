@@ -36,6 +36,9 @@ qdrant.use { client ->
 Kdrant stores and searches vectors you already have — `embedding` above is a `List<Float>` from
 your own embedding model; Kdrant does not generate embeddings.
 
+> **See it end to end:** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
+> service (ingest → embed → store → retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
+
 > **Status — 0.2, pre-1.0.** Collections (create/update/delete), `upsert`, the modern `/points/query`
 > search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse & multi-vectors,
 > `scroll`, payload & vector management, resilient retries, and the full filter DSL are implemented and
@@ -281,7 +284,8 @@ service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`, distan
 and observability & a granular transport seam (a `configureClient` hook, api-key-redacting logs, tuned
 timeouts, `Flow` / `Sequence` upsert, and a `FloatArray` no-boxing hot path with byte-aware batching); plus
 a **Spring Boot starter** (binds `kdrant.*` to an injectable `QdrantClient` bean), a **Spring AI
-`VectorStore`**, and a **LangChain4j `EmbeddingStore`** — all backed by Kdrant's REST transport.
+`VectorStore`**, and a **LangChain4j `EmbeddingStore`** — all backed by Kdrant's REST transport — plus a
+runnable **RAG example** (`example-rag`).
 
 The development pipeline is also hardened (M22): ktlint + detekt gates, a JDK and Qdrant-version CI matrix,
 Dependabot, and property-based serialization tests.
