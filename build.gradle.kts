@@ -11,7 +11,7 @@ plugins {
 
 subprojects {
     group = "io.github.nacode-studios"
-    version = "1.0.0"
+    version = "1.1.0"
 }
 
 // The runnable example and the benchmark harness are not published libraries — exclude them from
@@ -40,6 +40,14 @@ configure(
         buildUponDefaultConfig = true
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
         parallel = true
+    }
+
+    // Treat every Kotlin compiler warning — deprecations included — as a build error, so these
+    // modules stay warning-clean across dependency and toolchain upgrades.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            allWarningsAsErrors.set(true)
+        }
     }
 }
 
