@@ -50,6 +50,14 @@ public class SearchBuilder {
     /** Search by the stored vector of an existing point (a "more like this" query). */
     public fun query(id: PointId) { query = QueryInterface.ById(id) }
 
+    /** Search by a sparse query vector (set [using] to the sparse vector's name). */
+    public fun querySparse(indices: List<Int>, values: List<Float>) {
+        query = QueryInterface.Sparse(indices, values)
+    }
+
+    /** Search by a multi-vector / late-interaction (ColBERT) query. */
+    public fun queryMulti(vectors: List<List<Float>>) { query = QueryInterface.MultiVector(vectors) }
+
     /** Set the query directly (e.g. a prebuilt [QueryInterface]). */
     public fun query(query: QueryInterface) { this.query = query }
 
@@ -95,7 +103,15 @@ public class SearchBuilder {
         require(q != null || !pf.isNullOrEmpty()) {
             "search requires a query (query(...), rrf(), orderBy(...), ...) or at least one prefetch { }"
         }
-        if (q is QueryInterface.Vector) require(q.values.isNotEmpty()) { "search requires a non-empty query vector" }
+        when (q) {
+            is QueryInterface.Vector ->
+                require(q.values.isNotEmpty()) { "search requires a non-empty query vector" }
+            is QueryInterface.Sparse ->
+                require(q.values.isNotEmpty() && q.indices.size == q.values.size) {
+                    "a sparse query needs matching, non-empty indices and values"
+                }
+            else -> {}
+        }
         require(limit > 0) { "search limit must be > 0, was $limit" }
         return SearchRequest(
             prefetch = pf,
@@ -142,6 +158,14 @@ public class PrefetchBuilder {
 
     /** Search by the stored vector of an existing point. */
     public fun query(id: PointId) { query = QueryInterface.ById(id) }
+
+    /** Search by a sparse query vector (set [using] to the sparse vector's name). */
+    public fun querySparse(indices: List<Int>, values: List<Float>) {
+        query = QueryInterface.Sparse(indices, values)
+    }
+
+    /** Search by a multi-vector / late-interaction (ColBERT) query. */
+    public fun queryMulti(vectors: List<List<Float>>) { query = QueryInterface.MultiVector(vectors) }
 
     /** Set the query directly (e.g. a prebuilt [QueryInterface]). */
     public fun query(query: QueryInterface) { this.query = query }

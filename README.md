@@ -212,7 +212,9 @@ val hits = qdrant.search("articles") {
 ```
 
 You can also query by a stored point's vector (`query(PointId.num(1))`), `orderBy("field")`, or
-`sample()`. (Sparse & multi-vectors, which unlock dense+keyword hybrid, land in a later release.)
+`sample()`. Sparse vectors (`querySparse(indices, values)`) and multi-vectors (`queryMulti(...)`) are
+supported too — combine a dense and a sparse prefetch under `rrf()` for true dense+keyword hybrid search,
+after declaring them with `namedVector(...)` and `sparseVector("keywords") { modifier = Modifier.IDF }`.
 
 ### Scrolling
 

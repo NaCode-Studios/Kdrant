@@ -6,14 +6,18 @@ import kotlinx.serialization.Serializable
 /**
  * Request body for `PUT /collections/{name}`.
  *
- * Models the collection settings used day-to-day. Advanced options (optimizers, quantization,
- * sparse vectors, WAL) are not yet exposed; unknown fields are ignored, so the model can grow
- * without breaking existing callers.
+ * Models the collection settings used day-to-day. Advanced options (optimizers, quantization, WAL)
+ * are not yet exposed; unknown fields are ignored, so the model can grow without breaking callers.
  */
 @Serializable
 public data class CreateCollectionRequest(
+    /** Dense / named-dense vectors; may be `null` for a sparse-only collection. */
     @SerialName("vectors")
-    public val vectors: VectorsConfig,
+    public val vectors: VectorsConfig? = null,
+
+    /** Named sparse vectors, keyed by name. */
+    @SerialName("sparse_vectors")
+    public val sparseVectors: Map<String, SparseVectorParams>? = null,
 
     @SerialName("hnsw_config")
     public val hnswConfig: HnswConfig? = null,

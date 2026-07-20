@@ -35,6 +35,15 @@ public sealed interface QueryInterface {
     /** Nearest-neighbor search reusing the stored vector of an existing point ("more like this"). */
     public data class ById(public val id: PointId) : QueryInterface
 
+    /** Nearest-neighbor search by a sparse query vector. Serializes to `{"indices":[...],"values":[...]}`. */
+    public data class Sparse(
+        public val indices: List<Int>,
+        public val values: List<Float>,
+    ) : QueryInterface
+
+    /** Nearest-neighbor search by a multi-vector / late-interaction (ColBERT) query: `[[...],[...]]`. */
+    public data class MultiVector(public val vectors: List<List<Float>>) : QueryInterface
+
     /**
      * Fuse the rankings of several [Prefetch] sources — the basis of hybrid search. Build it with
      * [rrf] (Reciprocal Rank Fusion, optionally parameterized) or [dbsf].
@@ -78,6 +87,14 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
 
             is QueryInterface.ById ->
                 json.json.encodeToJsonElement(PointId.serializer(), value.id)
+
+            is QueryInterface.Sparse -> buildJsonObject {
+                put("indices", JsonArray(value.indices.map { JsonPrimitive(it) }))
+                put("values", JsonArray(value.values.map { JsonPrimitive(it) }))
+            }
+
+            is QueryInterface.MultiVector ->
+                JsonArray(value.vectors.map { row -> JsonArray(row.map { JsonPrimitive(it) }) })
 
             is QueryInterface.Fusion -> buildJsonObject {
                 if (value.algorithm == FusionAlgorithm.RRF && (value.rrfK != null || value.rrfWeights != null)) {

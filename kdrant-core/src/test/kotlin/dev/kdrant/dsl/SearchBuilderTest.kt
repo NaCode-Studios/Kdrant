@@ -111,4 +111,26 @@ class SearchBuilderTest {
             json { query(PointId.num(1)); lookupFrom("other", "text") },
         )
     }
+
+    @Test
+    fun `sparse query and dense-plus-sparse hybrid`() {
+        assertJsonEquals(
+            """{"query":{"indices":[3,17],"values":[0.6,0.4]},"using":"keywords","limit":10}""",
+            json { querySparse(listOf(3, 17), listOf(0.6f, 0.4f)); using = "keywords" },
+        )
+        assertJsonEquals(
+            """
+            {"prefetch":[
+              {"query":[0.1,0.2],"using":"text","limit":50},
+              {"query":{"indices":[3,17],"values":[0.6,0.4]},"using":"keywords","limit":50}
+            ],
+            "query":{"fusion":"rrf"},"limit":10}
+            """.trimIndent(),
+            json {
+                prefetch { query(0.1f, 0.2f); using = "text"; limit = 50 }
+                prefetch { querySparse(listOf(3, 17), listOf(0.6f, 0.4f)); using = "keywords"; limit = 50 }
+                rrf()
+            },
+        )
+    }
 }

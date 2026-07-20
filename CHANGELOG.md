@@ -19,6 +19,10 @@ All notable changes to this project are documented in this file. The format is b
   sent over plaintext HTTP.
 
 ### Added
+- Sparse & multi-vectors: `VectorData.Sparse` / `MultiDense`, `sparseVector(name) { modifier = Modifier.IDF }`
+  and per-vector `multivector` in `createCollection`, and `querySparse(...)` / `queryMulti(...)` — enabling
+  true dense+sparse hybrid search combined with M14 fusion. Response decoding now degrades an unknown vector
+  shape to `VectorData.Raw` instead of failing the whole response.
 - Modern `/points/query` search: a polymorphic `query` (nearest by vector or by point id, `orderBy`,
   `sample`), nestable `prefetch { }` sub-requests, and hybrid-search fusion (`rrf(k, weights)` / `dbsf()`),
   plus `lookupFrom` for cross-collection id lookups. The previous `query(vector)` call is unchanged.
