@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/kdrant-hero.png" alt="Kdrant — an idiomatic, coroutine-first Kotlin client for Qdrant" width="100%">
+</p>
+
 # Kdrant
 
 **An idiomatic, coroutine-first Kotlin client for the [Qdrant](https://qdrant.tech) vector database.**
