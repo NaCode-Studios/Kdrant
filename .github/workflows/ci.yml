@@ -8,6 +8,12 @@ on:
 permissions:
   contents: read
 
+# Run every JavaScript-based action on Node 24. The runner is phasing out Node 20
+# (some actions still declare node20); this forces the newer runtime everywhere and
+# drops the "Node 20 is being deprecated" warnings.
+env:
+  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node24
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
