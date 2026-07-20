@@ -46,7 +46,11 @@ mavenPublishing {
     coordinates("io.github.nacode-studios", "kdrant-transport-rest", version.toString())
     pom {
         name.set("Kdrant REST transport")
-        description.set("REST/Ktor transport engine for the Kdrant Qdrant client.")
+        description.set(
+            "Default REST/Ktor engine for Kdrant, the coroutine-first Kotlin client for the Qdrant " +
+                "vector database — a small, pure-Kotlin HTTP transport with no gRPC, Netty, or protobuf. " +
+                "This is the module to depend on to use Kdrant.",
+        )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")
         licenses {

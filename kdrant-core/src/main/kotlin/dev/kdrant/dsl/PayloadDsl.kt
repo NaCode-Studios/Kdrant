@@ -28,6 +28,12 @@ public class PayloadBuilder {
      */
     public fun putAny(key: String, value: Any?) { entries[key] = anyToJsonElement(value) }
 
+    /**
+     * Index-assignment sugar for [putAny], accepting any supported value (including `null`):
+     * `payload["title"] = "Intro"`, `payload["tags"] = listOf("nlp", "kotlin")`, `payload["note"] = null`.
+     */
+    public operator fun set(key: String, value: Any?) { putAny(key, value) }
+
     internal fun build(): Payload = JsonObject(entries)
 }
 

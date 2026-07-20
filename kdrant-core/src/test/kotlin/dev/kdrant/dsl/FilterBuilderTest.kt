@@ -282,4 +282,13 @@ class FilterBuilderTest {
             filter { must { hasId(emptyList()) } }
         }
     }
+
+    @Test
+    fun `empty clause blocks normalize away instead of matching everything`() {
+        // Regression: an empty block used to leave a non-null-but-empty list, which serialized to a
+        // match-all filter and, on delete-by-filter, wiped the whole collection.
+        assertJsonEquals("{}", json { must { } })
+        assertJsonEquals("{}", json { should { }; mustNot { } })
+        assertJsonEquals("{}", json { minShould(1) { } })
+    }
 }

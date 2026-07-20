@@ -71,4 +71,21 @@ class CreateCollectionBuilderTest {
             build { vector { distance = Distance.COSINE } }
         }
     }
+
+    @Test
+    fun `a non-positive vector size is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            build { vector { size = 0; distance = Distance.COSINE } }
+        }
+    }
+
+    @Test
+    fun `a non-positive shard or replication factor is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            build { vector { size = 4; distance = Distance.COSINE }; shardNumber = 0 }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            build { vector { size = 4; distance = Distance.COSINE }; replicationFactor = -1 }
+        }
+    }
 }

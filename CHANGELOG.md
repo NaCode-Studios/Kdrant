@@ -6,6 +6,44 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+- **delete-by-filter data loss**: a delete whose filter clauses were all empty (e.g.
+  `delete(c) { must { } }`, or `must { if (cond) … }` where `cond` is false at runtime) is no longer
+  sent as a match-all filter that would delete every point in the collection. Empty clause blocks now
+  normalize away, and delete-by-filter rejects an all-empty filter before issuing any request.
+- `collectionExists` now returns `false` on a `404` instead of throwing, matching its documented contract.
+- `KdrantException.CollectionNotFound` now carries the server's error message when the server provides one.
+
+### Security
+- The client rejects a configuration that sets an `apiKey` without `useTls`, so an API key is never
+  sent over plaintext HTTP.
+
+### Added
+- Modern `/points/query` search: a polymorphic `query` (nearest by vector or by point id, `orderBy`,
+  `sample`), nestable `prefetch { }` sub-requests, and hybrid-search fusion (`rrf(k, weights)` / `dbsf()`),
+  plus `lookupFrom` for cross-collection id lookups. The previous `query(vector)` call is unchanged.
+- Typed payload access: `kdrantJson` (public default `Json`), `ScoredPoint.payloadAs<T>()` /
+  `Record.payloadAs<T>()`, and `QdrantClient.searchAs<T>(): List<Hit<T>>` to decode hit payloads
+  straight into your own types.
+- Collection conveniences: `getCollectionOrNull`, race-tolerant `createCollectionIfNotExists(...): Boolean`,
+  and a `createCollection(name, size, distance = COSINE)` shorthand.
+- `PayloadBuilder` index-assignment sugar: `payload["key"] = value` (`operator set`, accepts `null`).
+- Automatic retries with exponential backoff + jitter for transient failures (HTTP 429/502/503/504 and
+  transient I/O errors), honoring the server's `Retry-After` header. Tunable via `maxRetries`,
+  `retryBaseDelay`, and `retryMaxDelay` on the client config (`maxRetries = 0` disables retries).
+- Finer error taxonomy: `KdrantException.RateLimited` (429, carrying `Retry-After`), `ServiceUnavailable`
+  (503), `ServerError` (other 5xx), and `AlreadyExists` (409).
+- Client-side validation of collection parameters: vector `size`, `shardNumber`, and `replicationFactor`
+  must be positive, with error messages that echo the received value.
+- `kdrant-bom` — a Bill of Materials module to keep `kdrant-core` and `kdrant-transport-rest` on one
+  aligned version.
+
+### Changed
+- Server errors (HTTP 5xx other than 503) now surface as `KdrantException.ServerError` instead of
+  `Transport`, which is now reserved for connection-level I/O failures. HTTP `408` maps to `Timeout`
+  and `409` to `AlreadyExists`.
+- `local.properties` is no longer tracked in version control.
+
 ## [0.1.0] - 2026-07-10
 
 ### Added

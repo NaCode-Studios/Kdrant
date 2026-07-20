@@ -6,6 +6,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nacode-studios/kdrant-core?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.nacode-studios/kdrant-core)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![API docs](https://img.shields.io/badge/API%20docs-Dokka-blue.svg)](https://nacode-studios.github.io/Kdrant/)
 
 Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests
 are assembled with protobuf builders, and it pulls a large gRPC/Netty stack onto your classpath.
@@ -50,6 +51,23 @@ your own embedding model; Kdrant does not generate embeddings.
 - **Typed errors** — failures surface as a sealed `KdrantException` you can exhaustively handle.
 - **Pluggable transport** — the wire protocol sits behind a `QdrantTransport` seam, keeping the
   public API independent of it.
+
+### Footprint vs the official client
+
+Dependency stacks verified against `io.qdrant:client:1.18.3`:
+
+| | Kdrant (`kdrant-transport-rest`) | Official `io.qdrant:client` |
+| --- | --- | --- |
+| Wire protocol | REST/HTTP over Ktor CIO | gRPC (HTTP/2) |
+| Heavy dependencies | none — pure Kotlin (Ktor + kotlinx) | `grpc-netty-shaded` (bundled Netty), `grpc-protobuf`/`grpc-stub`, `protobuf-java`, Guava, slf4j |
+| Approx. added footprint | ~3–5 MB (Ktor + kotlinx-serialization; coroutines/stdlib are usually already present) | ~15–20 MB of transitive jars (shaded Netty ≈ 9 MB alone) |
+| API style | `suspend` functions + `Flow`, type-safe DSL | `ListenableFuture<T>` (Guava), protobuf builders |
+| Models | `kotlinx-serialization` data classes | generated protobuf messages |
+| GraalVM native / cold start | friendly (no Netty/protobuf reflection config) | needs gRPC/Netty/protobuf native config; heavier cold start |
+
+For raw throughput and streaming, gRPC/HTTP2 still wins — reach for the official client when that is
+your bottleneck. For typical RAG and embedding-search workloads, Kdrant trades that for a fraction of
+the footprint and idiomatic Kotlin.
 
 ## Installation
 
@@ -101,13 +119,15 @@ qdrant.createCollection("multimodal") {
 qdrant.deleteCollection("articles")
 ```
 
-Check existence and read a collection's status and counts:
+Create-if-absent (race-tolerant), plus a size+distance shorthand for the common case and a
+non-throwing read:
 
 ```kotlin
-if (!qdrant.collectionExists("articles")) {
-    qdrant.createCollection("articles") { vector { size = 1_536; distance = Distance.COSINE } }
-}
-val info = qdrant.getCollection("articles")   // info.status, info.pointsCount, ...
+// Returns true if created, false if it already existed (tolerates a concurrent create).
+qdrant.createCollectionIfNotExists("articles") { vector { size = 1_536; distance = Distance.COSINE } }
+qdrant.createCollection("quickstart", size = 1_536)      // single vector, COSINE
+
+val info = qdrant.getCollectionOrNull("articles")        // null instead of throwing if absent
 ```
 
 ### Upserting points
@@ -169,6 +189,31 @@ val hits: List<ScoredPoint> = qdrant.search("articles") {
 }
 ```
 
+Decode each hit's payload straight into your own type with `searchAs` (or `payloadAs` on a single hit):
+
+```kotlin
+@Serializable data class Article(val title: String, val lang: String)
+
+val articles: List<Hit<Article>> = qdrant.searchAs<Article>("articles") {
+    query(queryVector); limit = 5
+}
+val first: Article? = articles.firstOrNull()?.payload
+```
+
+**Hybrid search** fuses several `prefetch` sources with Reciprocal Rank Fusion or DBSF:
+
+```kotlin
+val hits = qdrant.search("articles") {
+    prefetch { query(titleVector); using = "title"; limit = 50 }
+    prefetch { query(bodyVector); using = "body"; limit = 50 }
+    rrf()            // Reciprocal Rank Fusion; or dbsf()
+    limit = 10
+}
+```
+
+You can also query by a stored point's vector (`query(PointId.num(1))`), `orderBy("field")`, or
+`sample()`. (Sparse & multi-vectors, which unlock dense+keyword hybrid, land in a later release.)
+
 ### Scrolling
 
 `scroll` returns a cold `Flow` that transparently pages through the collection:
@@ -221,11 +266,17 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Now** — connect; collection management and introspection (`collectionExists` / `getCollection`);
-`upsert` (with auto-batching); `search` (over Qdrant's unified query API); `scroll` as a `Flow`;
-`count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
+**Shipped (`0.1.0`)** — connect; collection management and introspection (`collectionExists` /
+`getCollection`); `upsert` (with auto-batching); `search` (over Qdrant's unified query API);
+`scroll` as a `Flow`; `count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
 
-**Next** — snapshots and aliases, then a gRPC transport engine behind the same seam.
+**Next** — a correctness & security patch (`0.1.1`), then retries and typed-payload ergonomics;
+the full `/points/query` engine (prefetch, hybrid + RRF/DBSF fusion, sparse & multivectors,
+recommend / discovery / grouping); payload indexing and data mutations; aliases and snapshots;
+framework integrations (Spring AI / LangChain4j / Koog); and the road to `1.0` — with Kotlin
+Multiplatform and an optional gRPC engine after that.
+
+See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
 
 ## Building and testing
 

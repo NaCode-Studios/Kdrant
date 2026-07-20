@@ -5,6 +5,8 @@ package dev.kdrant.dsl
 import dev.kdrant.assertJsonEquals
 import dev.kdrant.internal.InternalKdrantApi
 import dev.kdrant.internal.KdrantJson
+import dev.kdrant.model.Direction
+import dev.kdrant.model.PointId
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.encodeToString
@@ -56,5 +58,57 @@ class SearchBuilderTest {
         assertThrows(IllegalArgumentException::class.java) {
             SearchBuilder().apply { query(emptyList()) }.build()
         }
+    }
+
+    @Test
+    fun `query by point id serializes to a bare id`() {
+        assertJsonEquals(
+            """{"query":5,"limit":3}""",
+            json { query(PointId.num(5)); limit = 3 },
+        )
+    }
+
+    @Test
+    fun `hybrid search with prefetch and RRF fusion`() {
+        assertJsonEquals(
+            """
+            {"prefetch":[
+              {"query":[0.1,0.2],"using":"title","limit":50},
+              {"query":[0.3,0.4],"using":"body","limit":50}
+            ],
+            "query":{"fusion":"rrf"},"limit":10}
+            """.trimIndent(),
+            json {
+                prefetch { query(0.1f, 0.2f); using = "title"; limit = 50 }
+                prefetch { query(0.3f, 0.4f); using = "body"; limit = 50 }
+                rrf()
+            },
+        )
+    }
+
+    @Test
+    fun `parameterized RRF and DBSF fusion`() {
+        assertJsonEquals(
+            """{"prefetch":[{"query":[0.1],"limit":5}],"query":{"rrf":{"k":60,"weights":[0.7,0.3]}},"limit":10}""",
+            json { prefetch { query(0.1f); limit = 5 }; rrf(k = 60, weights = listOf(0.7f, 0.3f)) },
+        )
+        assertJsonEquals(
+            """{"prefetch":[{"query":[0.1],"limit":5}],"query":{"fusion":"dbsf"},"limit":10}""",
+            json { prefetch { query(0.1f); limit = 5 }; dbsf() },
+        )
+    }
+
+    @Test
+    fun `order by, sample and lookup_from`() {
+        assertJsonEquals(
+            """{"query":{"order_by":{"key":"year","direction":"desc"}},"limit":10}""",
+            json { orderBy("year", Direction.DESC) },
+        )
+        assertJsonEquals("""{"query":{"order_by":"year"},"limit":10}""", json { orderBy("year") })
+        assertJsonEquals("""{"query":{"sample":"random"},"limit":10}""", json { sample() })
+        assertJsonEquals(
+            """{"query":1,"limit":10,"lookup_from":{"collection":"other","vector":"text"}}""",
+            json { query(PointId.num(1)); lookupFrom("other", "text") },
+        )
     }
 }
