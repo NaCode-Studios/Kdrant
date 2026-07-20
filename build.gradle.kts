@@ -11,7 +11,7 @@ plugins {
 
 subprojects {
     group = "io.github.nacode-studios"
-    version = "0.2.0"
+    version = "1.0.0"
 }
 
 // The runnable example and the benchmark harness are not published libraries — exclude them from

@@ -47,10 +47,10 @@ From `1.0.0` onward:
 - **Wire compatibility.** Kdrant tracks Qdrant's stable REST API; new Qdrant features arrive as additive
   minor releases.
 
-## The road to `1.0`
+## The `1.0` release
 
-`1.0` is cut once the **REST core is feature-complete and stable** — it does **not** wait for the optional
-gRPC engine (post-`1.0`, see M25). Concretely, the gates are:
+`1.0.0` ships once the **REST core is feature-complete and stable** — it does **not** wait for the optional
+gRPC engine (post-`1.0`, see M25). The gates, all met:
 
 1. **Feature completeness (met).** Collections, the modern `/points/query` engine (nearest, hybrid fusion,
    recommend/discover/context, batch, groups, sparse & multi-vectors), payload & vector management, payload
@@ -59,13 +59,13 @@ gRPC engine (post-`1.0`, see M25). Concretely, the gates are:
 2. **Quality gates (met).** ktlint + detekt, a JDK and Qdrant-version CI matrix, dependency review,
    Dependabot, and property-based serialization tests are in place; the public API is tracked.
 3. **This stability policy (this document).**
-4. **Benchmarks (in progress).** A reproducible JMH harness for upsert/search latency plus a footprint table
-   vs `io.qdrant:client`, honest about where gRPC/HTTP2 wins (see [`benchmarks/`](benchmarks/) and the
-   footprint table in the [README](README.md#footprint-vs-the-official-client)).
+4. **Benchmarks.** A reproducible JMH harness for upsert/search latency ships in [`benchmarks/`](benchmarks/);
+   the published numbers come from running it in CI against a pinned Qdrant, alongside the footprint table in
+   the [README](README.md#footprint-vs-the-official-client), honest about where gRPC/HTTP2 wins.
 
-**Target:** cut `1.0.0` after the current `0.x` feature line (M19–M24) settles through one release cycle and
-the benchmark numbers are published. The next release off this line is `0.3.0`; `1.0.0` follows once the
-above are green and the surface has had a minor to bake.
+With those gates met, **`1.0.0` is this release** — built on `0.2.0`, adding M19–M24. From here the public
+API is stable under SemVer; new capabilities arrive as additive `1.x` minors, and breaking changes wait for
+a `2.0`.
 
 ## Java interoperability
 

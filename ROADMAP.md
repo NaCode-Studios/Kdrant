@@ -4,9 +4,9 @@ This document tracks where Kdrant is going. It complements the [CHANGELOG](CHANG
 (which records what has already shipped) and the short *Roadmap* section in the
 [README](README.md).
 
-Kdrant is pre-`1.0`: the public API may change between minor versions, and milestones below may be
-re-ordered as the project learns. Every public-API change is tracked by the
-binary-compatibility-validator (`*.api` files), so breakage is never silent.
+As of `1.0`, Kdrant's public API is stable under SemVer (see [STABILITY.md](STABILITY.md)); the post-`1.0`
+milestones below are additive and may be re-ordered as the project learns. Every public-API change is
+tracked by the binary-compatibility-validator (`*.api` files), so breakage is never silent.
 
 ## Guiding principles
 
@@ -21,7 +21,16 @@ binary-compatibility-validator (`*.api` files), so breakage is never silent.
   friendliness, and Kotlin idioms — not on raw gRPC throughput. Benchmarks stay honest about the
   cases where the official gRPC client is the better choice.
 
-## Status — `0.2.0` (shipped)
+## Status — `1.0.0` (current)
+
+`1.0.0` marks a **stable public API** under SemVer (see [STABILITY.md](STABILITY.md)). On top of `0.2.0`
+it adds aliases and snapshots (M19–M20); observability & a granular transport seam with a no-boxing hot
+path and streaming ingest (M21); quality & CI hardening — ktlint/detekt, a JDK & Qdrant-version matrix,
+Dependabot, property-based tests (M22); the **Spring Boot / Spring AI / LangChain4j** integrations and a
+runnable RAG example (M23); and the `catching` helper, this stability policy, and a JMH benchmark harness
+(M24). Koog is scoped as an upstream contribution.
+
+## Status — `0.2.0`
 
 `0.2.0` is a large feature release on top of `0.1.0`'s core (collections, `upsert`, `delete`, `count`,
 `retrieve`, `scroll` as a `Flow`, and the full filter DSL). It adds:
@@ -47,12 +56,12 @@ Published to Maven Central and GitHub Packages.
 | Milestone | Status |
 | --- | --- |
 | **M10–M18** | ✅ Shipped in `0.2.0`. |
-| **M19** · Aliases, service & analytics endpoints | ✅ Implemented (unreleased — ships in the next minor). |
-| **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
-| **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
-| **M22** · Quality, supply chain & test depth (CI) | ✅ Largely implemented (unreleased); some sub-items deferred. |
-| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | ✅ Publishable scope done (unreleased); Koog = upstream contribution. |
-| **M24** · The road to `1.0` | ✅ Implemented (unreleased) — Tier 4 complete. |
+| **M19** · Aliases, service & analytics endpoints | ✅ Shipped in `1.0.0`. |
+| **M20** · Snapshots & backup/restore | ✅ Shipped in `1.0.0`. |
+| **M21** · Observability, granular transport, no-boxing hot path | ✅ Shipped in `1.0.0`. |
+| **M22** · Quality, supply chain & test depth (CI) | ✅ Shipped in `1.0.0` (some sub-items deferred). |
+| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | ✅ Shipped in `1.0.0` (Koog = upstream contribution). |
+| **M24** · The road to `1.0` | ✅ Shipped in `1.0.0` — Tier 4 complete. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
 
 **Deferred sub-items carried forward from `0.2.0`:** `order_by` on `scroll` (M14); `Formula` / MMR
@@ -176,7 +185,7 @@ Complete Qdrant's advanced retrieval coverage on top of the `QueryInterface` bas
 
 ---
 
-## Tier 3 — Complete data & collection management — M17–M18 ✅ in `0.2.0`; M19–M20 ✅ implemented (unreleased)
+## Tier 3 — Complete data & collection management — M17–M18 ✅ in `0.2.0`; M19–M20 ✅ shipped in `1.0.0`
 
 ### M17 · Payload / vector mutations & payload indexes — `M`
 
@@ -210,7 +219,7 @@ the convenience helpers need.
 
 ### M19 · Aliases, service & analytics endpoints — `M`
 
-**Status: ✅ implemented (unreleased).** All three groups below shipped, with MockEngine wire tests.
+**Status: ✅ shipped in `1.0.0`.** All three groups below shipped, with MockEngine wire tests.
 
 Round out the operational surface: zero-downtime reindex, server-side health, and analytics.
 
@@ -222,7 +231,7 @@ Round out the operational surface: zero-downtime reindex, server-side health, an
 
 ### M20 · Snapshots & backup / restore — `L`
 
-**Status: ✅ implemented (unreleased)** for the collection and full-storage scopes. **Shard-scope
+**Status: ✅ shipped in `1.0.0`** for the collection and full-storage scopes. **Shard-scope
 snapshots are deferred.**
 
 Provide the backup/restore story enterprise adoption expects, designed separately because of binary bodies.
@@ -238,7 +247,7 @@ Provide the backup/restore story enterprise adoption expects, designed separatel
 
 ### M21 · Observability, granular transport & no-boxing hot path — `L`
 
-**Status: ✅ implemented (unreleased).** Delivered: the `configureClient` client-customization seam,
+**Status: ✅ shipped in `1.0.0`.** Delivered: the `configureClient` client-customization seam,
 `connectTimeout` / `socketTimeout`, api-key-redacting logging, `Flow` / `Sequence` upsert, the
 `FloatArray` no-boxing dense path (`vector` / `query`), and byte-aware upsert batching (`maxUpsertBytes`).
 **Deferred:** the `X-Request-Id` correlation header and bundled Micrometer / OpenTelemetry hooks — both
@@ -259,7 +268,7 @@ streaming ingestion.
 
 ### M22 · Quality, supply chain & test depth (CI) — `M`
 
-**Status: ✅ largely implemented (unreleased).** Delivered: **ktlint** + **detekt** as `check` gates
+**Status: ✅ shipped in `1.0.0`** (some sub-items deferred). Delivered: **ktlint** + **detekt** as `check` gates
 (configured to the codebase's style); a JDK `17` / `21` build matrix and a Qdrant-version matrix
 (pinned + `latest`) via Testcontainers; **Gradle wrapper-validation**; a **dependency-review** step on
 PRs; **Dependabot** (Gradle + GitHub Actions, grouped); and **property-based round-trip** tests on the
@@ -278,7 +287,7 @@ Bring CI and tests up to a mature OSS standard and catch wire-format regressions
 
 ### M23 · Ecosystem: Spring Boot / Spring AI / LangChain4j / Koog & a RAG app — `XL`
 
-**Status: 🚧 in progress.** Done: the **`kdrant-spring-boot-starter`** (`@ConfigurationProperties("kdrant")`
+**Status: ✅ shipped in `1.0.0`** (Koog = upstream contribution). Done: the **`kdrant-spring-boot-starter`** (`@ConfigurationProperties("kdrant")`
 + `@AutoConfiguration` exposing a `destroyMethod = "close"`, `@ConditionalOnMissingBean` `QdrantClient`
 bean; `ApplicationContextRunner` test) and **`kdrant-spring-ai`** (a Spring AI `VectorStore` backed by
 Kdrant — `add` / `delete` / `similaritySearch`, embedding via a Spring AI `EmbeddingModel`; metadata-filter
@@ -308,7 +317,7 @@ adoption driver: a runnable RAG demo. (Depends on query/collection completeness 
 
 ### M24 · The road to `1.0`: stability, benchmarks, final ergonomics — `M`
 
-**Status: ✅ implemented (unreleased) — this completes Tier 4.** Delivered: a written semver/stability
+**Status: ✅ shipped in `1.0.0` — this completes Tier 4.** Delivered: a written semver/stability
 policy + `1.0` scope-and-date plan ([STABILITY.md](STABILITY.md)); a JMH latency harness for upsert/search
 ([`benchmarks/`](benchmarks/)); the `catching { }` helper (coroutine-safe `Result<T>`); and the documented
 Java-interop decision (Kotlin-first; bridge via `kotlinx-coroutines-jdk8`; no bundled facade in `1.0`).

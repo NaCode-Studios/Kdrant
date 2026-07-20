@@ -6,6 +6,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-20
+
+Kdrant's `1.0`: the REST client is feature-complete and its public API is now stable under Semantic
+Versioning — see [STABILITY.md](STABILITY.md). On top of `0.2.0` (M10–M18), this release adds M19–M24
+(aliases, snapshots, service/analytics endpoints, granular transport & observability, a no-boxing hot
+path, quality/CI hardening, the Spring Boot / Spring AI / LangChain4j integrations, and the `catching`
+helper).
+
 ### Added
 - Aliases (M19): `updateAliases { createAlias(collection, alias); deleteAlias(alias); renameAlias(from, to) }`,
   applied by the server as one atomic batch — the primitive behind zero-downtime reindexing (build a new
@@ -116,6 +124,7 @@ All notable changes to this project are documented in this file. The format is b
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/NaCode-Studios/Kdrant/releases/tag/v0.1.0
