@@ -32,6 +32,8 @@ All notable changes to this project are documented in this file. The format is b
   (503), `ServerError` (other 5xx), and `AlreadyExists` (409).
 - Client-side validation of collection parameters: vector `size`, `shardNumber`, and `replicationFactor`
   must be positive, with error messages that echo the received value.
+- `kdrant-bom` — a Bill of Materials module to keep `kdrant-core` and `kdrant-transport-rest` on one
+  aligned version.
 
 ### Changed
 - Server errors (HTTP 5xx other than 503) now surface as `KdrantException.ServerError` instead of

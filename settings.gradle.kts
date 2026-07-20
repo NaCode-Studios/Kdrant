@@ -14,6 +14,7 @@ dependencyResolutionManagement {
 rootProject.name = "kdrant"
 
 include(
+    "kdrant-bom",
     "kdrant-core",
     "kdrant-transport-rest",
 )

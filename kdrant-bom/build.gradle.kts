@@ -1,46 +1,26 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.dokka.javadoc)
+    `java-platform`
     alias(libs.plugins.maven.publish)
 }
 
-kotlin {
-    jvmToolchain(17)
-    explicitApi()
-}
+// group and version are inherited from the root `subprojects { }` block.
 
 dependencies {
-    api(libs.kotlinx.coroutines.core)
-    api(libs.kotlinx.serialization.json)
-
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.kotlinx.coroutines.test)
-}
-
-tasks.test {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        exceptionFormat = TestExceptionFormat.FULL
+    constraints {
+        api("io.github.nacode-studios:kdrant-core:${project.version}")
+        api("io.github.nacode-studios:kdrant-transport-rest:${project.version}")
     }
 }
 
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.nacode-studios", "kdrant-core", version.toString())
+    coordinates("io.github.nacode-studios", "kdrant-bom", version.toString())
     pom {
-        name.set("Kdrant Core")
+        name.set("Kdrant BOM")
         description.set(
-            "Idiomatic, coroutine-first Kotlin client for the Qdrant vector database — suspend " +
-                "functions, a type-safe filter/query DSL, kotlinx-serialization models, and a pluggable " +
-                "transport seam. Core module for RAG and embedding search on the JVM.",
+            "Bill of Materials for Kdrant — import it to keep kdrant-core and kdrant-transport-rest " +
+                "on a single, aligned version.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

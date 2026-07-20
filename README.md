@@ -6,6 +6,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nacode-studios/kdrant-core?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.nacode-studios/kdrant-core)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![API docs](https://img.shields.io/badge/API%20docs-Dokka-blue.svg)](https://nacode-studios.github.io/Kdrant/)
 
 Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests
 are assembled with protobuf builders, and it pulls a large gRPC/Netty stack onto your classpath.
@@ -50,6 +51,23 @@ your own embedding model; Kdrant does not generate embeddings.
 - **Typed errors** — failures surface as a sealed `KdrantException` you can exhaustively handle.
 - **Pluggable transport** — the wire protocol sits behind a `QdrantTransport` seam, keeping the
   public API independent of it.
+
+### Footprint vs the official client
+
+Dependency stacks verified against `io.qdrant:client:1.18.3`:
+
+| | Kdrant (`kdrant-transport-rest`) | Official `io.qdrant:client` |
+| --- | --- | --- |
+| Wire protocol | REST/HTTP over Ktor CIO | gRPC (HTTP/2) |
+| Heavy dependencies | none — pure Kotlin (Ktor + kotlinx) | `grpc-netty-shaded` (bundled Netty), `grpc-protobuf`/`grpc-stub`, `protobuf-java`, Guava, slf4j |
+| Approx. added footprint | ~3–5 MB (Ktor + kotlinx-serialization; coroutines/stdlib are usually already present) | ~15–20 MB of transitive jars (shaded Netty ≈ 9 MB alone) |
+| API style | `suspend` functions + `Flow`, type-safe DSL | `ListenableFuture<T>` (Guava), protobuf builders |
+| Models | `kotlinx-serialization` data classes | generated protobuf messages |
+| GraalVM native / cold start | friendly (no Netty/protobuf reflection config) | needs gRPC/Netty/protobuf native config; heavier cold start |
+
+For raw throughput and streaming, gRPC/HTTP2 still wins — reach for the official client when that is
+your bottleneck. For typical RAG and embedding-search workloads, Kdrant trades that for a fraction of
+the footprint and idiomatic Kotlin.
 
 ## Installation
 
