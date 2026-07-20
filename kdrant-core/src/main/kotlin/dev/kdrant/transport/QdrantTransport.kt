@@ -23,8 +23,11 @@ import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
 import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.SnapshotDescription
+import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
@@ -158,4 +161,48 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Distance matrix in offsets form (`POST /collections/{name}/points/search/matrix/offsets`). */
     public suspend fun searchMatrixOffsets(name: String, request: SearchMatrixRequest): SearchMatrixOffsets
+
+    // --- Snapshots (M20) ---
+
+    /** Create a collection snapshot (`POST /collections/{name}/snapshots`). */
+    public suspend fun createSnapshot(name: String, wait: Boolean): SnapshotDescription
+
+    /** List a collection's snapshots (`GET /collections/{name}/snapshots`). */
+    public suspend fun listSnapshots(name: String): List<SnapshotDescription>
+
+    /** Delete a collection snapshot (`DELETE /collections/{name}/snapshots/{snapshot}`). */
+    public suspend fun deleteSnapshot(name: String, snapshotName: String, wait: Boolean)
+
+    /** Recover a collection from a snapshot location (`PUT /collections/{name}/snapshots/recover`). */
+    public suspend fun recoverSnapshot(
+        name: String,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    )
+
+    /** Stream a collection snapshot's bytes (`GET /collections/{name}/snapshots/{snapshot}`). */
+    public fun downloadSnapshot(name: String, snapshotName: String): Flow<ByteArray>
+
+    /** Upload a snapshot file and recover from it (`POST /collections/{name}/snapshots/upload`). */
+    public suspend fun uploadSnapshot(
+        name: String,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    )
+
+    /** Create a full-storage snapshot (`POST /snapshots`). */
+    public suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription
+
+    /** List full-storage snapshots (`GET /snapshots`). */
+    public suspend fun listStorageSnapshots(): List<SnapshotDescription>
+
+    /** Delete a full-storage snapshot (`DELETE /snapshots/{snapshot}`). */
+    public suspend fun deleteStorageSnapshot(snapshotName: String, wait: Boolean)
+
+    /** Stream a full-storage snapshot's bytes (`GET /snapshots/{snapshot}`). */
+    public fun downloadStorageSnapshot(snapshotName: String): Flow<ByteArray>
 }

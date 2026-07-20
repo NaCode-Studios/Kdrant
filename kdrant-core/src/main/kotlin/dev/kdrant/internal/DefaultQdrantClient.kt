@@ -25,6 +25,8 @@ import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.SnapshotDescription
+import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
@@ -257,6 +259,51 @@ internal class DefaultQdrantClient(
         name: String,
         configure: SearchMatrixBuilder.() -> Unit,
     ): SearchMatrixOffsets = transport.searchMatrixOffsets(name, SearchMatrixBuilder().apply(configure).build())
+
+    override suspend fun createSnapshot(name: String, wait: Boolean): SnapshotDescription =
+        transport.createSnapshot(name, wait)
+
+    override suspend fun listSnapshots(name: String): List<SnapshotDescription> = transport.listSnapshots(name)
+
+    override suspend fun deleteSnapshot(name: String, snapshotName: String, wait: Boolean) {
+        transport.deleteSnapshot(name, snapshotName, wait)
+    }
+
+    override suspend fun recoverSnapshot(
+        name: String,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        require(location.isNotBlank()) { "recoverSnapshot needs a non-blank location (an http(s):// URL or file:/// path)" }
+        transport.recoverSnapshot(name, location, priority, checksum, wait)
+    }
+
+    override fun downloadSnapshot(name: String, snapshotName: String): Flow<ByteArray> =
+        transport.downloadSnapshot(name, snapshotName)
+
+    override suspend fun uploadSnapshot(
+        name: String,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        transport.uploadSnapshot(name, data, priority, checksum, wait)
+    }
+
+    override suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription =
+        transport.createStorageSnapshot(wait)
+
+    override suspend fun listStorageSnapshots(): List<SnapshotDescription> = transport.listStorageSnapshots()
+
+    override suspend fun deleteStorageSnapshot(snapshotName: String, wait: Boolean) {
+        transport.deleteStorageSnapshot(snapshotName, wait)
+    }
+
+    override fun downloadStorageSnapshot(snapshotName: String): Flow<ByteArray> =
+        transport.downloadStorageSnapshot(snapshotName)
 
     override fun close() {
         transport.close()

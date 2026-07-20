@@ -29,6 +29,8 @@ import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
 import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.SnapshotDescription
+import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
@@ -43,22 +45,36 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.delete
+import io.ktor.client.request.forms.ChannelProvider
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.prepareGet
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.writeFully
+import io.ktor.utils.io.writer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import kotlinx.io.readByteArray
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -386,6 +402,116 @@ internal class RestQdrantTransport(
         return decodeBody(response) { it.body<MatrixOffsetsResponse>().result }
     }
 
+    override suspend fun createSnapshot(name: String, wait: Boolean): SnapshotDescription {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/snapshots") { parameter("wait", wait) }
+        }
+        return decodeBody(response) { it.body<SnapshotResponse>().result }
+    }
+
+    override suspend fun listSnapshots(name: String): List<SnapshotDescription> {
+        val response = execute(name) { client.get("/collections/${encode(name)}/snapshots") }
+        return decodeBody(response) { it.body<SnapshotListResponse>().result }
+    }
+
+    override suspend fun deleteSnapshot(name: String, snapshotName: String, wait: Boolean) {
+        execute(name) {
+            client.delete("/collections/${encode(name)}/snapshots/${encode(snapshotName)}") { parameter("wait", wait) }
+        }
+    }
+
+    override suspend fun recoverSnapshot(
+        name: String,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        execute(name) {
+            client.put("/collections/${encode(name)}/snapshots/recover") {
+                parameter("wait", wait)
+                setBody(SnapshotRecoverRequest(location, priority, checksum))
+            }
+        }
+    }
+
+    override fun downloadSnapshot(name: String, snapshotName: String): Flow<ByteArray> =
+        downloadStream("/collections/${encode(name)}/snapshots/${encode(snapshotName)}", name)
+
+    override suspend fun uploadSnapshot(
+        name: String,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        coroutineScope {
+            // Bridge the caller's Flow into a ByteReadChannel that Ktor streams as the multipart file part.
+            val snapshotChannel = writer { data.collect { channel.writeFully(it) } }.channel
+            val parts = formData {
+                append(
+                    key = "snapshot",
+                    value = ChannelProvider { snapshotChannel },
+                    headers = Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=\"snapshot.snapshot\"")
+                        append(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString())
+                    },
+                )
+            }
+            execute(name) {
+                client.post("/collections/${encode(name)}/snapshots/upload") {
+                    parameter("wait", wait)
+                    priority?.let { parameter("priority", it.toWireName()) }
+                    checksum?.let { parameter("checksum", it) }
+                    setBody(MultiPartFormDataContent(parts))
+                }
+            }
+        }
+    }
+
+    override suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription {
+        val response = execute { client.post("/snapshots") { parameter("wait", wait) } }
+        return decodeBody(response) { it.body<SnapshotResponse>().result }
+    }
+
+    override suspend fun listStorageSnapshots(): List<SnapshotDescription> {
+        val response = execute { client.get("/snapshots") }
+        return decodeBody(response) { it.body<SnapshotListResponse>().result }
+    }
+
+    override suspend fun deleteStorageSnapshot(snapshotName: String, wait: Boolean) {
+        execute { client.delete("/snapshots/${encode(snapshotName)}") { parameter("wait", wait) } }
+    }
+
+    override fun downloadStorageSnapshot(snapshotName: String): Flow<ByteArray> =
+        downloadStream("/snapshots/${encode(snapshotName)}", collection = null)
+
+    /**
+     * Streams a snapshot download as a cold [Flow], holding the HTTP response open for the lifetime of
+     * the collection so nothing is buffered in memory. Runs on [config.dispatcher].
+     */
+    private fun downloadStream(path: String, collection: String?): Flow<ByteArray> =
+        channelFlow {
+            try {
+                client.prepareGet(path).execute { response ->
+                    ensureSuccess(response, collection)
+                    val bytes = response.bodyAsChannel()
+                    while (!bytes.isClosedForRead) {
+                        val packet = bytes.readRemaining(SNAPSHOT_CHUNK_BYTES.toLong())
+                        while (!packet.exhausted()) {
+                            send(packet.readByteArray())
+                        }
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: HttpRequestTimeoutException) {
+                throw KdrantException.Timeout("Request to Qdrant timed out", e)
+            } catch (e: IOException) {
+                throw KdrantException.Transport("Failed to reach Qdrant at ${config.host}:${config.port}", e)
+            }
+        }.flowOn(config.dispatcher)
+
     override fun close() {
         client.close()
     }
@@ -489,6 +615,16 @@ internal class RestQdrantTransport(
 
 /** HTTP statuses worth retrying: rate-limit plus transient gateway/service errors. */
 private val RETRYABLE_STATUS_CODES: Set<Int> = setOf(429, 502, 503, 504)
+
+/** Chunk size (bytes) for streaming a snapshot download. */
+private const val SNAPSHOT_CHUNK_BYTES: Int = 64 * 1024
+
+/** Wire form of a [SnapshotPriority] for use as a query parameter (the body uses the enum's serializer). */
+private fun SnapshotPriority.toWireName(): String = when (this) {
+    SnapshotPriority.NO_SYNC -> "no_sync"
+    SnapshotPriority.SNAPSHOT -> "snapshot"
+    SnapshotPriority.REPLICA -> "replica"
+}
 
 /** Adds the `points` or `filter` selector to a payload/vector mutation body. */
 private fun JsonObjectBuilder.putSelector(selector: DeleteSelector) {

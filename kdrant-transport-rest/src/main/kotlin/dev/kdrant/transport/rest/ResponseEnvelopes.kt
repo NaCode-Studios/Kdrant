@@ -10,6 +10,7 @@ import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.SnapshotDescription
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -113,4 +114,14 @@ internal data class MatrixPairsResponse(
 @Serializable
 internal data class MatrixOffsetsResponse(
     @SerialName("result") val result: SearchMatrixOffsets,
+)
+
+@Serializable
+internal data class SnapshotResponse(
+    @SerialName("result") val result: SnapshotDescription,
+)
+
+@Serializable
+internal data class SnapshotListResponse(
+    @SerialName("result") val result: List<SnapshotDescription>,
 )

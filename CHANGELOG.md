@@ -17,6 +17,14 @@ All notable changes to this project are documented in this file. The format is b
 - Analytics (M19): `facet(name, key, limit, exact) { filter }` — distinct payload-value counts (a histogram
   over a key) — and the distance-matrix endpoints `searchMatrixPairs(name) { sample; limit; using; filter }`
   and `searchMatrixOffsets(...)` (explicit edge-list and sparse-coordinate forms) for clustering/visualization.
+- Snapshots & backup/restore (M20): `createSnapshot` / `listSnapshots` / `deleteSnapshot` /
+  `recoverSnapshot(location, priority, checksum)` for a collection, plus `createStorageSnapshot` /
+  `listStorageSnapshots` / `deleteStorageSnapshot` for the whole storage. Binary transfer is streamed, so a
+  multi-GB backup is never buffered in memory: `downloadSnapshot(...)` / `downloadStorageSnapshot(...)` return
+  a cold `Flow<ByteArray>`, and `uploadSnapshot(name, data: Flow<ByteArray>, ...)` streams a snapshot file back
+  as a multipart upload. `SnapshotPriority` (`NO_SYNC` / `SNAPSHOT` / `REPLICA`) sets the source of truth when
+  recovering into a replicated collection. Note: unlike the mutation `wait` flags, snapshot `wait` defaults to
+  `true`, matching the Qdrant server default.
 
 ## [0.2.0] - 2026-07-20
 

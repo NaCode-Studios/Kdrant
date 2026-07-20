@@ -24,6 +24,8 @@ import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.SnapshotDescription
+import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
@@ -393,6 +395,77 @@ public interface QdrantClient : AutoCloseable {
         name: String,
         configure: SearchMatrixBuilder.() -> Unit = {},
     ): SearchMatrixOffsets
+
+    /**
+     * Create a snapshot of the collection [name]; the returned [SnapshotDescription.name] identifies it
+     * for later download or recover.
+     *
+     * @param wait if `true` (the default) return only once the snapshot exists; if `false` it is built in
+     *   the background. Note snapshot `wait` defaults to `true` — the opposite of the mutation `wait` flags.
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     */
+    public suspend fun createSnapshot(name: String, wait: Boolean = true): SnapshotDescription
+
+    /** List the collection [name]'s snapshots. */
+    public suspend fun listSnapshots(name: String): List<SnapshotDescription>
+
+    /** Delete the snapshot [snapshotName] of collection [name]. */
+    public suspend fun deleteSnapshot(name: String, snapshotName: String, wait: Boolean = true)
+
+    /**
+     * Recover collection [name] from a snapshot at [location] — an `http(s)://` URL (e.g. another node's
+     * snapshot) or a `file:///` path the server can read.
+     *
+     * @param priority which data wins if the collection has replicas (see [SnapshotPriority]).
+     * @param checksum optional SHA-256 checksum verified before recovery.
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     */
+    public suspend fun recoverSnapshot(
+        name: String,
+        location: String,
+        priority: SnapshotPriority? = null,
+        checksum: String? = null,
+        wait: Boolean = true,
+    )
+
+    /**
+     * Stream a collection snapshot's bytes as a cold [Flow], to save a backup without buffering the
+     * whole (potentially multi-GB) file in memory.
+     *
+     * ```kotlin
+     * val snap = qdrant.createSnapshot("docs")
+     * File("docs.snapshot").outputStream().use { out ->
+     *     qdrant.downloadSnapshot("docs", snap.name).collect { out.write(it) }
+     * }
+     * ```
+     */
+    public fun downloadSnapshot(name: String, snapshotName: String): Flow<ByteArray>
+
+    /**
+     * Upload a snapshot file (streamed from [data]) and recover collection [name] from it.
+     *
+     * @param priority which data wins if the collection has replicas (see [SnapshotPriority]).
+     * @param checksum optional SHA-256 checksum verified before recovery.
+     */
+    public suspend fun uploadSnapshot(
+        name: String,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority? = null,
+        checksum: String? = null,
+        wait: Boolean = true,
+    )
+
+    /** Create a snapshot of the whole storage (all collections). See [createSnapshot] for the `wait` note. */
+    public suspend fun createStorageSnapshot(wait: Boolean = true): SnapshotDescription
+
+    /** List whole-storage snapshots. */
+    public suspend fun listStorageSnapshots(): List<SnapshotDescription>
+
+    /** Delete the whole-storage snapshot [snapshotName]. */
+    public suspend fun deleteStorageSnapshot(snapshotName: String, wait: Boolean = true)
+
+    /** Stream a whole-storage snapshot's bytes as a cold [Flow]. See [downloadSnapshot]. */
+    public fun downloadStorageSnapshot(snapshotName: String): Flow<ByteArray>
 }
 
 /** Wraps a [QdrantTransport] into a [QdrantClient]. Used by transport factories. */
