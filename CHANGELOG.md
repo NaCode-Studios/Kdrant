@@ -22,6 +22,8 @@ All notable changes to this project are documented in this file. The format is b
 - Payload field indexes (`createPayloadIndex(field, PayloadSchemaType.KEYWORD)` / `deletePayloadIndex`), so
   filtering on a field scales instead of doing a full scan; and payload mutations `setPayload` /
   `overwritePayload` / `deletePayload` / `clearPayload` over a points-or-filter selector.
+- Vector mutations: `updateVectors` (write new vectors to existing points, keeping payload) and
+  `deleteVectors` (remove named vectors from the selected points).
 - Advanced retrieval queries on `search`: `recommend { positive(...); negative(...); strategy = ... }`,
   `discover { target(...); context(...) }`, and `context { pair(...) }`. Examples (`VectorInput`) accept a
   dense/sparse vector or a point id.

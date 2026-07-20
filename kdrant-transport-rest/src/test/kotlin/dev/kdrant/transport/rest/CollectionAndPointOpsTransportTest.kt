@@ -11,6 +11,8 @@ import dev.kdrant.model.CollectionStatus
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointVectors
+import dev.kdrant.model.VectorData
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
@@ -162,5 +164,45 @@ class CollectionAndPointOpsTransportTest {
         assertEquals("/collections/docs/points/payload/clear", captured.url.encodedPath)
         val body = KdrantJson.parseToJsonElement((captured.body as TextContent).text).jsonObject
         assertTrue(body.containsKey("filter"))
+    }
+
+    @Test
+    fun `updateVectors PUTs the points with their vectors`() {
+        lateinit var captured: HttpRequestData
+        val t = transport { request ->
+            captured = request
+            respond("""{"result":true,"status":"ok"}""", HttpStatusCode.OK, jsonHeaders)
+        }
+        t.use {
+            runBlocking {
+                it.updateVectors(
+                    "docs",
+                    listOf(PointVectors(PointId.num(1), VectorData.Named(mapOf("text" to VectorData.Dense(listOf(0.1f)))))),
+                    wait = false,
+                )
+            }
+        }
+
+        assertEquals(HttpMethod.Put, captured.method)
+        assertEquals("/collections/docs/points/vectors", captured.url.encodedPath)
+        val body = KdrantJson.parseToJsonElement((captured.body as TextContent).text).jsonObject
+        assertTrue(body.containsKey("points"))
+    }
+
+    @Test
+    fun `deleteVectors posts vector names with a selector`() {
+        lateinit var captured: HttpRequestData
+        val t = transport { request ->
+            captured = request
+            respond("""{"result":true,"status":"ok"}""", HttpStatusCode.OK, jsonHeaders)
+        }
+        t.use {
+            runBlocking { it.deleteVectors("docs", listOf("image"), DeleteSelector.Ids(listOf(PointId.num(1))), wait = false) }
+        }
+
+        assertEquals("/collections/docs/points/vectors/delete", captured.url.encodedPath)
+        val body = KdrantJson.parseToJsonElement((captured.body as TextContent).text).jsonObject
+        assertTrue(body.containsKey("vector"))
+        assertTrue(body.containsKey("points"))
     }
 }

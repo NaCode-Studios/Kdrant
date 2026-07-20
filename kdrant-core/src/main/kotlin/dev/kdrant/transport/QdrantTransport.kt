@@ -9,6 +9,7 @@ import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -67,6 +68,12 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Clear all payload from the selected points (`POST /collections/{name}/points/payload/clear`). */
     public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean)
+
+    /** Update the vectors of existing points (`PUT /collections/{name}/points/vectors`). */
+    public suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean)
+
+    /** Delete named vectors from the selected points (`POST /collections/{name}/points/vectors/delete`). */
+    public suspend fun deleteVectors(name: String, vectors: List<String>, selector: DeleteSelector, wait: Boolean)
 
     /** Fetch a single page of points (`POST /collections/{name}/points/scroll`). */
     public suspend fun scroll(name: String, request: ScrollRequest): ScrollPage

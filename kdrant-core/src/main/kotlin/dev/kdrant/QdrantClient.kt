@@ -13,6 +13,7 @@ import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.WithPayload
@@ -265,6 +266,23 @@ public interface QdrantClient : AutoCloseable {
 
     /** Clear all payload from the selected points. */
     public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean = false)
+
+    /**
+     * Update the vectors of existing points, keeping their payload.
+     *
+     * ```kotlin
+     * qdrant.updateVectors("docs", listOf(PointVectors(PointId.num(1), VectorData.Dense(newEmbedding))))
+     * ```
+     */
+    public suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean = false)
+
+    /** Delete the named [vectors] from the selected points. */
+    public suspend fun deleteVectors(
+        name: String,
+        vectors: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean = false,
+    )
 }
 
 /** Wraps a [QdrantTransport] into a [QdrantClient]. Used by transport factories. */

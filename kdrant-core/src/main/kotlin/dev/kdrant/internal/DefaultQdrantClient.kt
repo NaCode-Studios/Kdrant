@@ -13,6 +13,7 @@ import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchGroupsRequest
@@ -176,6 +177,16 @@ internal class DefaultQdrantClient(
 
     override suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean): Unit =
         transport.clearPayload(name, selector, wait)
+
+    override suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean): Unit =
+        transport.updateVectors(name, points, wait)
+
+    override suspend fun deleteVectors(
+        name: String,
+        vectors: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean,
+    ): Unit = transport.deleteVectors(name, vectors, selector, wait)
 
     override fun close() {
         transport.close()

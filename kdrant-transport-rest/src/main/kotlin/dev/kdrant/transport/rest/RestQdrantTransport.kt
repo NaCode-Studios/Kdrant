@@ -15,6 +15,7 @@ import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -214,6 +215,25 @@ internal class RestQdrantTransport(
         val body = buildJsonObject { putSelector(selector) }
         execute(name) {
             client.post("/collections/${encode(name)}/points/payload/clear") { parameter("wait", wait); setBody(body) }
+        }
+    }
+
+    override suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean) {
+        execute(name) {
+            client.put("/collections/${encode(name)}/points/vectors") {
+                parameter("wait", wait)
+                setBody(UpdateVectorsRequest(points))
+            }
+        }
+    }
+
+    override suspend fun deleteVectors(name: String, vectors: List<String>, selector: DeleteSelector, wait: Boolean) {
+        val body = buildJsonObject {
+            put("vector", JsonArray(vectors.map { JsonPrimitive(it) }))
+            putSelector(selector)
+        }
+        execute(name) {
+            client.post("/collections/${encode(name)}/points/vectors/delete") { parameter("wait", wait); setBody(body) }
         }
     }
 

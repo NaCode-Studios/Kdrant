@@ -3,6 +3,7 @@ package dev.kdrant.transport.rest
 import dev.kdrant.model.Filter
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointVectors
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.SerialName
@@ -34,4 +35,10 @@ internal data class BatchQueryRequest(
 internal data class CreateFieldIndexRequest(
     @SerialName("field_name") val fieldName: String,
     @SerialName("field_schema") val fieldSchema: PayloadSchemaType? = null,
+)
+
+/** Body for `PUT /collections/{name}/points/vectors` (update point vectors). */
+@Serializable
+internal data class UpdateVectorsRequest(
+    @SerialName("points") val points: List<PointVectors>,
 )
