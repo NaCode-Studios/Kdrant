@@ -25,6 +25,11 @@ All notable changes to this project are documented in this file. The format is b
   as a multipart upload. `SnapshotPriority` (`NO_SYNC` / `SNAPSHOT` / `REPLICA`) sets the source of truth when
   recovering into a replicated collection. Note: unlike the mutation `wait` flags, snapshot `wait` defaults to
   `true`, matching the Qdrant server default.
+- Granular transport & observability (M21): a `configureClient` escape hatch on the `Kdrant(...)` factory
+  (an `HttpClientConfig<*>` hook to install your own plugins — metrics, tracing — tune the CIO engine, or
+  override any default); `connectTimeout` / `socketTimeout` on the client config; and optional
+  request/response logging via `logLevel = LogLevel.…`, which always redacts the `api-key` header so the
+  key never reaches the logs.
 
 ## [0.2.0] - 2026-07-20
 

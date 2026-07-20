@@ -21,9 +21,10 @@ public final class dev/kdrant/Hit {
 }
 
 public final class dev/kdrant/KdrantConfig {
-	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;ZJIJJLkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;ZJIJJLkotlinx/coroutines/CoroutineDispatcher;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;ZJLkotlin/time/Duration;Lkotlin/time/Duration;IJJLkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;ZJLkotlin/time/Duration;Lkotlin/time/Duration;IJJLkotlinx/coroutines/CoroutineDispatcher;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getApiKey ()Ljava/lang/String;
+	public final fun getConnectTimeout-FghU774 ()Lkotlin/time/Duration;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getHost ()Ljava/lang/String;
 	public final fun getMaxRetries ()I
@@ -31,24 +32,29 @@ public final class dev/kdrant/KdrantConfig {
 	public final fun getRequestTimeout-UwyO8pc ()J
 	public final fun getRetryBaseDelay-UwyO8pc ()J
 	public final fun getRetryMaxDelay-UwyO8pc ()J
+	public final fun getSocketTimeout-FghU774 ()Lkotlin/time/Duration;
 	public final fun getUseTls ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/kdrant/KdrantConfigBuilder {
 	public final fun getApiKey ()Ljava/lang/String;
+	public final fun getConnectTimeout-FghU774 ()Lkotlin/time/Duration;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getMaxRetries ()I
 	public final fun getRequestTimeout-UwyO8pc ()J
 	public final fun getRetryBaseDelay-UwyO8pc ()J
 	public final fun getRetryMaxDelay-UwyO8pc ()J
+	public final fun getSocketTimeout-FghU774 ()Lkotlin/time/Duration;
 	public final fun getUseTls ()Z
 	public final fun setApiKey (Ljava/lang/String;)V
+	public final fun setConnectTimeout-BwNAW2A (Lkotlin/time/Duration;)V
 	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public final fun setMaxRetries (I)V
 	public final fun setRequestTimeout-LRDsOJo (J)V
 	public final fun setRetryBaseDelay-LRDsOJo (J)V
 	public final fun setRetryMaxDelay-LRDsOJo (J)V
+	public final fun setSocketTimeout-BwNAW2A (Lkotlin/time/Duration;)V
 	public final fun setUseTls (Z)V
 }
 

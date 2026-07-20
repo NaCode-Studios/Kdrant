@@ -18,6 +18,9 @@ public annotation class KdrantDsl
  * @property apiKey API key sent as the `api-key` header; `null` disables auth.
  * @property useTls use HTTPS instead of HTTP.
  * @property requestTimeout per-request timeout (applies to each attempt).
+ * @property connectTimeout timeout for establishing a connection; `null` uses the engine default.
+ * @property socketTimeout maximum idle time between two data packets on an open connection; `null`
+ *   uses the engine default.
  * @property maxRetries how many times to retry a retryable failure (HTTP 429/502/503/504 and
  *   transient I/O errors) with exponential backoff + jitter. `0` disables retries.
  * @property retryBaseDelay base delay before the first retry; each subsequent retry backs off
@@ -31,6 +34,8 @@ public class KdrantConfig(
     public val apiKey: String? = null,
     public val useTls: Boolean = false,
     public val requestTimeout: Duration = 30.seconds,
+    public val connectTimeout: Duration? = null,
+    public val socketTimeout: Duration? = null,
     public val maxRetries: Int = 3,
     public val retryBaseDelay: Duration = 500.milliseconds,
     public val retryMaxDelay: Duration = 5.seconds,
@@ -42,6 +47,8 @@ public class KdrantConfig(
             "useTls must be true when an apiKey is set, otherwise the key is sent over plaintext HTTP. " +
                 "Set useTls = true, or drop the apiKey for a local, unauthenticated node."
         }
+        connectTimeout?.let { require(it.isPositive()) { "connectTimeout must be positive, was $it" } }
+        socketTimeout?.let { require(it.isPositive()) { "socketTimeout must be positive, was $it" } }
         require(maxRetries >= 0) { "maxRetries must be >= 0, was $maxRetries" }
         require(retryBaseDelay.isPositive()) { "retryBaseDelay must be positive, was $retryBaseDelay" }
         require(retryMaxDelay >= retryBaseDelay) {
@@ -52,7 +59,8 @@ public class KdrantConfig(
     /** Renders the config without exposing [apiKey], so it is safe to log. */
     override fun toString(): String =
         "KdrantConfig(host=$host, port=$port, apiKey=${if (apiKey != null) "***" else "null"}, " +
-            "useTls=$useTls, requestTimeout=$requestTimeout, maxRetries=$maxRetries, " +
+            "useTls=$useTls, requestTimeout=$requestTimeout, connectTimeout=$connectTimeout, " +
+            "socketTimeout=$socketTimeout, maxRetries=$maxRetries, " +
             "retryBaseDelay=$retryBaseDelay, retryMaxDelay=$retryMaxDelay, dispatcher=$dispatcher)"
 }
 
@@ -71,6 +79,12 @@ public class KdrantConfigBuilder internal constructor(
     /** Per-request timeout (applies to each attempt). */
     public var requestTimeout: Duration = 30.seconds
 
+    /** Timeout for establishing a connection; `null` uses the engine default. */
+    public var connectTimeout: Duration? = null
+
+    /** Max idle time between two data packets on an open connection; `null` uses the engine default. */
+    public var socketTimeout: Duration? = null
+
     /** How many times to retry a retryable failure (HTTP 429/502/503/504, transient I/O). `0` disables. */
     public var maxRetries: Int = 3
 
@@ -85,7 +99,7 @@ public class KdrantConfigBuilder internal constructor(
 
     internal fun build(): KdrantConfig =
         KdrantConfig(
-            host, port, apiKey, useTls, requestTimeout,
+            host, port, apiKey, useTls, requestTimeout, connectTimeout, socketTimeout,
             maxRetries, retryBaseDelay, retryMaxDelay, dispatcher,
         )
 }

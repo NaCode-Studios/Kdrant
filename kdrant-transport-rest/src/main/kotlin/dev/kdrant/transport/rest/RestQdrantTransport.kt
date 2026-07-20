@@ -44,6 +44,9 @@ import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.ChannelProvider
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -106,6 +109,9 @@ internal class RestQdrantTransport(
     private val config: KdrantConfig,
     engine: HttpClientEngine? = null,
     private val upsertBatchSize: Int = 1000,
+    private val logLevel: LogLevel? = null,
+    private val logger: Logger? = null,
+    private val configureClient: (HttpClientConfig<*>.() -> Unit)? = null,
 ) : QdrantTransport {
 
     init {
@@ -124,6 +130,8 @@ internal class RestQdrantTransport(
         install(ContentNegotiation) { json(KdrantJson) }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds
+            config.connectTimeout?.let { connectTimeoutMillis = it.inWholeMilliseconds }
+            config.socketTimeout?.let { socketTimeoutMillis = it.inWholeMilliseconds }
         }
         install(HttpRequestRetry) {
             maxRetries = config.maxRetries
@@ -147,6 +155,20 @@ internal class RestQdrantTransport(
             config.apiKey?.let { headers.append("api-key", it) }
             contentType(ContentType.Application.Json)
         }
+        logLevel?.let { level ->
+            // Capture the constructor param here: inside install(Logging) { } an unqualified `logger`
+            // would resolve to the plugin config's own non-null logger, not ours.
+            val configuredLogger = logger
+            install(Logging) {
+                this.level = level
+                configuredLogger?.let { this.logger = it }
+                // Never let the API key reach the logs, even at HEADERS/ALL level.
+                sanitizeHeader { header -> header.equals("api-key", ignoreCase = true) }
+            }
+        }
+        // Applied last so callers can install plugins (metrics, tracing), tune the CIO engine, or
+        // override any default set above.
+        configureClient?.invoke(this)
     }
 
     override suspend fun createCollection(name: String, request: CreateCollectionRequest) {
