@@ -7,6 +7,8 @@ import dev.kdrant.internal.InternalKdrantApi
 import dev.kdrant.internal.KdrantJson
 import dev.kdrant.model.Direction
 import dev.kdrant.model.PointId
+import dev.kdrant.model.QueryInterface
+import dev.kdrant.model.RecommendStrategy
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.encodeToString
@@ -131,6 +133,38 @@ class SearchBuilderTest {
                 prefetch { querySparse(listOf(3, 17), listOf(0.6f, 0.4f)); using = "keywords"; limit = 50 }
                 rrf()
             },
+        )
+    }
+
+    @Test
+    fun `recommend query with positive, negative and strategy`() {
+        assertJsonEquals(
+            """{"query":{"recommend":{"positive":[[0.1,0.2],5],"negative":[[0.9,0.8]],"strategy":"best_score"}},"limit":10}""",
+            json {
+                recommend {
+                    positive(listOf(0.1f, 0.2f))
+                    positive(PointId.num(5))
+                    negative(listOf(0.9f, 0.8f))
+                    strategy = RecommendStrategy.BEST_SCORE
+                }
+            },
+        )
+    }
+
+    @Test
+    fun `discover and context queries`() {
+        assertJsonEquals(
+            """{"query":{"discover":{"target":[0.1],"context":[{"positive":[0.2],"negative":3}]}},"limit":10}""",
+            json {
+                discover {
+                    target(listOf(0.1f))
+                    context(QueryInterface.Vector(listOf(0.2f)), QueryInterface.ById(PointId.num(3)))
+                }
+            },
+        )
+        assertJsonEquals(
+            """{"query":{"context":[{"positive":[0.2],"negative":[0.9]}]},"limit":10}""",
+            json { context { pair(QueryInterface.Vector(listOf(0.2f)), QueryInterface.Vector(listOf(0.9f))) } },
         )
     }
 }

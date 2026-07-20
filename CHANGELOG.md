@@ -19,6 +19,9 @@ All notable changes to this project are documented in this file. The format is b
   sent over plaintext HTTP.
 
 ### Added
+- Advanced retrieval queries on `search`: `recommend { positive(...); negative(...); strategy = ... }`,
+  `discover { target(...); context(...) }`, and `context { pair(...) }`. Examples (`VectorInput`) accept a
+  dense/sparse vector or a point id.
 - Sparse & multi-vectors: `VectorData.Sparse` / `MultiDense`, `sparseVector(name) { modifier = Modifier.IDF }`
   and per-vector `multivector` in `createCollection`, and `querySparse(...)` / `queryMulti(...)` — enabling
   true dense+sparse hybrid search combined with M14 fusion. Response decoding now degrades an unknown vector

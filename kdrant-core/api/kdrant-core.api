@@ -186,6 +186,11 @@ public final class dev/kdrant/dsl/ClauseBuilder {
 	public static synthetic fun valuesCount$default (Ldev/kdrant/dsl/ClauseBuilder;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
 }
 
+public final class dev/kdrant/dsl/ContextBuilder {
+	public fun <init> ()V
+	public final fun pair (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)V
+}
+
 public final class dev/kdrant/dsl/CreateCollectionBuilder {
 	public fun <init> ()V
 	public final fun getHnswConfig ()Ldev/kdrant/model/HnswConfig;
@@ -200,6 +205,14 @@ public final class dev/kdrant/dsl/CreateCollectionBuilder {
 	public final fun sparseVector (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun sparseVector$default (Ldev/kdrant/dsl/CreateCollectionBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun vector (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class dev/kdrant/dsl/DiscoverBuilder {
+	public fun <init> ()V
+	public final fun context (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)V
+	public final fun target (Ldev/kdrant/model/PointId;)V
+	public final fun target (Ldev/kdrant/model/VectorInput;)V
+	public final fun target (Ljava/util/List;)V
 }
 
 public final class dev/kdrant/dsl/FilterBuilder {
@@ -260,6 +273,18 @@ public final class dev/kdrant/dsl/PrefetchBuilder {
 	public final fun setUsing (Ljava/lang/String;)V
 }
 
+public final class dev/kdrant/dsl/RecommendBuilder {
+	public fun <init> ()V
+	public final fun getStrategy ()Ldev/kdrant/model/RecommendStrategy;
+	public final fun negative (Ldev/kdrant/model/PointId;)V
+	public final fun negative (Ldev/kdrant/model/VectorInput;)V
+	public final fun negative (Ljava/util/List;)V
+	public final fun positive (Ldev/kdrant/model/PointId;)V
+	public final fun positive (Ldev/kdrant/model/VectorInput;)V
+	public final fun positive (Ljava/util/List;)V
+	public final fun setStrategy (Ldev/kdrant/model/RecommendStrategy;)V
+}
+
 public final class dev/kdrant/dsl/ScrollBuilder {
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
@@ -270,7 +295,9 @@ public final class dev/kdrant/dsl/ScrollBuilder {
 
 public final class dev/kdrant/dsl/SearchBuilder {
 	public fun <init> ()V
+	public final fun context (Lkotlin/jvm/functions/Function1;)V
 	public final fun dbsf ()V
+	public final fun discover (Lkotlin/jvm/functions/Function1;)V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getLimit ()I
 	public final fun getOffset ()Ljava/lang/Integer;
@@ -290,6 +317,7 @@ public final class dev/kdrant/dsl/SearchBuilder {
 	public final fun query ([F)V
 	public final fun queryMulti (Ljava/util/List;)V
 	public final fun querySparse (Ljava/util/List;Ljava/util/List;)V
+	public final fun recommend (Lkotlin/jvm/functions/Function1;)V
 	public final fun rrf (Ljava/lang/Integer;Ljava/util/List;)V
 	public static synthetic fun rrf$default (Ldev/kdrant/dsl/SearchBuilder;Ljava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)V
 	public final fun sample ()V
@@ -484,6 +512,19 @@ public final class dev/kdrant/model/Condition$Sub : dev/kdrant/model/Condition {
 	public static synthetic fun copy$default (Ldev/kdrant/model/Condition$Sub;Ldev/kdrant/model/Filter;ILjava/lang/Object;)Ldev/kdrant/model/Condition$Sub;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFilter ()Ldev/kdrant/model/Filter;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/ContextPair {
+	public fun <init> (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)V
+	public final fun component1 ()Ldev/kdrant/model/VectorInput;
+	public final fun component2 ()Ldev/kdrant/model/VectorInput;
+	public final fun copy (Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;)Ldev/kdrant/model/ContextPair;
+	public static synthetic fun copy$default (Ldev/kdrant/model/ContextPair;Ldev/kdrant/model/VectorInput;Ldev/kdrant/model/VectorInput;ILjava/lang/Object;)Ldev/kdrant/model/ContextPair;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNegative ()Ldev/kdrant/model/VectorInput;
+	public final fun getPositive ()Ldev/kdrant/model/VectorInput;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1155,7 +1196,7 @@ public abstract interface class dev/kdrant/model/QueryInterface {
 	public static final field Companion Ldev/kdrant/model/QueryInterface$Companion;
 }
 
-public final class dev/kdrant/model/QueryInterface$ById : dev/kdrant/model/QueryInterface {
+public final class dev/kdrant/model/QueryInterface$ById : dev/kdrant/model/VectorInput {
 	public fun <init> (Ldev/kdrant/model/PointId;)V
 	public final fun component1 ()Ldev/kdrant/model/PointId;
 	public final fun copy (Ldev/kdrant/model/PointId;)Ldev/kdrant/model/QueryInterface$ById;
@@ -1168,6 +1209,33 @@ public final class dev/kdrant/model/QueryInterface$ById : dev/kdrant/model/Query
 
 public final class dev/kdrant/model/QueryInterface$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QueryInterface$Context : dev/kdrant/model/QueryInterface {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Context;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Context;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Context;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPairs ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/QueryInterface$Discover : dev/kdrant/model/QueryInterface {
+	public fun <init> (Ldev/kdrant/model/VectorInput;Ljava/util/List;)V
+	public synthetic fun <init> (Ldev/kdrant/model/VectorInput;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/VectorInput;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ldev/kdrant/model/VectorInput;Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Discover;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Discover;Ldev/kdrant/model/VectorInput;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Discover;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContext ()Ljava/util/List;
+	public final fun getTarget ()Ldev/kdrant/model/VectorInput;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/kdrant/model/QueryInterface$Fusion : dev/kdrant/model/QueryInterface {
@@ -1193,7 +1261,7 @@ public final class dev/kdrant/model/QueryInterface$Fusion$Companion {
 	public static synthetic fun rrf$default (Ldev/kdrant/model/QueryInterface$Fusion$Companion;Ljava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Fusion;
 }
 
-public final class dev/kdrant/model/QueryInterface$MultiVector : dev/kdrant/model/QueryInterface {
+public final class dev/kdrant/model/QueryInterface$MultiVector : dev/kdrant/model/VectorInput {
 	public fun <init> (Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/QueryInterface$MultiVector;
@@ -1218,6 +1286,23 @@ public final class dev/kdrant/model/QueryInterface$OrderBy : dev/kdrant/model/Qu
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/kdrant/model/QueryInterface$Recommend : dev/kdrant/model/QueryInterface {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ldev/kdrant/model/RecommendStrategy;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;)Ldev/kdrant/model/QueryInterface$Recommend;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QueryInterface$Recommend;Ljava/util/List;Ljava/util/List;Ldev/kdrant/model/RecommendStrategy;ILjava/lang/Object;)Ldev/kdrant/model/QueryInterface$Recommend;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNegative ()Ljava/util/List;
+	public final fun getPositive ()Ljava/util/List;
+	public final fun getStrategy ()Ldev/kdrant/model/RecommendStrategy;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/kdrant/model/QueryInterface$Sample : dev/kdrant/model/QueryInterface {
 	public static final field INSTANCE Ldev/kdrant/model/QueryInterface$Sample;
 	public fun equals (Ljava/lang/Object;)Z
@@ -1225,7 +1310,7 @@ public final class dev/kdrant/model/QueryInterface$Sample : dev/kdrant/model/Que
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/kdrant/model/QueryInterface$Sparse : dev/kdrant/model/QueryInterface {
+public final class dev/kdrant/model/QueryInterface$Sparse : dev/kdrant/model/VectorInput {
 	public fun <init> (Ljava/util/List;Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun component2 ()Ljava/util/List;
@@ -1238,7 +1323,7 @@ public final class dev/kdrant/model/QueryInterface$Sparse : dev/kdrant/model/Que
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/QueryInterface {
+public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/VectorInput {
 	public fun <init> (Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun copy (Ljava/util/List;)Ldev/kdrant/model/QueryInterface$Vector;
@@ -1247,6 +1332,15 @@ public final class dev/kdrant/model/QueryInterface$Vector : dev/kdrant/model/Que
 	public final fun getValues ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/model/RecommendStrategy : java/lang/Enum {
+	public static final field AVERAGE_VECTOR Ldev/kdrant/model/RecommendStrategy;
+	public static final field BEST_SCORE Ldev/kdrant/model/RecommendStrategy;
+	public static final field SUM_SCORES Ldev/kdrant/model/RecommendStrategy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kdrant/model/RecommendStrategy;
+	public static fun values ()[Ldev/kdrant/model/RecommendStrategy;
 }
 
 public final class dev/kdrant/model/Record {
@@ -1571,6 +1665,9 @@ public final class dev/kdrant/model/VectorDatatype : java/lang/Enum {
 
 public final class dev/kdrant/model/VectorDatatype$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/kdrant/model/VectorInput : dev/kdrant/model/QueryInterface {
 }
 
 public final class dev/kdrant/model/VectorParams {
