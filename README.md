@@ -269,14 +269,14 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped (`0.1.0`)** — connect; collection management and introspection (`collectionExists` /
-`getCollection`); `upsert` (with auto-batching); `search` (over Qdrant's unified query API);
-`scroll` as a `Flow`; `count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
+**Shipped (`0.2.0`)** — the modern `/points/query` engine (nearest, hybrid RRF/DBSF fusion, sparse &
+multi-vectors, `recommend` / `discover` / `context`, batch and grouped search); payload & vector
+mutations and payload field indexes; collection config tuning (optimizers, quantization); resilient
+retries; and typed-payload DX (`payloadAs<T>` / `searchAs<T>`) — on top of `0.1.0`'s collections,
+`upsert`, `search`, `scroll`, and the complete filter DSL.
 
-**Next** — a correctness & security patch (`0.1.1`), then retries and typed-payload ergonomics;
-the full `/points/query` engine (prefetch, hybrid + RRF/DBSF fusion, sparse & multivectors,
-recommend / discovery / grouping); payload indexing and data mutations; aliases and snapshots;
-framework integrations (Spring AI / LangChain4j / Koog); and the road to `1.0` — with Kotlin
+**Next** — aliases and snapshots; observability and a granular transport seam; framework integrations
+(Spring AI / LangChain4j / Koog) with a runnable RAG demo; and the road to `1.0`, with Kotlin
 Multiplatform and an optional gRPC engine after that.
 
 See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).

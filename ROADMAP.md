@@ -21,17 +21,46 @@ binary-compatibility-validator (`*.api` files), so breakage is never silent.
   friendliness, and Kotlin idioms — not on raw gRPC throughput. Benchmarks stay honest about the
   cases where the official gRPC client is the better choice.
 
-## Status — `0.1.0` (shipped)
+## Status — `0.2.0` (shipped)
 
-- Coroutine-first `QdrantClient` over a pluggable `QdrantTransport` seam, with a default REST/Ktor engine.
-- Collections: `createCollection` (DSL) and `deleteCollection`; introspection via `collectionExists`
-  and `getCollection` (status + point counts).
-- Points: `upsert` (dense and named vectors, heterogeneous payloads, automatic batching), `delete`
-  by ids or by filter, `count` (optionally filtered), and `retrieve` by id.
-- Search over Qdrant's unified query API (`/points/query`) for single dense / named-vector queries.
-- `scroll` exposed as a cold `Flow<Record>` that transparently follows the pagination cursor.
-- The complete filter DSL: `must` / `should` / `mustNot` / `minShould` with every Qdrant condition type.
-- Typed `KdrantException` hierarchy; published to Maven Central and GitHub Packages.
+`0.2.0` is a large feature release on top of `0.1.0`'s core (collections, `upsert`, `delete`, `count`,
+`retrieve`, `scroll` as a `Flow`, and the full filter DSL). It adds:
+
+- **Correctness & security (M10):** the delete-by-filter data-loss fix, TLS enforced when an API key is
+  set, `404` message/`exists` handling, and client-side parameter validation.
+- **Resilience (M11):** retries with exponential backoff + jitter honoring `Retry-After`, and a finer
+  `KdrantException` taxonomy (`RateLimited` / `ServiceUnavailable` / `ServerError` / `AlreadyExists`).
+- **Typed DX (M12):** `kdrantJson`, `payloadAs<T>` / `searchAs<T>` / `Hit<T>`, `getCollectionOrNull`,
+  `createCollectionIfNotExists`, a `createCollection(name, size, distance)` shorthand, and `PayloadBuilder` sugar.
+- **Positioning (M13):** the `kdrant-bom` module, richer POM metadata, a footprint comparison table, and a
+  Dokka multi-module docs site on GitHub Pages.
+- **Modern search engine (M14–M16):** the polymorphic `/points/query` (`QueryInterface`), nestable
+  `prefetch`, RRF/DBSF fusion, sparse & multi-vectors, `recommend` / `discover` / `context`, `searchBatch`,
+  and `searchGroups`.
+- **Data & collection management (M17–M18):** payload field indexes, payload & vector mutations, and
+  `updateCollection` (PATCH) with optimizers / HNSW / quantization.
+
+Published to Maven Central and GitHub Packages.
+
+## Progress
+
+| Milestone | Status |
+| --- | --- |
+| **M10–M18** | ✅ Shipped in `0.2.0`. |
+| **M19** · Aliases, service & analytics endpoints | Planned (next). |
+| **M20** · Snapshots & backup/restore | Planned. |
+| **M21** · Observability, granular transport, no-boxing hot path | Planned. |
+| **M22** · Quality, supply chain & test depth (CI) | Planned. |
+| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | Planned. |
+| **M24** · The road to `1.0` | Planned. |
+| **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
+
+**Deferred sub-items carried forward from `0.2.0`:** `order_by` on `scroll` (M14); `Formula` / MMR
+reranking (M16); `batchUpdate` and parameterized payload-index params such as the text tokenizer (M17);
+`ensureCollection` + enriched `CollectionInfo` read-back, Product quantization, and `wal` / `strictMode`
+/ `params` config on update (M18).
+
+The detailed milestone descriptions below are kept as the plan of record; ✅ tiers are already shipped.
 
 ## Effort legend
 
@@ -39,7 +68,7 @@ binary-compatibility-validator (`*.api` files), so breakage is never silent.
 
 ---
 
-## Tier 0 — Correctness & security patch (`0.1.1`)
+## Tier 0 — Correctness & security patch — ✅ shipped in `0.2.0`
 
 ### M10 · Correctness & security hardening — `S`
 
@@ -60,7 +89,7 @@ Ship the fixes that protect data and credentials before pushing adoption.
 
 ---
 
-## Tier 1 — Robustness, DX & reach (targets `0.2`)
+## Tier 1 — Robustness, DX & reach — ✅ shipped in `0.2.0`
 
 ### M11 · Resilience & error taxonomy — `M`
 
@@ -101,7 +130,7 @@ Kotlin/JVM developers discover libraries.
 
 ---
 
-## Tier 2 — Search engine at parity with Qdrant (targets `0.3`)
+## Tier 2 — Search engine at parity with Qdrant — ✅ shipped in `0.2.0`
 
 Kdrant already calls the modern `/points/query` endpoint, but only models its "nearest-dense" shape.
 These three milestones open up the full polymorphic query interface — the biggest functional gap.
@@ -142,7 +171,7 @@ Complete Qdrant's advanced retrieval coverage on top of the `QueryInterface` bas
 
 ---
 
-## Tier 3 — Complete data & collection management (targets `0.4`)
+## Tier 3 — Complete data & collection management — M17–M18 ✅ in `0.2.0`; M19–M20 planned
 
 ### M17 · Payload / vector mutations & payload indexes — `M`
 
