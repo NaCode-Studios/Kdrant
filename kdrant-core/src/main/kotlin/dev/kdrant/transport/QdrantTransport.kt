@@ -4,6 +4,8 @@ import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Filter
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
@@ -47,6 +49,24 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Grouped nearest-vector search (`POST /collections/{name}/points/query/groups`). */
     public suspend fun queryGroups(name: String, request: SearchGroupsRequest): List<PointGroup>
+
+    /** Create a payload field index (`PUT /collections/{name}/index`). */
+    public suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean)
+
+    /** Delete a payload field index (`DELETE /collections/{name}/index/{field}`). */
+    public suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean)
+
+    /** Merge [payload] into the selected points (`POST /collections/{name}/points/payload`). */
+    public suspend fun setPayload(name: String, payload: Payload, selector: DeleteSelector, key: String?, wait: Boolean)
+
+    /** Replace the payload of the selected points (`PUT /collections/{name}/points/payload`). */
+    public suspend fun overwritePayload(name: String, payload: Payload, selector: DeleteSelector, wait: Boolean)
+
+    /** Delete [keys] from the selected points' payload (`POST /collections/{name}/points/payload/delete`). */
+    public suspend fun deletePayload(name: String, keys: List<String>, selector: DeleteSelector, wait: Boolean)
+
+    /** Clear all payload from the selected points (`POST /collections/{name}/points/payload/clear`). */
+    public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean)
 
     /** Fetch a single page of points (`POST /collections/{name}/points/scroll`). */
     public suspend fun scroll(name: String, request: ScrollRequest): ScrollPage

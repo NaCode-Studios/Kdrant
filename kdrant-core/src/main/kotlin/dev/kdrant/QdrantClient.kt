@@ -8,6 +8,9 @@ import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
 import dev.kdrant.model.CollectionInfo
+import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Record
@@ -211,6 +214,57 @@ public interface QdrantClient : AutoCloseable {
         withPayload: WithPayload? = null,
         withVector: Boolean? = null,
     ): List<Record>
+
+    /**
+     * Create a payload field index so filtering on [field] scales. Without an index, filters do a
+     * full scan.
+     *
+     * ```kotlin
+     * qdrant.createPayloadIndex("docs", "lang", PayloadSchemaType.KEYWORD)
+     * ```
+     */
+    public suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        schema: PayloadSchemaType,
+        wait: Boolean = false,
+    )
+
+    /** Delete a payload field index. */
+    public suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean = false)
+
+    /**
+     * Merge [payload] into the selected points' payload (existing keys are kept). Select the points
+     * with `DeleteSelector.Ids(...)` or `DeleteSelector.ByFilter(filter { ... })`.
+     *
+     * @param key an optional payload path to assign under (nested set).
+     */
+    public suspend fun setPayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        key: String? = null,
+        wait: Boolean = false,
+    )
+
+    /** Replace the selected points' payload with [payload]. */
+    public suspend fun overwritePayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        wait: Boolean = false,
+    )
+
+    /** Delete [keys] from the selected points' payload. */
+    public suspend fun deletePayload(
+        name: String,
+        keys: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean = false,
+    )
+
+    /** Clear all payload from the selected points. */
+    public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean = false)
 }
 
 /** Wraps a [QdrantTransport] into a [QdrantClient]. Used by transport factories. */

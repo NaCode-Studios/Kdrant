@@ -10,6 +10,8 @@ import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Filter
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
@@ -49,6 +51,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -161,6 +165,56 @@ internal class RestQdrantTransport(
             client.post("/collections/${encode(name)}/points/query/groups") { setBody(request) }
         }
         return decodeBody(response) { it.body<GroupsResponse>().result.groups }
+    }
+
+    override suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean) {
+        execute(name) {
+            client.put("/collections/${encode(name)}/index") {
+                parameter("wait", wait)
+                setBody(CreateFieldIndexRequest(field, schema))
+            }
+        }
+    }
+
+    override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean) {
+        execute(name) {
+            client.delete("/collections/${encode(name)}/index/${encode(field)}") { parameter("wait", wait) }
+        }
+    }
+
+    override suspend fun setPayload(name: String, payload: Payload, selector: DeleteSelector, key: String?, wait: Boolean) {
+        val body = buildJsonObject {
+            put("payload", payload)
+            putSelector(selector)
+            key?.let { put("key", JsonPrimitive(it)) }
+        }
+        execute(name) {
+            client.post("/collections/${encode(name)}/points/payload") { parameter("wait", wait); setBody(body) }
+        }
+    }
+
+    override suspend fun overwritePayload(name: String, payload: Payload, selector: DeleteSelector, wait: Boolean) {
+        val body = buildJsonObject { put("payload", payload); putSelector(selector) }
+        execute(name) {
+            client.put("/collections/${encode(name)}/points/payload") { parameter("wait", wait); setBody(body) }
+        }
+    }
+
+    override suspend fun deletePayload(name: String, keys: List<String>, selector: DeleteSelector, wait: Boolean) {
+        val body = buildJsonObject {
+            put("keys", JsonArray(keys.map { JsonPrimitive(it) }))
+            putSelector(selector)
+        }
+        execute(name) {
+            client.post("/collections/${encode(name)}/points/payload/delete") { parameter("wait", wait); setBody(body) }
+        }
+    }
+
+    override suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean) {
+        val body = buildJsonObject { putSelector(selector) }
+        execute(name) {
+            client.post("/collections/${encode(name)}/points/payload/clear") { parameter("wait", wait); setBody(body) }
+        }
     }
 
     override suspend fun scroll(name: String, request: ScrollRequest): ScrollPage {
@@ -299,3 +353,13 @@ internal class RestQdrantTransport(
 
 /** HTTP statuses worth retrying: rate-limit plus transient gateway/service errors. */
 private val RETRYABLE_STATUS_CODES: Set<Int> = setOf(429, 502, 503, 504)
+
+/** Adds the `points` or `filter` selector to a payload/vector mutation body. */
+private fun JsonObjectBuilder.putSelector(selector: DeleteSelector) {
+    when (selector) {
+        is DeleteSelector.Ids ->
+            put("points", JsonArray(selector.ids.map { KdrantJson.encodeToJsonElement(PointId.serializer(), it) }))
+        is DeleteSelector.ByFilter ->
+            put("filter", KdrantJson.encodeToJsonElement(Filter.serializer(), selector.filter))
+    }
+}

@@ -116,18 +116,28 @@ public final class dev/kdrant/PayloadAccessKt {
 }
 
 public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseable {
+	public abstract fun clearPayload (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun clearPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createCollection (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createPayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun delete (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun delete (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deletePayload (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun deletePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun deletePayloadIndex (Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun deletePayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun overwritePayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun overwritePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun scroll (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
@@ -136,18 +146,26 @@ public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseabl
 	public abstract fun searchBatch (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun searchGroups (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun searchGroups$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun setPayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun setPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/kdrant/QdrantClient$DefaultImpls {
+	public static synthetic fun clearPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun createPayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun deletePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun deletePayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun overwritePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun searchGroups$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun setPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -1093,6 +1111,25 @@ public final class dev/kdrant/model/MultiVectorConfig$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/PayloadSchemaType : java/lang/Enum {
+	public static final field BOOL Ldev/kdrant/model/PayloadSchemaType;
+	public static final field Companion Ldev/kdrant/model/PayloadSchemaType$Companion;
+	public static final field DATETIME Ldev/kdrant/model/PayloadSchemaType;
+	public static final field FLOAT Ldev/kdrant/model/PayloadSchemaType;
+	public static final field GEO Ldev/kdrant/model/PayloadSchemaType;
+	public static final field INTEGER Ldev/kdrant/model/PayloadSchemaType;
+	public static final field KEYWORD Ldev/kdrant/model/PayloadSchemaType;
+	public static final field TEXT Ldev/kdrant/model/PayloadSchemaType;
+	public static final field UUID Ldev/kdrant/model/PayloadSchemaType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kdrant/model/PayloadSchemaType;
+	public static fun values ()[Ldev/kdrant/model/PayloadSchemaType;
+}
+
+public final class dev/kdrant/model/PayloadSchemaType$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/kdrant/model/PointGroup {
 	public static final field Companion Ldev/kdrant/model/PointGroup$Companion;
 	public fun <init> (Lkotlinx/serialization/json/JsonPrimitive;Ljava/util/List;Ldev/kdrant/model/Record;)V
@@ -1878,17 +1915,23 @@ public final class dev/kdrant/model/WithPayload$None : dev/kdrant/model/WithPayl
 }
 
 public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang/AutoCloseable {
+	public abstract fun clearPayload (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun delete (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deletePayload (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deletePayloadIndex (Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun overwritePayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun query (Ljava/lang/String;Ldev/kdrant/model/SearchRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun queryBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun queryGroups (Ljava/lang/String;Ldev/kdrant/model/SearchGroupsRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun scroll (Ljava/lang/String;Ldev/kdrant/model/ScrollRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setPayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

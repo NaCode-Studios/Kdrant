@@ -1,6 +1,7 @@
 package dev.kdrant.transport.rest
 
 import dev.kdrant.model.Filter
+import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.WithPayload
@@ -26,4 +27,11 @@ internal data class PointRequest(
 @Serializable
 internal data class BatchQueryRequest(
     @SerialName("searches") val searches: List<SearchRequest>,
+)
+
+/** Body for `PUT /collections/{name}/index` (create a payload field index). */
+@Serializable
+internal data class CreateFieldIndexRequest(
+    @SerialName("field_name") val fieldName: String,
+    @SerialName("field_schema") val fieldSchema: PayloadSchemaType? = null,
 )

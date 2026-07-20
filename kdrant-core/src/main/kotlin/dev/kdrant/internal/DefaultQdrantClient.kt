@@ -9,6 +9,8 @@ import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Record
@@ -143,6 +145,37 @@ internal class DefaultQdrantClient(
         require(ids.isNotEmpty()) { "retrieve needs at least one id" }
         return transport.retrieve(name, ids, withPayload, withVector)
     }
+
+    override suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean): Unit =
+        transport.createPayloadIndex(name, field, schema, wait)
+
+    override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean): Unit =
+        transport.deletePayloadIndex(name, field, wait)
+
+    override suspend fun setPayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        key: String?,
+        wait: Boolean,
+    ): Unit = transport.setPayload(name, payload, selector, key, wait)
+
+    override suspend fun overwritePayload(
+        name: String,
+        payload: Payload,
+        selector: DeleteSelector,
+        wait: Boolean,
+    ): Unit = transport.overwritePayload(name, payload, selector, wait)
+
+    override suspend fun deletePayload(
+        name: String,
+        keys: List<String>,
+        selector: DeleteSelector,
+        wait: Boolean,
+    ): Unit = transport.deletePayload(name, keys, selector, wait)
+
+    override suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean): Unit =
+        transport.clearPayload(name, selector, wait)
 
     override fun close() {
         transport.close()
