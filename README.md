@@ -36,9 +36,10 @@ qdrant.use { client ->
 Kdrant stores and searches vectors you already have — `embedding` above is a `List<Float>` from
 your own embedding model; Kdrant does not generate embeddings.
 
-> **Status — early development.** All core operations — create/delete collection, `upsert`,
-> `search`, `scroll`, `delete` — and the full filter DSL are implemented and tested. APIs may
-> change before `1.0`.
+> **Status — 0.2, pre-1.0.** Collections (create/update/delete), `upsert`, the modern `/points/query`
+> search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse & multi-vectors,
+> `scroll`, payload & vector management, resilient retries, and the full filter DSL are implemented and
+> tested. APIs may still change before `1.0`.
 
 ## Why Kdrant
 
@@ -75,7 +76,7 @@ Requires **JDK 17+**. Artifacts are published to Maven Central under `io.github.
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:0.1.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:0.2.0")
 }
 ```
 
