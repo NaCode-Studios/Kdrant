@@ -1,0 +1,9 @@
+public final class dev/kdrant/springai/KdrantVectorStore : org/springframework/ai/vectorstore/VectorStore {
+	public static final field CONTENT_KEY Ljava/lang/String;
+	public fun <init> (Ldev/kdrant/QdrantClient;Lorg/springframework/ai/embedding/EmbeddingModel;Ljava/lang/String;)V
+	public fun add (Ljava/util/List;)V
+	public fun delete (Ljava/util/List;)V
+	public fun delete (Lorg/springframework/ai/vectorstore/filter/Filter$Expression;)V
+	public fun similaritySearch (Lorg/springframework/ai/vectorstore/SearchRequest;)Ljava/util/List;
+}
+

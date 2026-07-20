@@ -34,6 +34,12 @@ complexity:
   CyclomaticComplexMethod:
     threshold: 25
 
+performance:
+  # `vector(*floatArray)` / `query(*floatArray)` spread into the FloatArray vararg overloads is the
+  # intended zero-boxing path — the single array copy is deliberate and cheaper than boxing per element.
+  SpreadOperator:
+    active: false
+
 exceptions:
   # Serializers legitimately throw SerializationException from `when`/cast guards.
   TooGenericExceptionCaught:

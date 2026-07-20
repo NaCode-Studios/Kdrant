@@ -21,6 +21,7 @@ configure(
         project(":kdrant-core"),
         project(":kdrant-transport-rest"),
         project(":kdrant-spring-boot-starter"),
+        project(":kdrant-spring-ai"),
     ),
 ) {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")

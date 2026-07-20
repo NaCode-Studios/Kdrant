@@ -51,7 +51,7 @@ Published to Maven Central and GitHub Packages.
 | **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
 | **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
 | **M22** · Quality, supply chain & test depth (CI) | ✅ Largely implemented (unreleased); some sub-items deferred. |
-| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | 🚧 In progress (Spring Boot starter done). |
+| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | 🚧 In progress (Spring Boot starter + Spring AI done). |
 | **M24** · The road to `1.0` | Planned. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
 
@@ -278,8 +278,10 @@ Bring CI and tests up to a mature OSS standard and catch wire-format regressions
 
 **Status: 🚧 in progress.** Done: the **`kdrant-spring-boot-starter`** (`@ConfigurationProperties("kdrant")`
 + `@AutoConfiguration` exposing a `destroyMethod = "close"`, `@ConditionalOnMissingBean` `QdrantClient`
-bean; verified with an `ApplicationContextRunner` test). **Remaining:** `kdrant-spring-ai` (`VectorStore`),
-`kdrant-langchain4j` (`EmbeddingStore`), `kdrant-koog`, and the runnable RAG demo app.
+bean; `ApplicationContextRunner` test) and **`kdrant-spring-ai`** (a Spring AI `VectorStore` backed by
+Kdrant — `add` / `delete` / `similaritySearch`, embedding via a Spring AI `EmbeddingModel`; metadata-filter
+expressions are not yet translated). **Remaining:** `kdrant-langchain4j` (`EmbeddingStore`), `kdrant-koog`,
+and the runnable RAG demo app.
 
 Meet JVM developers inside the ecosystems they already use, and publish the single highest-leverage
 adoption driver: a runnable RAG demo. (Depends on query/collection completeness — M14–M18.)

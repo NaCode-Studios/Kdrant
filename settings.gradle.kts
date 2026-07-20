@@ -18,4 +18,5 @@ include(
     "kdrant-core",
     "kdrant-transport-rest",
     "kdrant-spring-boot-starter",
+    "kdrant-spring-ai",
 )

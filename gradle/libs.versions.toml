@@ -13,6 +13,8 @@ kover = "0.9.1"
 kotest = "5.9.1"
 springBoot = "3.4.1"
 assertj = "3.27.3"
+springAi = "1.0.0"
+mockk = "1.13.13"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -42,6 +44,10 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 spring-boot-test = { module = "org.springframework.boot:spring-boot-test", version.ref = "springBoot" }
 spring-boot-test-autoconfigure = { module = "org.springframework.boot:spring-boot-test-autoconfigure", version.ref = "springBoot" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "springAi" }
+spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "springAi" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
