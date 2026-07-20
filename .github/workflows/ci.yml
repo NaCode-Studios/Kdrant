@@ -13,8 +13,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  validate-wrapper:
+    name: Validate Gradle wrapper
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: gradle/actions/wrapper-validation@v5
+
+  build:
+    name: Build (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ["17", "21"]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build, test, lint (ktlint + detekt) and verify public API
+        run: ./gradlew build --no-daemon --stacktrace
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-jdk-${{ matrix.java }}
+          path: |
+            **/build/reports/
+            **/build/test-results/
+          retention-days: 7
+
+  qdrant-compat:
+    name: Integration (${{ matrix.qdrant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        qdrant:
+          - "qdrant/qdrant:v1.18.2"
+          - "qdrant/qdrant:latest"
     steps:
       - uses: actions/checkout@v5
 
@@ -27,15 +73,15 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build, test and verify public API
-        run: ./gradlew build --no-daemon --stacktrace
+      - name: Integration tests against ${{ matrix.qdrant }}
+        env:
+          QDRANT_IMAGE: ${{ matrix.qdrant }}
+        run: ./gradlew :kdrant-transport-rest:test --tests "*IntegrationTest*" --no-daemon --stacktrace
 
-      - name: Upload test reports
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: |
-            **/build/reports/tests/
-            **/build/test-results/
-          retention-days: 7
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/dependency-review-action@v4
