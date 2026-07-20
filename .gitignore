@@ -19,6 +19,7 @@ out/
 # Local env
 .env
 .env.*
+local.properties
 
 # Test / Docker
 .qdrant/

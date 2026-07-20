@@ -20,6 +20,7 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.jsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -43,6 +44,13 @@ class CollectionAndPointOpsTransportTest {
         assertEquals(HttpMethod.Get, captured.method)
         assertEquals("/collections/docs/exists", captured.url.encodedPath)
         assertTrue(exists)
+    }
+
+    @Test
+    fun `collectionExists returns false on 404 instead of throwing`() {
+        val t = transport { respond("", HttpStatusCode.NotFound) }
+        val exists = t.use { runBlocking { it.collectionExists("ghost") } }
+        assertFalse(exists)
     }
 
     @Test

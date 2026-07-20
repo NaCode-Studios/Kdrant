@@ -24,6 +24,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -37,7 +38,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -52,6 +53,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import java.io.IOException
 import java.net.URLEncoder
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * REST/Ktor engine: the default Kdrant transport.
@@ -87,6 +90,19 @@ internal class RestQdrantTransport(
         install(ContentNegotiation) { json(KdrantJson) }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds
+        }
+        install(HttpRequestRetry) {
+            maxRetries = config.maxRetries
+            // Retry only transient server states and I/O errors — never a 4xx (except 429) or a timeout.
+            retryIf { _, response -> response.status.value in RETRYABLE_STATUS_CODES }
+            retryOnExceptionIf { _, cause -> cause is IOException && cause !is HttpRequestTimeoutException }
+            exponentialDelay(
+                base = 2.0,
+                baseDelayMs = config.retryBaseDelay.inWholeMilliseconds,
+                maxDelayMs = config.retryMaxDelay.inWholeMilliseconds,
+                randomizationMs = config.retryBaseDelay.inWholeMilliseconds,
+                respectRetryAfterHeader = true,
+            )
         }
         defaultRequest {
             url {
@@ -155,10 +171,15 @@ internal class RestQdrantTransport(
         }
     }
 
-    override suspend fun collectionExists(name: String): Boolean {
-        val response = execute(name) { client.get("/collections/${encode(name)}/exists") }
-        return decodeBody(response) { it.body<ExistsResponse>().result.exists }
-    }
+    override suspend fun collectionExists(name: String): Boolean =
+        try {
+            val response = execute(name) { client.get("/collections/${encode(name)}/exists") }
+            decodeBody(response) { it.body<ExistsResponse>().result.exists }
+        } catch (e: KdrantException.CollectionNotFound) {
+            // The exists endpoint returns 200 {"exists":false} for a missing collection; a 404 here
+            // (e.g. an older server without the endpoint) still means "not present" per the contract.
+            false
+        }
 
     override suspend fun getCollection(name: String): CollectionInfo {
         val response = execute(name) { client.get("/collections/${encode(name)}") }
@@ -220,17 +241,22 @@ internal class RestQdrantTransport(
     private suspend fun ensureSuccess(response: HttpResponse, collection: String) {
         if (response.status.isSuccess()) return
         val message = errorMessage(response)
-        throw when {
-            response.status == HttpStatusCode.Unauthorized || response.status == HttpStatusCode.Forbidden ->
-                KdrantException.Unauthorized(message ?: "Unauthorized")
-            response.status == HttpStatusCode.NotFound ->
-                KdrantException.CollectionNotFound(collection)
-            response.status.value in 400..499 ->
-                KdrantException.InvalidRequest(message ?: "Bad request: ${response.status}")
-            else ->
-                KdrantException.Transport(message ?: "Qdrant server error: ${response.status}")
+        throw when (response.status.value) {
+            401, 403 -> KdrantException.Unauthorized(message ?: "Unauthorized")
+            404 -> KdrantException.CollectionNotFound(collection, message)
+            408 -> KdrantException.Timeout(message ?: "Qdrant reported a request timeout (HTTP 408)")
+            409 -> KdrantException.AlreadyExists(message ?: "Resource already exists (HTTP 409)")
+            429 -> KdrantException.RateLimited(retryAfter(response), message ?: "Rate limited by Qdrant (HTTP 429)")
+            503 -> KdrantException.ServiceUnavailable(message ?: "Qdrant is temporarily unavailable (HTTP 503)")
+            in 400..499 -> KdrantException.InvalidRequest(message ?: "Bad request: ${response.status}")
+            in 500..599 -> KdrantException.ServerError(message ?: "Qdrant server error: ${response.status}")
+            else -> KdrantException.Transport(message ?: "Unexpected response: ${response.status}")
         }
     }
+
+    /** Parses the `Retry-After` header (delta-seconds form) into a [Duration], if present and numeric. */
+    private fun retryAfter(response: HttpResponse): Duration? =
+        response.headers[HttpHeaders.RetryAfter]?.trim()?.toLongOrNull()?.seconds
 
     /**
      * Best-effort extraction of Qdrant's `{"status":{"error":"..."}}` error message.
@@ -254,3 +280,6 @@ internal class RestQdrantTransport(
     private fun encode(name: String): String =
         URLEncoder.encode(name, Charsets.UTF_8).replace("+", "%20")
 }
+
+/** HTTP statuses worth retrying: rate-limit plus transient gateway/service errors. */
+private val RETRYABLE_STATUS_CODES: Set<Int> = setOf(429, 502, 503, 504)

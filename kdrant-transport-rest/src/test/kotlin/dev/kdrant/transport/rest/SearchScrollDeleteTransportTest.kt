@@ -109,4 +109,16 @@ class SearchScrollDeleteTransportTest {
         }
         assertEquals(0, calls)
     }
+
+    @Test
+    fun `delete by a filter of only empty clause blocks is rejected before any request`() {
+        // Regression for the data-loss footgun: an empty `must { }` block must not become a match-all.
+        var calls = 0
+        val engine = MockEngine { _ -> calls++; respond(okBody, HttpStatusCode.OK, jsonHeaders) }
+        val client = QdrantClient(RestQdrantTransport(kdrantConfig("h", 6333) {}, engine))
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { client.use { it.delete("docs") { must { } } } }
+        }
+        assertEquals(0, calls)
+    }
 }

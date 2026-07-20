@@ -50,6 +50,8 @@ public class CreateCollectionBuilder {
                 "A collection needs at least one vector: call vector { } or namedVector(...)",
             )
         }
+        shardNumber?.let { require(it > 0) { "shardNumber must be > 0, was $it" } }
+        replicationFactor?.let { require(it > 0) { "replicationFactor must be > 0, was $it" } }
         return CreateCollectionRequest(
             vectors = vectors,
             hnswConfig = hnswConfig,
@@ -81,6 +83,7 @@ public class VectorParamsBuilder {
     internal fun build(): VectorParams {
         val size = requireNotNull(size) { "vector 'size' is required" }
         val distance = requireNotNull(distance) { "vector 'distance' is required" }
+        require(size > 0) { "vector 'size' must be > 0, was $size" }
         return VectorParams(size, distance, onDisk, datatype, hnswConfig)
     }
 }

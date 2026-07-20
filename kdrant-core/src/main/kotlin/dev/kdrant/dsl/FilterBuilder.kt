@@ -43,10 +43,13 @@ public class FilterBuilder {
     }
 
     internal fun build(): Filter = Filter(
-        must = must,
-        should = should,
-        mustNot = mustNot,
-        minShould = minShould,
+        // Normalize empty clause lists to null: an empty block (`must { }`, or `must { if (cond) ... }`
+        // with cond false at runtime) must never serialize to a match-all filter — on delete-by-filter
+        // that would wipe the entire collection.
+        must = must.takeUnless { it.isNullOrEmpty() },
+        should = should.takeUnless { it.isNullOrEmpty() },
+        mustNot = mustNot.takeUnless { it.isNullOrEmpty() },
+        minShould = minShould?.takeIf { it.conditions.isNotEmpty() },
     )
 }
 

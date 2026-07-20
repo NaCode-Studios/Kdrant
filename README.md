@@ -101,13 +101,15 @@ qdrant.createCollection("multimodal") {
 qdrant.deleteCollection("articles")
 ```
 
-Check existence and read a collection's status and counts:
+Create-if-absent (race-tolerant), plus a size+distance shorthand for the common case and a
+non-throwing read:
 
 ```kotlin
-if (!qdrant.collectionExists("articles")) {
-    qdrant.createCollection("articles") { vector { size = 1_536; distance = Distance.COSINE } }
-}
-val info = qdrant.getCollection("articles")   // info.status, info.pointsCount, ...
+// Returns true if created, false if it already existed (tolerates a concurrent create).
+qdrant.createCollectionIfNotExists("articles") { vector { size = 1_536; distance = Distance.COSINE } }
+qdrant.createCollection("quickstart", size = 1_536)      // single vector, COSINE
+
+val info = qdrant.getCollectionOrNull("articles")        // null instead of throwing if absent
 ```
 
 ### Upserting points
@@ -169,6 +171,17 @@ val hits: List<ScoredPoint> = qdrant.search("articles") {
 }
 ```
 
+Decode each hit's payload straight into your own type with `searchAs` (or `payloadAs` on a single hit):
+
+```kotlin
+@Serializable data class Article(val title: String, val lang: String)
+
+val articles: List<Hit<Article>> = qdrant.searchAs<Article>("articles") {
+    query(queryVector); limit = 5
+}
+val first: Article? = articles.firstOrNull()?.payload
+```
+
 ### Scrolling
 
 `scroll` returns a cold `Flow` that transparently pages through the collection:
@@ -221,11 +234,17 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Now** — connect; collection management and introspection (`collectionExists` / `getCollection`);
-`upsert` (with auto-batching); `search` (over Qdrant's unified query API); `scroll` as a `Flow`;
-`count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
+**Shipped (`0.1.0`)** — connect; collection management and introspection (`collectionExists` /
+`getCollection`); `upsert` (with auto-batching); `search` (over Qdrant's unified query API);
+`scroll` as a `Flow`; `count`; `retrieve` by id; `delete` by ids or filter; and the complete filter DSL.
 
-**Next** — snapshots and aliases, then a gRPC transport engine behind the same seam.
+**Next** — a correctness & security patch (`0.1.1`), then retries and typed-payload ergonomics;
+the full `/points/query` engine (prefetch, hybrid + RRF/DBSF fusion, sparse & multivectors,
+recommend / discovery / grouping); payload indexing and data mutations; aliases and snapshots;
+framework integrations (Spring AI / LangChain4j / Koog); and the road to `1.0` — with Kotlin
+Multiplatform and an optional gRPC engine after that.
+
+See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`).
 
 ## Building and testing
 
