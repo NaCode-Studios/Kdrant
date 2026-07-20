@@ -6,6 +6,18 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+- Aliases (M19): `updateAliases { createAlias(collection, alias); deleteAlias(alias); renameAlias(from, to) }`,
+  applied by the server as one atomic batch — the primitive behind zero-downtime reindexing (build a new
+  collection, then swap the alias in a single step). Plus `listAliases()` and `listCollectionAliases(name)`.
+- Service & health endpoints (M19): `healthz()` / `readyz()` / `livez()` (Kubernetes-style probes that return
+  a `Boolean` and never throw on a not-ready status), `listCollections()`, `telemetry()` and `listIssues()`
+  (raw JSON, since the shape is server-version-specific), `clearIssues()`, and `metrics()` (Prometheus
+  text-exposition format).
+- Analytics (M19): `facet(name, key, limit, exact) { filter }` — distinct payload-value counts (a histogram
+  over a key) — and the distance-matrix endpoints `searchMatrixPairs(name) { sample; limit; using; filter }`
+  and `searchMatrixOffsets(...)` (explicit edge-list and sparse-coordinate forms) for clustering/visualization.
+
 ## [0.2.0] - 2026-07-20
 
 ### Fixed

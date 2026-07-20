@@ -1,5 +1,6 @@
 package dev.kdrant.transport.rest
 
+import dev.kdrant.model.AliasOperation
 import dev.kdrant.model.Filter
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
@@ -41,4 +42,19 @@ internal data class CreateFieldIndexRequest(
 @Serializable
 internal data class UpdateVectorsRequest(
     @SerialName("points") val points: List<PointVectors>,
+)
+
+/** Body for `POST /collections/aliases` (atomic alias changes). */
+@Serializable
+internal data class ChangeAliasesRequest(
+    @SerialName("actions") val actions: List<AliasOperation>,
+)
+
+/** Body for `POST /collections/{name}/facet`. */
+@Serializable
+internal data class FacetRequest(
+    @SerialName("key") val key: String,
+    @SerialName("limit") val limit: Int? = null,
+    @SerialName("filter") val filter: Filter? = null,
+    @SerialName("exact") val exact: Boolean? = null,
 )

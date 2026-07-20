@@ -1,10 +1,15 @@
 package dev.kdrant.transport.rest
 
+import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
+import dev.kdrant.model.FacetHit
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
+import dev.kdrant.model.SearchMatrixOffsets
+import dev.kdrant.model.SearchMatrixPairs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -68,4 +73,44 @@ internal data class CountResult(
 @Serializable
 internal data class RetrieveResponse(
     @SerialName("result") val result: List<Record>,
+)
+
+@Serializable
+internal data class AliasesResponse(
+    @SerialName("result") val result: AliasesResult,
+)
+
+@Serializable
+internal data class AliasesResult(
+    @SerialName("aliases") val aliases: List<AliasDescription>,
+)
+
+@Serializable
+internal data class CollectionsListResponse(
+    @SerialName("result") val result: CollectionsListResult,
+)
+
+@Serializable
+internal data class CollectionsListResult(
+    @SerialName("collections") val collections: List<CollectionDescription>,
+)
+
+@Serializable
+internal data class FacetResponse(
+    @SerialName("result") val result: FacetResult,
+)
+
+@Serializable
+internal data class FacetResult(
+    @SerialName("hits") val hits: List<FacetHit>,
+)
+
+@Serializable
+internal data class MatrixPairsResponse(
+    @SerialName("result") val result: SearchMatrixPairs,
+)
+
+@Serializable
+internal data class MatrixOffsetsResponse(
+    @SerialName("result") val result: SearchMatrixOffsets,
 )

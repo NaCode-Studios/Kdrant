@@ -6,9 +6,13 @@ import dev.kdrant.KdrantConfig
 import dev.kdrant.KdrantException
 import dev.kdrant.internal.InternalKdrantApi
 import dev.kdrant.internal.KdrantJson
+import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.AliasOperation
+import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
+import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
 import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
@@ -21,6 +25,9 @@ import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchGroupsRequest
+import dev.kdrant.model.SearchMatrixOffsets
+import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.WithPayload
@@ -53,6 +60,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
@@ -305,11 +314,87 @@ internal class RestQdrantTransport(
         return decodeBody(response) { it.body<RetrieveResponse>().result }
     }
 
+    override suspend fun updateAliases(operations: List<AliasOperation>, timeout: Int?) {
+        execute {
+            client.post("/collections/aliases") {
+                timeout?.let { parameter("timeout", it) }
+                setBody(ChangeAliasesRequest(operations))
+            }
+        }
+    }
+
+    override suspend fun listAliases(): List<AliasDescription> {
+        val response = execute { client.get("/aliases") }
+        return decodeBody(response) { it.body<AliasesResponse>().result.aliases }
+    }
+
+    override suspend fun listCollectionAliases(name: String): List<AliasDescription> {
+        val response = execute(name) { client.get("/collections/${encode(name)}/aliases") }
+        return decodeBody(response) { it.body<AliasesResponse>().result.aliases }
+    }
+
+    override suspend fun healthz(): Boolean = probe("/healthz")
+
+    override suspend fun readyz(): Boolean = probe("/readyz")
+
+    override suspend fun livez(): Boolean = probe("/livez")
+
+    override suspend fun listCollections(): List<CollectionDescription> {
+        val response = execute { client.get("/collections") }
+        return decodeBody(response) { it.body<CollectionsListResponse>().result.collections }
+    }
+
+    override suspend fun telemetry(): JsonObject {
+        val response = execute { client.get("/telemetry") }
+        return decodeBody(response) { it.body<JsonObject>()["result"]?.jsonObject ?: JsonObject(emptyMap()) }
+    }
+
+    override suspend fun metrics(): String {
+        val response = execute { client.get("/metrics") }
+        return decodeBody(response) { it.bodyAsText() }
+    }
+
+    override suspend fun listIssues(): JsonElement {
+        val response = execute { client.get("/issues") }
+        return decodeBody(response) { it.body<JsonObject>()["result"] ?: JsonNull }
+    }
+
+    override suspend fun clearIssues() {
+        execute { client.delete("/issues") }
+    }
+
+    override suspend fun facet(name: String, key: String, filter: Filter?, limit: Int?, exact: Boolean): List<FacetHit> {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/facet") {
+                setBody(FacetRequest(key = key, limit = limit, filter = filter, exact = exact.takeIf { it }))
+            }
+        }
+        return decodeBody(response) { it.body<FacetResponse>().result.hits }
+    }
+
+    override suspend fun searchMatrixPairs(name: String, request: SearchMatrixRequest): SearchMatrixPairs {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/points/search/matrix/pairs") { setBody(request) }
+        }
+        return decodeBody(response) { it.body<MatrixPairsResponse>().result }
+    }
+
+    override suspend fun searchMatrixOffsets(name: String, request: SearchMatrixRequest): SearchMatrixOffsets {
+        val response = execute(name) {
+            client.post("/collections/${encode(name)}/points/search/matrix/offsets") { setBody(request) }
+        }
+        return decodeBody(response) { it.body<MatrixOffsetsResponse>().result }
+    }
+
     override fun close() {
         client.close()
     }
 
-    private suspend fun execute(collection: String, call: suspend () -> HttpResponse): HttpResponse =
+    /** Runs a call not scoped to a collection (service, aliases list, storage snapshots). */
+    private suspend fun execute(call: suspend () -> HttpResponse): HttpResponse =
+        execute(collection = null, call = call)
+
+    private suspend fun execute(collection: String?, call: suspend () -> HttpResponse): HttpResponse =
         withContext(config.dispatcher) {
             val response = try {
                 call()
@@ -324,6 +409,24 @@ internal class RestQdrantTransport(
             response
         }
 
+    /**
+     * GETs a Kubernetes-style health probe: `true` on a 2xx, `false` on any other status (so a
+     * "not ready" 503 is a signal, not an exception). Still throws when the server is unreachable.
+     */
+    private suspend fun probe(path: String): Boolean =
+        withContext(config.dispatcher) {
+            val response = try {
+                client.get(path)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: HttpRequestTimeoutException) {
+                throw KdrantException.Timeout("Request to Qdrant timed out", e)
+            } catch (e: IOException) {
+                throw KdrantException.Transport("Failed to reach Qdrant at ${config.host}:${config.port}", e)
+            }
+            response.status.isSuccess()
+        }
+
     /** Decodes a success response body on [config.dispatcher], mapping parse failures to [KdrantException]. */
     private suspend fun <T> decodeBody(response: HttpResponse, decode: suspend (HttpResponse) -> T): T =
         withContext(config.dispatcher) {
@@ -336,12 +439,17 @@ internal class RestQdrantTransport(
             }
         }
 
-    private suspend fun ensureSuccess(response: HttpResponse, collection: String) {
+    private suspend fun ensureSuccess(response: HttpResponse, collection: String?) {
         if (response.status.isSuccess()) return
         val message = errorMessage(response)
         throw when (response.status.value) {
             401, 403 -> KdrantException.Unauthorized(message ?: "Unauthorized")
-            404 -> KdrantException.CollectionNotFound(collection, message)
+            404 ->
+                if (collection != null) {
+                    KdrantException.CollectionNotFound(collection, message)
+                } else {
+                    KdrantException.InvalidRequest(message ?: "Not found (HTTP 404)")
+                }
             408 -> KdrantException.Timeout(message ?: "Qdrant reported a request timeout (HTTP 408)")
             409 -> KdrantException.AlreadyExists(message ?: "Resource already exists (HTTP 409)")
             429 -> KdrantException.RateLimited(retryAfter(response), message ?: "Rate limited by Qdrant (HTTP 429)")
