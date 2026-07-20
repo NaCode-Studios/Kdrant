@@ -2,6 +2,7 @@
 
 package dev.kdrant.transport.rest
 
+import dev.kdrant.QdrantClient
 import dev.kdrant.internal.InternalKdrantApi
 import dev.kdrant.internal.KdrantJson
 import dev.kdrant.kdrantConfig
@@ -16,6 +17,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -79,5 +82,44 @@ class UpsertTransportTest {
         transport.use { runBlocking { it.upsert("docs", emptyList(), wait = false) } }
 
         assertEquals(0, calls)
+    }
+
+    @Test
+    fun `upsert from a Flow chunks by batch size`() {
+        val batchSizes = mutableListOf<Int>()
+        val engine = MockEngine { request ->
+            batchSizes += bodyPointCount(request)
+            respond(okBody, HttpStatusCode.OK, jsonHeaders)
+        }
+        val transport = RestQdrantTransport(kdrantConfig("h", 6333) {}, engine, upsertBatchSize = 2)
+        transport.use { runBlocking { it.upsert("docs", points(5).asFlow(), wait = false) } }
+
+        assertEquals(listOf(2, 2, 1), batchSizes)
+    }
+
+    @Test
+    fun `upsert from an empty Flow issues no request`() {
+        var calls = 0
+        val engine = MockEngine { _ ->
+            calls++
+            respond(okBody, HttpStatusCode.OK, jsonHeaders)
+        }
+        val transport = RestQdrantTransport(kdrantConfig("h", 6333) {}, engine)
+        transport.use { runBlocking { it.upsert("docs", emptyFlow(), wait = false) } }
+
+        assertEquals(0, calls)
+    }
+
+    @Test
+    fun `upsert from a Sequence chunks by batch size via the client`() {
+        val batchSizes = mutableListOf<Int>()
+        val engine = MockEngine { request ->
+            batchSizes += bodyPointCount(request)
+            respond(okBody, HttpStatusCode.OK, jsonHeaders)
+        }
+        val client = QdrantClient(RestQdrantTransport(kdrantConfig("h", 6333) {}, engine, upsertBatchSize = 2))
+        client.use { runBlocking { it.upsert("docs", points(5).asSequence(), wait = false) } }
+
+        assertEquals(listOf(2, 2, 1), batchSizes)
     }
 }

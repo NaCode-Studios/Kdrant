@@ -19,6 +19,7 @@ import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
@@ -30,6 +31,7 @@ import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -65,6 +67,14 @@ internal class DefaultQdrantClient(
     ) {
         val points = UpsertBuilder().apply(configure).build()
         transport.upsert(name, points, wait)
+    }
+
+    override suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean) {
+        transport.upsert(name, points, wait)
+    }
+
+    override suspend fun upsert(name: String, points: Sequence<PointStruct>, wait: Boolean) {
+        transport.upsert(name, points.asFlow(), wait)
     }
 
     override suspend fun search(

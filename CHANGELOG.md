@@ -30,6 +30,9 @@ All notable changes to this project are documented in this file. The format is b
   override any default); `connectTimeout` / `socketTimeout` on the client config; and optional
   request/response logging via `logLevel = LogLevel.…`, which always redacts the `api-key` header so the
   key never reaches the logs.
+- Streaming ingest (M21): `upsert(name, points: Flow<PointStruct>)` and `upsert(name, points: Sequence<PointStruct>)`
+  — ingest a large or unbounded source without materializing it all in memory; the engine chunks it by the
+  configured batch size (sequential, not atomic across chunks, like the DSL `upsert`).
 
 ## [0.2.0] - 2026-07-20
 

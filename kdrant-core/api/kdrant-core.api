@@ -193,7 +193,11 @@ public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseabl
 	public static synthetic fun updateVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun uploadSnapshot (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun uploadSnapshot$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun upsert (Ljava/lang/String;Lkotlin/sequences/Sequence;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun upsert (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlin/sequences/Sequence;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -223,6 +227,8 @@ public final class dev/kdrant/QdrantClient$DefaultImpls {
 	public static synthetic fun updateAliases$default (Ldev/kdrant/QdrantClient;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun updateVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun uploadSnapshot$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlin/sequences/Sequence;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun upsert$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -2539,5 +2545,6 @@ public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang
 	public abstract fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun uploadSnapshot (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun upsert (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

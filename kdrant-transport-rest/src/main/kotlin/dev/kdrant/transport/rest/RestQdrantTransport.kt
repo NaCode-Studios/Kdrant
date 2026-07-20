@@ -75,6 +75,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
@@ -193,11 +194,28 @@ internal class RestQdrantTransport(
         if (points.isEmpty()) return
         // Split into batches to stay under Qdrant's 32 MiB REST payload cap.
         for (batch in points.chunked(upsertBatchSize)) {
-            execute(name) {
-                client.put("/collections/${encode(name)}/points") {
-                    parameter("wait", wait)
-                    setBody(UpsertRequest(batch))
-                }
+            flushUpsert(name, batch, wait)
+        }
+    }
+
+    override suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean) {
+        val buffer = ArrayList<PointStruct>(upsertBatchSize)
+        points.collect { point ->
+            buffer.add(point)
+            if (buffer.size >= upsertBatchSize) {
+                flushUpsert(name, buffer, wait)
+                buffer.clear()
+            }
+        }
+        if (buffer.isNotEmpty()) flushUpsert(name, buffer, wait)
+    }
+
+    /** Sends one upsert batch (`PUT /collections/{name}/points`). */
+    private suspend fun flushUpsert(name: String, batch: List<PointStruct>, wait: Boolean) {
+        execute(name) {
+            client.put("/collections/${encode(name)}/points") {
+                parameter("wait", wait)
+                setBody(UpsertRequest(batch))
             }
         }
     }

@@ -19,6 +19,7 @@ import dev.kdrant.model.Payload
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
+import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
@@ -111,6 +112,20 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.Transport on a connection failure or server error.
      */
     public suspend fun upsert(name: String, wait: Boolean = false, configure: UpsertBuilder.() -> Unit)
+
+    /**
+     * Upsert points streamed from a [Flow] — ingest a large or unbounded source without materializing
+     * it all in memory. The engine chunks the flow to stay under the request-size cap; as with the DSL
+     * `upsert`, the chunks are applied sequentially and are **not** atomic across chunk boundaries.
+     *
+     * ```kotlin
+     * qdrant.upsert("docs", embeddings.map { (id, v) -> PointStruct(PointId.num(id), VectorData.Dense(v)) })
+     * ```
+     */
+    public suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean = false)
+
+    /** Upsert points from a lazy [Sequence], chunked by the engine (see the [Flow] overload). */
+    public suspend fun upsert(name: String, points: Sequence<PointStruct>, wait: Boolean = false)
 
     /**
      * Nearest-vector search.

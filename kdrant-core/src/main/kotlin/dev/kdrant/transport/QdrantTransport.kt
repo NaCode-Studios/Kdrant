@@ -58,6 +58,9 @@ public interface QdrantTransport : AutoCloseable {
      */
     public suspend fun upsert(name: String, points: List<PointStruct>, wait: Boolean)
 
+    /** Upsert points streamed from a [Flow], chunked by the engine's batch size (`PUT /collections/{name}/points`). */
+    public suspend fun upsert(name: String, points: Flow<PointStruct>, wait: Boolean)
+
     /** Nearest-vector search (`POST /collections/{name}/points/query`). */
     public suspend fun query(name: String, request: SearchRequest): List<ScoredPoint>
 
