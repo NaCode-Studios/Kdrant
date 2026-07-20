@@ -2,7 +2,8 @@
 
 This document tracks where Kdrant is going. It complements the [CHANGELOG](CHANGELOG.md)
 (which records what has already shipped) and the short *Roadmap* section in the
-[README](README.md).
+[README](README.md). How milestones and shipped-state are marked here follows the shared
+[roadmap conventions](ROADMAP-CONVENTIONS.md) — the same standard Kmemo uses.
 
 As of `1.0`, Kdrant's public API is stable under SemVer (see [STABILITY.md](STABILITY.md)); the post-`1.0`
 milestones below are additive and may be re-ordered as the project learns. Every public-API change is
@@ -83,7 +84,7 @@ tests vs the Qdrant OpenAPI schema (M22); the Koog backend (M23 — an upstream 
 published Koog `rag-vector` artifact), and metadata-filter translation for the Spring AI / LangChain4j
 adapters (M23).
 
-The detailed milestone descriptions below are kept as the plan of record; ✅ tiers are already shipped.
+The detailed milestone descriptions below are kept as the plan of record; the tiers marked shipped above are already released.
 
 ## Effort legend
 
@@ -91,7 +92,7 @@ The detailed milestone descriptions below are kept as the plan of record; ✅ ti
 
 ---
 
-## Tier 0 — Correctness & security patch — ✅ shipped in `0.2.0`
+## Tier 0 — Correctness & security patch — ✅ Shipped in `0.2.0`
 
 ### M10 · Correctness & security hardening — `S`
 
@@ -112,7 +113,7 @@ Ship the fixes that protect data and credentials before pushing adoption.
 
 ---
 
-## Tier 1 — Robustness, DX & reach — ✅ shipped in `0.2.0`
+## Tier 1 — Robustness, DX & reach — ✅ Shipped in `0.2.0`
 
 ### M11 · Resilience & error taxonomy — `M`
 
@@ -153,7 +154,7 @@ Kotlin/JVM developers discover libraries.
 
 ---
 
-## Tier 2 — Search engine at parity with Qdrant — ✅ shipped in `0.2.0`
+## Tier 2 — Search engine at parity with Qdrant — ✅ Shipped in `0.2.0`
 
 Kdrant already calls the modern `/points/query` endpoint, but only models its "nearest-dense" shape.
 These three milestones open up the full polymorphic query interface — the biggest functional gap.
@@ -194,9 +195,11 @@ Complete Qdrant's advanced retrieval coverage on top of the `QueryInterface` bas
 
 ---
 
-## Tier 3 — Complete data & collection management — M17–M18 ✅ in `0.2.0`; M19–M20 ✅ shipped in `1.0.0`
+## Tier 3 — Complete data & collection management
 
 ### M17 · Payload / vector mutations & payload indexes — `M`
+
+**Status: ✅ Shipped in `0.2.0`.**
 
 Make the already-shipped filter DSL genuinely useful (filters don't scale without indexes) and
 complete data mutation.
@@ -211,6 +214,8 @@ complete data mutation.
   but **not transactional** (no all-or-nothing rollback across operations).
 
 ### M18 · Full collection config & richer read-back — `L`
+
+**Status: ✅ Shipped in `0.2.0`.**
 
 Bring `createCollection` / `updateCollection` up to production config and expose in read-back what
 the convenience helpers need.
@@ -228,7 +233,7 @@ the convenience helpers need.
 
 ### M19 · Aliases, service & analytics endpoints — `M`
 
-**Status: ✅ shipped in `1.0.0`.** All three groups below shipped, with MockEngine wire tests.
+**Status: ✅ Shipped in `1.0.0`.** All three groups below shipped, with MockEngine wire tests.
 
 Round out the operational surface: zero-downtime reindex, server-side health, and analytics.
 
@@ -240,7 +245,7 @@ Round out the operational surface: zero-downtime reindex, server-side health, an
 
 ### M20 · Snapshots & backup / restore — `L`
 
-**Status: ✅ shipped in `1.0.0`** for the collection and full-storage scopes. **Shard-scope
+**Status: ✅ Shipped in `1.0.0`** for the collection and full-storage scopes. **Shard-scope
 snapshots are deferred.**
 
 Provide the backup/restore story enterprise adoption expects, designed separately because of binary bodies.
@@ -252,11 +257,11 @@ Provide the backup/restore story enterprise adoption expects, designed separatel
 
 ---
 
-## Tier 4 — Production reliability, ecosystem & the road to `1.0`
+## Tier 4 — Production reliability, ecosystem & the road to `1.0` — ✅ Shipped in `1.0.0`
 
 ### M21 · Observability, granular transport & no-boxing hot path — `L`
 
-**Status: ✅ shipped in `1.0.0`.** Delivered: the `configureClient` client-customization seam,
+**Status: ✅ Shipped in `1.0.0`.** Delivered: the `configureClient` client-customization seam,
 `connectTimeout` / `socketTimeout`, api-key-redacting logging, `Flow` / `Sequence` upsert, the
 `FloatArray` no-boxing dense path (`vector` / `query`), and byte-aware upsert batching (`maxUpsertBytes`).
 **Deferred:** the `X-Request-Id` correlation header and bundled Micrometer / OpenTelemetry hooks — both
@@ -277,7 +282,7 @@ streaming ingestion.
 
 ### M22 · Quality, supply chain & test depth (CI) — `M`
 
-**Status: ✅ shipped in `1.0.0`** (some sub-items deferred). Delivered: **ktlint** + **detekt** as `check` gates
+**Status: ✅ Shipped in `1.0.0`** (some sub-items deferred). Delivered: **ktlint** + **detekt** as `check` gates
 (configured to the codebase's style); a JDK `17` / `21` build matrix and a Qdrant-version matrix
 (pinned + `latest`) via Testcontainers; **Gradle wrapper-validation**; a **dependency-review** step on
 PRs; **Dependabot** (Gradle + GitHub Actions, grouped); and **property-based round-trip** tests on the
@@ -296,7 +301,7 @@ Bring CI and tests up to a mature OSS standard and catch wire-format regressions
 
 ### M23 · Ecosystem: Spring Boot / Spring AI / LangChain4j / Koog & a RAG app — `XL`
 
-**Status: ✅ shipped in `1.0.0`** (Koog = upstream contribution). Done: the **`kdrant-spring-boot-starter`** (`@ConfigurationProperties("kdrant")`
+**Status: ✅ Shipped in `1.0.0`** (Koog = upstream contribution). Delivered: the **`kdrant-spring-boot-starter`** (`@ConfigurationProperties("kdrant")`
 + `@AutoConfiguration` exposing a `destroyMethod = "close"`, `@ConditionalOnMissingBean` `QdrantClient`
 bean; `ApplicationContextRunner` test) and **`kdrant-spring-ai`** (a Spring AI `VectorStore` backed by
 Kdrant — `add` / `delete` / `similaritySearch`, embedding via a Spring AI `EmbeddingModel`; metadata-filter
@@ -326,7 +331,7 @@ adoption driver: a runnable RAG demo. (Depends on query/collection completeness 
 
 ### M24 · The road to `1.0`: stability, benchmarks, final ergonomics — `M`
 
-**Status: ✅ shipped in `1.0.0` — this completes Tier 4.** Delivered: a written semver/stability
+**Status: ✅ Shipped in `1.0.0` — this completes Tier 4.** Delivered: a written semver/stability
 policy + `1.0` scope-and-date plan ([STABILITY.md](STABILITY.md)); a JMH latency harness for upsert/search
 ([`benchmarks/`](benchmarks/)); the `catching { }` helper (coroutine-safe `Result<T>`); and the documented
 Java-interop decision (Kotlin-first; bridge via `kotlinx-coroutines-jdk8`; no bundled facade in `1.0`).
