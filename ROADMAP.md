@@ -51,7 +51,7 @@ Published to Maven Central and GitHub Packages.
 | **M20** · Snapshots & backup/restore | ✅ Implemented (unreleased — ships in the next minor). |
 | **M21** · Observability, granular transport, no-boxing hot path | ✅ Implemented (unreleased — ships in the next minor). |
 | **M22** · Quality, supply chain & test depth (CI) | ✅ Largely implemented (unreleased); some sub-items deferred. |
-| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | 🚧 In progress (Spring Boot, Spring AI, LangChain4j, RAG demo done). |
+| **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | ✅ Publishable scope done (unreleased); Koog = upstream contribution. |
 | **M24** · The road to `1.0` | Planned. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
 
@@ -61,7 +61,9 @@ reranking (M16); `batchUpdate` and parameterized payload-index params such as th
 / `params` config on update (M18); shard-scope snapshots (M20); the `X-Request-Id` correlation header and
 bundled Micrometer / OpenTelemetry hooks (M21 — reachable via the `configureClient` seam); Kover coverage
 (M22 — pending Kotlin 2.4 support), SLSA / build-provenance + a `main` snapshot job (M22), and contract
-tests vs the Qdrant OpenAPI schema (M22).
+tests vs the Qdrant OpenAPI schema (M22); the Koog backend (M23 — an upstream contribution, pending a
+published Koog `rag-vector` artifact), and metadata-filter translation for the Spring AI / LangChain4j
+adapters (M23).
 
 The detailed milestone descriptions below are kept as the plan of record; ✅ tiers are already shipped.
 
@@ -282,7 +284,14 @@ bean; `ApplicationContextRunner` test) and **`kdrant-spring-ai`** (a Spring AI `
 Kdrant — `add` / `delete` / `similaritySearch`, embedding via a Spring AI `EmbeddingModel`; metadata-filter
 expressions are not yet translated) and **`kdrant-langchain4j`** (a LangChain4j `EmbeddingStore<TextSegment>`
 — `add` / `addAll` / `search`; metadata filters not yet translated), and the runnable **`example-rag`** app
-(Ktor + Kdrant, ingest → embed → retrieve, `docker-compose` for Qdrant). **Remaining:** `kdrant-koog`.
+(Ktor + Kdrant, ingest → embed → retrieve, `docker-compose` for Qdrant).
+
+**Koog** stays an **upstream contribution** (as originally scoped). Its RAG storage SPI —
+`ai.koog.rag.vector.backend.VectorStorageBackend<Document>` (coroutine-first: `store` / `delete` / `read` /
+`readWithPayload` / `allDocuments` + ranking) — is a natural fit for a Kdrant-backed impl, but it lives in
+Koog's own `rag-vector` module, which is not published to Maven Central at a resolvable coordinate. The
+integration therefore belongs in the Koog repository (or awaits a published Koog `rag-vector` artifact),
+rather than as a `kdrant-koog` module here.
 
 Meet JVM developers inside the ecosystems they already use, and publish the single highest-leverage
 adoption driver: a runnable RAG demo. (Depends on query/collection completeness — M14–M18.)
