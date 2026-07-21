@@ -284,7 +284,7 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped in `1.0.0`** — collection aliases (zero-downtime reindex); snapshots & backup/restore (streaming
+**Shipped (`1.0.0`)** — collection aliases (zero-downtime reindex); snapshots & backup/restore (streaming
 download/upload); the server-side service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`,
 distance `matrix`) endpoints; a granular transport seam (`configureClient`, api-key-redacting logs, tuned
 timeouts) with `Flow` / `Sequence` upsert and a `FloatArray` no-boxing hot path with byte-aware batching;
@@ -298,8 +298,8 @@ vector management, collection config, resilient retries, and typed-payload DX (`
 **Next (post-`1.0`)** — Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays the
 default), and cluster / sharding.
 
-See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`), and **[STABILITY.md](STABILITY.md)**
-for the versioning / stability policy.
+See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`), **[STABILITY.md](STABILITY.md)**
+for the versioning / stability policy, and the shared **[roadmap conventions](ROADMAP-CONVENTIONS.md)**.
 
 ## Building and testing
 
