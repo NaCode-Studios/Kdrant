@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/kdrant-hero.png" alt="Kdrant — an idiomatic, coroutine-first Kotlin client for Qdrant" width="100%">
+  <img src="docs/kdrant-hero.png" alt="Kdrant — a coroutine-first Kotlin client for the Qdrant vector database" width="100%">
 </p>
 
 # Kdrant
@@ -7,10 +7,10 @@
 **An idiomatic, coroutine-first Kotlin client for the [Qdrant](https://qdrant.tech) vector database.**
 
 [![CI](https://github.com/NaCode-Studios/Kdrant/actions/workflows/ci.yml/badge.svg)](https://github.com/NaCode-Studios/Kdrant/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.nacode-studios/kdrant-core?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.nacode-studios/kdrant-core)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
-[![API docs](https://img.shields.io/badge/API%20docs-Dokka-blue.svg)](https://nacode-studios.github.io/Kdrant/)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.nacode-studios/kdrant-core?label=Maven%20Central&labelColor=0B0E17&color=7F52FF)](https://central.sonatype.com/artifact/io.github.nacode-studios/kdrant-core)
+[![License](https://img.shields.io/badge/license-Apache%202.0-232B45?labelColor=0B0E17)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white&labelColor=0B0E17)](https://kotlinlang.org)
+[![API docs](https://img.shields.io/badge/API%20docs-Dokka-232B45?labelColor=0B0E17)](https://nacode-studios.github.io/Kdrant/)
 
 Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests
 are assembled with protobuf builders, and it pulls a large gRPC/Netty stack onto your classpath.
@@ -322,7 +322,8 @@ updated `*.api` files.
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE).
+Licensed under the [Apache License 2.0](LICENSE). Brand assets — wordmark, symbol, and the colour and
+type tokens — are in [`docs/brand`](docs/brand).
 
 ## Sponsor
 

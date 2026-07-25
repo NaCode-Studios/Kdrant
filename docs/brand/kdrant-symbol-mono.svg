@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Kdrant symbol">
+  <defs>
+    <clipPath id="kdTop"><polygon points="0,0 300,0 300,121.6 0,144"/></clipPath>
+    <clipPath id="kdBot"><polygon points="0,144 300,121.6 300,256 0,256"/></clipPath>
+  </defs>
+  <g fill="#EEF1F8" clip-path="url(#kdTop)"><g transform="translate(30,200)"><path transform="translate(0.0,0) scale(0.2,-0.2)" d="M66 0V700H198V422H216L443 700H612L320 355L622 0H448L216 284H198V0Z"/></g></g>
+  <g fill="#EEF1F8" clip-path="url(#kdBot)"><g transform="translate(26,8)"><g transform="translate(30,200)"><path transform="translate(0.0,0) scale(0.2,-0.2)" d="M66 0V700H198V422H216L443 700H612L320 355L622 0H448L216 284H198V0Z"/></g></g></g>
+</svg>
