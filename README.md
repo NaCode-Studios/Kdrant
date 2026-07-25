@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/kdrant-hero.png" alt="Kdrant — a coroutine-first Kotlin client for the Qdrant vector database" width="100%">
+  <img src="docs/kdrant-hero.png" alt="Kdrant, a coroutine-first Kotlin client for the Qdrant vector database" width="100%">
 </p>
 
 # Kdrant
@@ -14,7 +14,7 @@
 
 Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests
 are assembled with protobuf builders, and it pulls a large gRPC/Netty stack onto your classpath.
-Kdrant is the client you'd actually want to write Kotlin against — `suspend` functions, a type-safe
+Kdrant is the client you'd actually want to write Kotlin against: `suspend` functions, a type-safe
 DSL, `kotlinx-serialization` models, and a small, coroutine-native footprint.
 
 ```kotlin
@@ -37,29 +37,28 @@ qdrant.use { client ->
 }
 ```
 
-Kdrant stores and searches vectors you already have — `embedding` above is a `List<Float>` from
+Kdrant stores and searches vectors you already have. `embedding` above is a `List<Float>` from
 your own embedding model; Kdrant does not generate embeddings.
 
-> **See it end to end:** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
-> service (ingest → embed → store → retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
+> **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
+> service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `1.1`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
-> `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse &
-> multi-vectors, `scroll`, payload & vector management, aliases, snapshots, service/analytics endpoints,
-> resilient retries, and the full filter DSL — plus Spring Boot / Spring AI / LangChain4j integrations.
-> The public API is now stable under SemVer; see **[STABILITY.md](STABILITY.md)**.
+> **Status: `1.1`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
+> `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
+> and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, service/analytics
+> endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI and LangChain4j
+> integrations. The public API is stable under SemVer; see [STABILITY.md](STABILITY.md).
 
 ## Why Kdrant
 
-- **Coroutine-first** — every operation is a `suspend` function; cancellation and timeouts are
-  cooperative, and `CancellationException` is always propagated.
-- **Type-safe DSLs** — build collections, points, payloads, and filters declaratively, with
-  scope-isolated builders (`@DslMarker`), instead of verbose request objects.
-- **Small footprint** — a pure-Kotlin REST engine on Ktor + kotlinx-serialization; no gRPC, Netty,
-  or protobuf.
-- **Typed errors** — failures surface as a sealed `KdrantException` you can exhaustively handle.
-- **Pluggable transport** — the wire protocol sits behind a `QdrantTransport` seam, keeping the
-  public API independent of it.
+- Every operation is a `suspend` function. Cancellation and timeouts are cooperative, and
+  `CancellationException` is always propagated.
+- Collections, points, payloads and filters are built declaratively through scope-isolated builders
+  (`@DslMarker`) rather than verbose request objects.
+- The engine is pure Kotlin REST on Ktor and kotlinx-serialization, which keeps gRPC, Netty and
+  protobuf off your classpath.
+- Failures surface as a sealed `KdrantException` you can handle exhaustively.
+- The wire protocol sits behind a `QdrantTransport` seam, so the public API stays independent of it.
 
 ### Footprint vs the official client
 
@@ -68,19 +67,19 @@ Dependency stacks verified against `io.qdrant:client:1.18.3`:
 | | Kdrant (`kdrant-transport-rest`) | Official `io.qdrant:client` |
 | --- | --- | --- |
 | Wire protocol | REST/HTTP over Ktor CIO | gRPC (HTTP/2) |
-| Heavy dependencies | none — pure Kotlin (Ktor + kotlinx) | `grpc-netty-shaded` (bundled Netty), `grpc-protobuf`/`grpc-stub`, `protobuf-java`, Guava, slf4j |
-| Approx. added footprint | ~3–5 MB (Ktor + kotlinx-serialization; coroutines/stdlib are usually already present) | ~15–20 MB of transitive jars (shaded Netty ≈ 9 MB alone) |
+| Heavy dependencies | none, pure Kotlin (Ktor + kotlinx) | `grpc-netty-shaded` (bundled Netty), `grpc-protobuf`/`grpc-stub`, `protobuf-java`, Guava, slf4j |
+| Approx. added footprint | ~3-5 MB (Ktor + kotlinx-serialization; coroutines/stdlib are usually already present) | ~15-20 MB of transitive jars (shaded Netty ≈ 9 MB alone) |
 | API style | `suspend` functions + `Flow`, type-safe DSL | `ListenableFuture<T>` (Guava), protobuf builders |
 | Models | `kotlinx-serialization` data classes | generated protobuf messages |
 | GraalVM native / cold start | friendly (no Netty/protobuf reflection config) | needs gRPC/Netty/protobuf native config; heavier cold start |
 
-For raw throughput and streaming, gRPC/HTTP2 still wins — reach for the official client when that is
-your bottleneck. For typical RAG and embedding-search workloads, Kdrant trades that for a fraction of
+For raw throughput and streaming, gRPC/HTTP2 still wins. Reach for the official client when that is
+your bottleneck. For typical RAG and embedding-search workloads, Kdrant trades it for a fraction of
 the footprint and idiomatic Kotlin.
 
 ## Installation
 
-Requires **JDK 17+**. Artifacts are published to Maven Central under `io.github.nacode-studios`.
+Requires JDK 17+. Artifacts are published to Maven Central under `io.github.nacode-studios`.
 
 ```kotlin
 dependencies {
@@ -164,8 +163,8 @@ Large batches are split automatically to stay under Qdrant's request-size limit;
 
 ### Filters
 
-The filter DSL mirrors Qdrant's filtering model — `must` / `should` / `mustNot` / `minShould`,
-every condition type, and recursive nesting — and powers both `search` and delete-by-filter:
+The filter DSL mirrors Qdrant's filtering model (`must` / `should` / `mustNot` / `minShould`, every
+condition type, recursive nesting) and powers both `search` and delete-by-filter:
 
 ```kotlin
 val query = filter {
@@ -209,7 +208,7 @@ val articles: List<Hit<Article>> = qdrant.searchAs<Article>("articles") {
 val first: Article? = articles.firstOrNull()?.payload
 ```
 
-**Hybrid search** fuses several `prefetch` sources with Reciprocal Rank Fusion or DBSF:
+Hybrid search fuses several `prefetch` sources with Reciprocal Rank Fusion or DBSF:
 
 ```kotlin
 val hits = qdrant.search("articles") {
@@ -222,8 +221,9 @@ val hits = qdrant.search("articles") {
 
 You can also query by a stored point's vector (`query(PointId.num(1))`), `orderBy("field")`, or
 `sample()`. Sparse vectors (`querySparse(indices, values)`) and multi-vectors (`queryMulti(...)`) are
-supported too — combine a dense and a sparse prefetch under `rrf()` for true dense+keyword hybrid search,
-after declaring them with `namedVector(...)` and `sparseVector("keywords") { modifier = Modifier.IDF }`.
+supported too. Combine a dense and a sparse prefetch under `rrf()` for real dense plus keyword hybrid
+search, after declaring them with `namedVector(...)` and
+`sparseVector("keywords") { modifier = Modifier.IDF }`.
 
 ### Scrolling
 
@@ -263,7 +263,7 @@ try {
 }
 ```
 
-Prefer a `Result`? `catching { }` is a coroutine-safe `runCatching` — it wraps the outcome but always
+Prefer a `Result`? `catching { }` is a coroutine-safe `runCatching`: it wraps the outcome but always
 re-throws `CancellationException`:
 
 ```kotlin
@@ -276,7 +276,7 @@ Two modules keep protocol concerns out of the public API:
 
 | Module | Contents |
 | --- | --- |
-| `kdrant-core` | Public API (`QdrantClient`), models, DSLs, error hierarchy, and the `QdrantTransport` seam — no wire-protocol knowledge. |
+| `kdrant-core` | Public API (`QdrantClient`), models, DSLs, error hierarchy, and the `QdrantTransport` seam, with no wire-protocol knowledge. |
 | `kdrant-transport-rest` | The default REST engine (Ktor CIO) implementing `QdrantTransport`, plus the `Kdrant(...)` factory. |
 
 The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only the
@@ -284,22 +284,24 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped (`1.0.0`)** — collection aliases (zero-downtime reindex); snapshots & backup/restore (streaming
-download/upload); the server-side service, health (`healthz` / `readyz` / `livez`), and analytics (`facet`,
-distance `matrix`) endpoints; a granular transport seam (`configureClient`, api-key-redacting logs, tuned
-timeouts) with `Flow` / `Sequence` upsert and a `FloatArray` no-boxing hot path with byte-aware batching;
-and the `catching { }` helper — plus **Spring Boot**, **Spring AI (`VectorStore`)**, and **LangChain4j
-(`EmbeddingStore`)** integrations and a runnable **RAG example** ([`example-rag`](example-rag/)). The
-pipeline is hardened too: ktlint + detekt gates, a JDK and Qdrant-version CI matrix, Dependabot, and
-property-based serialization tests. All on top of `0.2.0`'s modern `/points/query` engine (hybrid RRF/DBSF
-fusion, sparse & multi-vectors, `recommend` / `discover` / `context`, batch and grouped search), payload &
-vector management, collection config, resilient retries, and typed-payload DX (`payloadAs<T>` / `searchAs<T>`).
+**Shipped in `1.0.0`.** Collection aliases (zero-downtime reindex); snapshots and backup/restore
+(streaming download/upload); the server-side service, health (`healthz` / `readyz` / `livez`) and
+analytics (`facet`, distance `matrix`) endpoints; a granular transport seam (`configureClient`,
+api-key-redacting logs, tuned timeouts) with `Flow` / `Sequence` upsert and a `FloatArray` no-boxing
+hot path with byte-aware batching; and the `catching { }` helper. Plus Spring Boot, Spring AI
+(`VectorStore`) and LangChain4j (`EmbeddingStore`) integrations and a runnable RAG example
+([`example-rag`](example-rag/)). The pipeline is hardened too: ktlint and detekt gates, a JDK and
+Qdrant-version CI matrix, Dependabot, and property-based serialization tests. All on top of `0.2.0`'s
+modern `/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors, `recommend` /
+`discover` / `context`, batch and grouped search), payload and vector management, collection config,
+resilient retries, and typed-payload DX (`payloadAs<T>` / `searchAs<T>`).
 
-**Next (post-`1.0`)** — Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays the
-default), and cluster / sharding.
+**Next, after `1.0`.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
+the default), and cluster / sharding.
 
-See **[ROADMAP.md](ROADMAP.md)** for the full milestone plan (`M10`–`M25`), **[STABILITY.md](STABILITY.md)**
-for the versioning / stability policy, and the shared **[roadmap conventions](ROADMAP-CONVENTIONS.md)**.
+See [ROADMAP.md](ROADMAP.md) for the full milestone plan (`M10` to `M25`), [STABILITY.md](STABILITY.md)
+for the versioning and stability policy, and the shared
+[roadmap conventions](ROADMAP-CONVENTIONS.md).
 
 ## Building and testing
 
@@ -316,14 +318,14 @@ unavailable.
 
 ## Contributing
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Please run `./gradlew build`
-before opening a pull request; if you change the public API, run `./gradlew apiDump` and commit the
-updated `*.api` files.
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Please run `./gradlew build`
+before opening a pull request, and if you change the public API, run `./gradlew apiDump` and commit
+the updated `*.api` files.
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE). Brand assets — wordmark, symbol, and the colour and
-type tokens — are in [`docs/brand`](docs/brand).
+Licensed under the [Apache License 2.0](LICENSE). Brand assets (wordmark, symbol, and the colour and
+type tokens) are in [`docs/brand`](docs/brand).
 
 ## Sponsor
 
