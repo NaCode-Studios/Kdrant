@@ -73,16 +73,49 @@ Published to Maven Central and GitHub Packages.
 | **M23** · Ecosystem (Spring / LangChain4j / Koog) + RAG demo | ✅ Shipped in `1.0.0` (Koog = upstream contribution). |
 | **M24** · The road to `1.0` | ✅ Shipped in `1.0.0` — Tier 4 complete. |
 | **M25** · KMP, optional gRPC, cluster/sharding | Post-`1.0`. |
+| **M26** · Drop-in adapters: metadata-filter translation | Planned. |
+| **M27** · Deployment ergonomics: `ensureCollection`, ordered `scroll`, `batchUpdate` | Planned. |
+| **M28** · Observability batteries included | Planned. |
+| **M29** · Contract tests, coverage & provenance | Planned. |
+| **M30** · Lowering the switching cost: docs & published numbers | Planned. |
 
-**Deferred sub-items carried forward from `0.2.0`:** `order_by` on `scroll` (M14); `Formula` / MMR
-reranking (M16); `batchUpdate` and parameterized payload-index params such as the text tokenizer (M17);
-`ensureCollection` + enriched `CollectionInfo` read-back, Product quantization, and `wal` / `strictMode`
-/ `params` config on update (M18); shard-scope snapshots (M20); the `X-Request-Id` correlation header and
-bundled Micrometer / OpenTelemetry hooks (M21 — reachable via the `configureClient` seam); Kover coverage
-(M22 — pending Kotlin 2.4 support), SLSA / build-provenance + a `main` snapshot job (M22), and contract
-tests vs the Qdrant OpenAPI schema (M22); the Koog backend (M23 — an upstream contribution, pending a
-published Koog `rag-vector` artifact), and metadata-filter translation for the Spring AI / LangChain4j
-adapters (M23).
+**Next up.** Tier 6 (M26–M30) is sequenced *before* Tier 5's M25: it closes gaps that block adoption
+today, where M25 opens a new market. Within it, **M26** and **M29** come first — one makes the
+integrations the adapters already advertise actually usable, the other protects every guarantee the
+client makes as Qdrant ships minors — then M27, M28 and M30.
+
+**Deferred sub-items — now promoted.** Several items parked since `0.2.0` / `1.0.0` are no longer
+deferred; they are the Tier 6 milestones above. Metadata-filter translation for the Spring AI /
+LangChain4j adapters (was M23) → **M26**. `ensureCollection` + the enriched `CollectionInfo` read-back
+(was M18), `order_by` on `scroll` (was M14) and `batchUpdate` (was M17) → **M27**. The `X-Request-Id`
+correlation header and bundled Micrometer hooks (were M21) → **M28**. Contract tests vs the Qdrant
+OpenAPI schema, Kover coverage and build provenance (were M22) → **M29**.
+
+**Still deferred:** `Formula` / MMR reranking (M16); parameterized payload-index params such as the text
+tokenizer (M17); Product quantization and `wal` / `strictMode` / `params` config on update (M18);
+shard-scope snapshots (M20); the Koog backend (M23 — an upstream contribution, pending a published Koog
+`rag-vector` artifact). A **`main` snapshot job** (M22) stays **decided against** — releases are
+tag-driven, the convention shared with Kmemo.
+
+**Considered and declined:**
+
+- **A `Flow`-based paged `search`.** `search` returns a bounded top-`k` by design, and paging it with
+  `offset` makes the server re-run the ANN search for every page — so a `searchFlow(limit = 10_000)`
+  would dress up deep pagination as an ergonomic API. `scroll` is already the `Flow` for "read many",
+  and M27 gives it the deterministic ordering that use case actually needs.
+- **Connection-pool settings on `KdrantConfig`.** Accepted as a capability, declined in that location:
+  `maxConnectionsPerRoute` and `keepAliveTime` are CIO concerns, and `KdrantConfig` is transport-neutral
+  by decision (M12, where `upsertBatchSize` was kept out for the same reason). They land as named
+  parameters of the REST-engine factory instead (M28).
+- **A bundled `kdrant-jdk` `CompletableFuture` facade.** The `1.0` position stands (Kotlin-first, bridged
+  via `kotlinx-coroutines-jdk8`): a hand-written facade is permanent public API to maintain for a market
+  that has not asked yet. Revisit on evidence — issues or dependents from Java-only codebases. Kmemo
+  holds the same line for the same reason.
+- **Documenting HTTP/2 as the throughput answer.** Ktor CIO's HTTP/2 support is not the settled story
+  the suggestion assumes, and the honest reply to "gRPC is faster" is M30's published numbers, not an
+  unmeasured protocol claim.
+- **ADRs as a separate directory.** The rationale is worth writing down; the ceremony around it is not.
+  It goes in [STABILITY.md](STABILITY.md) (M30), the way Kmemo records the reasoning behind its defaults.
 
 The detailed milestone descriptions below are kept as the plan of record; the tiers marked shipped above are already released.
 
@@ -354,12 +387,118 @@ Cut `1.0` with written stability guarantees and back the footprint claims with r
 
 ### M25 · KMP, optional gRPC, cluster / sharding — `L`
 
-Expand the market after `1.0` without delaying its time-to-market.
+Expand the market after `1.0` without delaying its time-to-market. (Sequenced after Tier 6: this opens a
+new market, where Tier 6 closes gaps in the one Kdrant already serves.)
 
-- Convert `kdrant-core` to Kotlin Multiplatform `commonMain`: drop the hard-coded `Dispatchers.IO`,
-  parameterise the Ktor engine, and replace the two `java.*` APIs with Ktor equivalents; publish KMP
-  targets of the REST engine. (The core is already ~80% there.) Announce on klibs.io / kmp-awesome.
+- Convert `kdrant-core` to Kotlin Multiplatform `commonMain`. The core is already ~80% there, and what
+  remains is a short, concrete list rather than a rewrite:
+  - `java.util.UUID` → `kotlin.uuid.Uuid`, or an `expect` / `actual` id if that API is still
+    experimental on the pinned Kotlin at the time.
+  - `java.time.Instant` → `kotlinx-datetime` / `kotlin.time`.
+  - the hard-coded `Dispatchers.IO` → a `CoroutineDispatcher` on `KdrantConfig`, defaulting to
+    `Dispatchers.IO` on JVM and `Dispatchers.Default` elsewhere.
+  - the Ktor engine parameterised per target (CIO on JVM, Darwin on Apple platforms, Js, Curl on Native).
+- Publish KMP targets of the REST engine; announce on klibs.io / kmp-awesome. There is no multiplatform
+  Qdrant client today, which makes this a market rather than a feature. **Kmemo's M17 is the same
+  migration on the same toolchain** — run them together and pay the learning once.
 - `kdrant-transport-grpc` as a separate, opt-in module (REST stays the recommended default);
   document the footprint-vs-throughput/streaming trade-off.
 - Cluster / sharding: `collectionClusterInfo(name)` + `updateCollectionCluster(name) { … }` and
   `createShardKey` / `deleteShardKey`.
+
+---
+
+## Tier 6 — From "a good Kotlin client" to "the default choice"
+
+The near-term work after `1.1`. Every milestone here closes a gap between what Kdrant *offers* and what
+an adopter can actually *use in production*: adapters that advertise an integration they do not complete,
+workflows (GitOps bootstrap, resumable ETL) with no idiomatic answer, observability that exists only as a
+seam, a wire contract nothing verifies, and capabilities that ship but are documented nowhere as patterns.
+
+### M26 · Drop-in adapters: metadata-filter translation — `M`
+
+`kdrant-spring-ai` and `kdrant-langchain4j` accept the frameworks' filter types but do not translate
+them. Filtered retrieval is the common RAG case, not an edge case, so today an application that filters
+cannot swap its backend for Kdrant without rewriting its retrieval layer. This is the whole distance
+between "an adapter exists" and "a drop-in replacement", and it is the largest single gap in the
+integration story.
+
+- A `FilterTranslator` seam per adapter: Spring AI's `Filter.Expression` AST → the Kdrant filter DSL,
+  and LangChain4j's `Filter` → the same DSL, sharing whatever is genuinely common rather than forcing it.
+- Cover the operators the frameworks actually define (`EQ` / `NE` / `GT` / `GTE` / `LT` / `LTE` / `IN` /
+  `NIN`, `AND` / `OR` / `NOT`), mapping each onto `must` / `should` / `mustNot` with `match` / `range`.
+- **Fail loudly on an expression that cannot be translated**, never silently drop the clause — a dropped
+  filter returns confidently wrong documents, and a wrong result is far more expensive than an error.
+- Payload-key mapping (framework metadata key → Qdrant payload key), plus the payload-index guidance
+  (M17) that keeps those filters fast once they work.
+- Per-operator round-trip tests against a real Qdrant via Testcontainers, driven through each framework's
+  own filter-expression parser so the input is the real AST, not a hand-built one.
+
+### M27 · Deployment ergonomics: idempotent bootstrap & deterministic reads — `M`
+
+Three items carried forward from `0.2.0`, each of which blocks a concrete production workflow.
+
+- **`ensureCollection(name) { … }`** — the idempotent `exists` + `create` + reconcile-config combination,
+  returning a sealed `EnsureResult` (`Created` / `Updated` / `Unchanged`) so a GitOps or CI/CD bootstrap
+  script is rerunnable *and* its outcome is assertable. The enriched `CollectionInfo` read-back this
+  needed shipped in `0.2.0` (M18), so the blocker is already gone. Reconciliation only touches what
+  `updateCollection` can legally change; a mismatch it cannot fix (a different vector size or distance)
+  is an error, never a silent recreate that drops data.
+- **`order_by` on `scroll`** (carried from M14, where `search` got it). Without a deterministic order a
+  `scroll`-backed ETL or reindex job cannot resume where it stopped — which is most of the reason to
+  reach for `scroll` in the first place.
+- **`batchUpdate(name) { … }`** (carried from M17) — a single ordered request applying a mixed sequence
+  of point / vector / payload operations. Ordered, and documented as explicitly **not** transactional.
+
+### M28 · Observability batteries included — `M`
+
+`configureClient` makes all of this *reachable*; a team standing up a service should not have to build it
+first. `kmemo-micrometer` already proves the shape on the sibling project.
+
+- **`X-Request-Id`** generated client-side per request and attached to every call, and surfaced on
+  `KdrantException` so a failure in a log can be traced back to the request that caused it.
+- **`kdrant-micrometer`**, an opt-in `MeterBinder` module (never on the core classpath) exposing request
+  duration, retry counts, per-status-class errors and upserted-point counts — with cardinality bounded
+  deliberately: collection name yes, point ids never.
+- **Structured logging context** — collection, operation and point count attached to the existing
+  api-key-redacting log seam, which is what makes a high-traffic log searchable.
+- **CIO pool tuning** (`maxConnectionsPerRoute`, `keepAliveTime`) as named parameters of the REST-engine
+  factory — deliberately *not* on `KdrantConfig`, which stays transport-neutral (see the declined note
+  above).
+
+### M29 · Contract tests against the Qdrant OpenAPI schema — `M`
+
+The highest-value item left in M22, and the one that protects every other guarantee: Qdrant ships minors
+quickly, and a renamed or newly-required field currently becomes a runtime failure in a user's service
+rather than a build failure here.
+
+- Validate the `@Serializable` request / response models against Qdrant's published OpenAPI schema, run
+  inside the existing Qdrant-version CI matrix (pinned + `latest`) so `latest` drifting is what breaks
+  first — in CI, with a version number attached.
+- Treat an unknown *response* field as tolerable (the deserializers already degrade gracefully by
+  design), but a missing or renamed *required* field as a failure.
+- **Kover.** The recorded blocker names Kover `0.9.1`, but the version catalog already pins `0.9.9` with
+  the plugin declared and never applied — re-verify against the current Kotlin `2.4.10` / Gradle `9.6.1`
+  toolchain before assuming it is still blocked. If it resolves, a coverage report, a threshold and a
+  badge follow; if not, the reason gets re-recorded with the version actually tested.
+- **Build provenance:** GitHub's `attest-build-provenance` on the release workflow — a few lines, and the
+  artifact enterprises with strict supply-chain policies ask for before they will take a dependency.
+
+### M30 · Lowering the switching cost: migration guide, cookbook & published numbers — `M`
+
+Everything below is already built; none of it is documented as a *pattern*, and the benchmark harness
+produces no public numbers. This is the cheapest adoption work left on the board.
+
+- A **migration guide from `io.qdrant:client`** — side-by-side before/after for the dozen most common
+  operations, the dependency-stack delta, and an honest section on where the official gRPC client is
+  still the better choice. (Scoped in M13 as part of the Dokka site; never written.)
+- A **cookbook** of patterns that are answerable today with shipped features: RAG with Spring AI,
+  zero-downtime reindex with aliases (M19), bulk import over `Flow` upsert with byte-aware batching
+  (M21), and a backup/restore strategy with snapshots (M20).
+- **Design decisions written down** — REST over gRPC by default, `FloatArray` over boxed vectors, DSLs
+  over data classes, no Java facade — as the rationale section of [STABILITY.md](STABILITY.md).
+- **Published benchmark numbers.** The footprint / dependency-count / cold-start table is deterministic
+  and belongs in CI on every PR. The JMH latency figures are run and published on a schedule instead —
+  shared CI runners are too noisy to gate microbenchmarks per-PR, and a flaky gate only teaches people to
+  ignore it. Both stay honest about where gRPC wins.
+- The community listings still open from M13: `awesome-kotlin`, and the Qdrant community-clients page.
