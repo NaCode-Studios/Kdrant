@@ -144,8 +144,10 @@ internal class DefaultQdrantClient(
     ) {
         val built = FilterBuilder().apply(filter).build()
         require(
-            !built.must.isNullOrEmpty() || !built.should.isNullOrEmpty() ||
-                !built.mustNot.isNullOrEmpty() || built.minShould != null,
+            !built.must.isNullOrEmpty() ||
+                !built.should.isNullOrEmpty() ||
+                !built.mustNot.isNullOrEmpty() ||
+                built.minShould != null,
         ) {
             "delete-by-filter requires at least one condition; an empty filter would match every point"
         }

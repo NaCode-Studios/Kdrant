@@ -18,6 +18,11 @@ ktlint_standard_no-wildcard-imports = enabled
 # single-line `{ a; b }` blocks, and expression bodies kept on one line where they fit. ktlint still gates
 # imports, indentation, spacing, blank lines, and the 120-column limit.
 ktlint_standard_function-naming = disabled
+# ktlint 14 introduced class-signature and function-signature, which collapse a multi-line parameter
+# list onto one line whenever it fits and push the supertype onto its own line. That is the aggressive
+# wrapping this file already opted out of by choosing intellij_idea over ktlint_official, so it stays off.
+ktlint_standard_class-signature = disabled
+ktlint_standard_function-signature = disabled
 ktlint_standard_function-signature = disabled
 ktlint_standard_statement-wrapping = disabled
 ktlint_standard_if-else-bracing = disabled
