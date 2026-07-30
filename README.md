@@ -285,7 +285,10 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped in `1.0.0`.** Collection aliases (zero-downtime reindex); snapshots and backup/restore
+**Shipped (`1.1.0`).** A maintenance and compatibility release: the Spring adapters move to Spring AI
+`2.0` / Spring Boot `4.1` and `kdrant-langchain4j` to LangChain4j `1.18`, on Kotlin `2.4.10` and Gradle
+`9.6.1`, with Kdrant's own public API unchanged. On top of **`1.0.0`**: collection aliases (zero-downtime
+reindex); snapshots and backup/restore
 (streaming download/upload); the server-side service, health (`healthz` / `readyz` / `livez`) and
 analytics (`facet`, distance `matrix`) endpoints; a granular transport seam (`configureClient`,
 api-key-redacting logs, tuned timeouts) with `Flow` / `Sequence` upsert and a `FloatArray` no-boxing
@@ -297,7 +300,13 @@ modern `/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors,
 `discover` / `context`, batch and grouped search), payload and vector management, collection config,
 resilient retries, and typed-payload DX (`payloadAs<T>` / `searchAs<T>`).
 
-**Next, after `1.0`.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
+**Next.** Metadata-filter translation for the Spring AI and LangChain4j adapters, so a filtered RAG
+application is a genuine drop-in swap; contract tests against the Qdrant OpenAPI schema, so a Qdrant
+minor cannot break a wire format silently; `ensureCollection` and an ordered `scroll` for rerunnable
+bootstrap scripts and resumable ETL; a `kdrant-micrometer` module with `X-Request-Id` correlation; and a
+migration guide from `io.qdrant:client` alongside published benchmark numbers.
+
+**Later.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
 the default), and cluster / sharding.
 
 The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
