@@ -309,9 +309,9 @@ migration guide from `io.qdrant:client` alongside published benchmark numbers.
 **Later.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
 the default), and cluster / sharding.
 
-See [ROADMAP.md](ROADMAP.md) for the full milestone plan (`M10` to `M30`), [STABILITY.md](STABILITY.md)
-for the versioning and stability policy, and the shared
-[roadmap conventions](ROADMAP-CONVENTIONS.md).
+The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
+exit criterion — and every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See
+[STABILITY.md](STABILITY.md) for the versioning and stability policy.
 
 ## Building and testing
 
