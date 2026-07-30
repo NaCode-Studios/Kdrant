@@ -56,11 +56,9 @@ public class KdrantVectorStore(
         runBlocking { client.delete(collectionName, idList.map { PointId.uuid(it) }) }
     }
 
-    override fun delete(filterExpression: Filter.Expression) {
-        throw UnsupportedOperationException(
-            "kdrant-spring-ai does not yet support delete by a metadata filter expression",
-        )
-    }
+    override fun delete(filterExpression: Filter.Expression): Unit = throw UnsupportedOperationException(
+        "kdrant-spring-ai does not yet support delete by a metadata filter expression",
+    )
 
     override fun similaritySearch(request: SearchRequest): List<Document> {
         if (request.hasFilterExpression()) {
