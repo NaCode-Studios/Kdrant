@@ -1,7 +1,7 @@
 # Stability & versioning
 
 This document is the written stability contract for Kdrant — what "stable" means, what changes are allowed
-in which releases, and the plan for cutting `1.0`. It complements the [ROADMAP](ROADMAP.md) (where the
+in which releases, and the plan for cutting `1.0`. It complements the [board](https://github.com/orgs/NaCode-Studios/projects/4) (where the
 project is going) and the [CHANGELOG](CHANGELOG.md) (what has already shipped).
 
 ## Semantic Versioning
