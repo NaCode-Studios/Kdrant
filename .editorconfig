@@ -28,8 +28,10 @@ ktlint_standard_statement-wrapping = disabled
 ktlint_standard_if-else-bracing = disabled
 ktlint_standard_argument-list-wrapping = disabled
 
-[**/src/test/**/*.kt]
+[**/src/{test,commonTest,jvmTest,jsTest,nativeTest}/**/*.kt]
 # Test fixtures (long inline JSON assertions, verbose set-up) get a little more room than production code.
+# The multiplatform source-set names are listed alongside src/test: kdrant-core's tests live in
+# commonTest and jvmTest, and without them the tests there would be held to the production limit.
 max_line_length = 140
 
 [*.{yml,yaml,json,toml}]

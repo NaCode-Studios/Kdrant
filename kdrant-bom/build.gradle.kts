@@ -8,6 +8,10 @@ plugins {
 dependencies {
     constraints {
         api("io.github.nacode-studios:kdrant-core:${project.version}")
+        // kdrant-core is multiplatform: a Gradle consumer resolves the right variant from the
+        // kdrant-core coordinate, but a Maven consumer names the JVM artifact directly and would
+        // otherwise get no constraint from this platform.
+        api("io.github.nacode-studios:kdrant-core-jvm:${project.version}")
         api("io.github.nacode-studios:kdrant-transport-rest:${project.version}")
         api("io.github.nacode-studios:kdrant-transport-grpc:${project.version}")
         api("io.github.nacode-studios:kdrant-spring-boot-starter:${project.version}")

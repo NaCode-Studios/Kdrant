@@ -38,6 +38,12 @@ so the compiler tells you what a new release added; if you need a stub in a test
 third-party wire engine is a supported use of `QdrantTransport`, but it is a use that recompiles against
 each minor.
 
+**A multiplatform artifact is named per target.** `kdrant-core` publishes Gradle module metadata under
+its own coordinate and the JVM classes under `kdrant-core-jvm`. Gradle reads the metadata and resolves
+the variant; Maven does not, and a Maven build naming `kdrant-core` gets no classes. That is a
+coordinate change rather than an API change — the JVM public API is unchanged — but it is the kind that
+belongs in a major, which is where it landed.
+
 **Adding a field to a public `data class` changes its generated `copy` and `componentN`.** New response
 fields arrive as Qdrant returns more, and while the constructor keeps its defaults and source keeps
 compiling, code that called `copy()` against an older jar needs recompiling. Kdrant does not add fields
