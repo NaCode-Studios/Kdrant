@@ -6,9 +6,21 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-31
+
+Tier 5, complete, and the release the transport seam was built for. `kdrant-transport-grpc` is an
+opt-in gRPC engine behind the same `QdrantClient`, and `kdrant-core` compiles for the JVM and eight
+Kotlin/Native targets. Adding a second engine changed no line of `kdrant-core`.
+
+**The major bump is for the artifact layout, not the API.** The JVM public API is unchanged byte for
+byte — `apiCheck` reports no diff against `1.2.0`. `kdrant-core`'s JVM classes moved to
+`kdrant-core-jvm` because the module is multiplatform now: a Gradle build changes only the version
+number, a Maven build naming `kdrant-core` has to move. See
+[STABILITY.md](STABILITY.md#upgrading-from-1-x).
+
 ### Added
 
-- **`kdrant-koog`**, a new module: a [Koog](https://github.com/JetBrains/koog) document storage backed by
+- **`kdrant-koog`** (M37), a new module: a [Koog](https://github.com/JetBrains/koog) document storage backed by
   Kdrant, so a Koog RAG agent can keep its documents in Qdrant. It implements Koog's search-side storage
   interfaces (`WriteStorage`, `LookupStorage`, `SearchStorage`, `DeletionStorage`) rather than
   `VectorStorageBackend`, which has no search method: Koog's own `EmbeddingStorage` ranks by streaming
@@ -28,7 +40,7 @@ All notable changes to this project are documented in this file. The format is b
   would make Qdrant read it as a different key.
 - `ReplicaState` decodes an unrecognized state from a newer Qdrant to `UNKNOWN` rather than failing the
   whole cluster-info response, the same tolerance `CollectionStatus` already had.
-- Formula reranking and MMR, scoped in M16 and not shipped with it. `formula(expression)` rescores the
+- Formula reranking and MMR (M35), scoped in M16 and not shipped with it. `formula(expression)` rescores the
   candidates a `prefetch` produced with arithmetic over their score and payload: multiply by a
   popularity field, add a bonus for points matching a condition, decay by recency or by distance. The
   `Expression` AST covers Qdrant's full operator set, including the three decay curves and
@@ -37,14 +49,12 @@ All notable changes to this project are documented in this file. The format is b
   Both are validated against Qdrant's published schema by the contract tests, and the bounds Qdrant
   documents (diversity in `0..1`, a positive decay scale, a midpoint in `0..1`) are checked where they
   are written rather than on the round trip.
-- Shard-scope snapshots, deferred out of M20 when snapshots first shipped: `createShardSnapshot`,
+- Shard-scope snapshots (M36), deferred out of M20 when snapshots first shipped: `createShardSnapshot`,
   `listShardSnapshots`, `deleteShardSnapshot`, `recoverShardSnapshot`, plus streaming
   `downloadShardSnapshot` and `uploadShardSnapshot`. On a sharded collection the existing
   whole-collection snapshot is every shard at once, which on a large collection is the difference
   between a backup that fits in a window and one that does not. Shard ids come from
   `collectionClusterInfo`.
-
-
 - **`kdrant-transport-grpc`** (M31), the opt-in gRPC engine. `KdrantGrpc(host)` returns the same
   `QdrantClient` the REST factory does, over Qdrant's `Collections`, `Points`, `Snapshots` and `Health`
   services on port **6334**. REST stays the recommended engine; reach for this one when throughput or
@@ -55,7 +65,7 @@ All notable changes to this project are documented in this file. The format is b
   taken from `io.qdrant:client` — grpc-kotlin emits suspend functions and `Flow`s, which is the shape
   the transport seam already has, and generating decides the dependency set instead of inheriting a
   shaded Netty jar that is most of the official client's footprint.
-- Both engines are held to one **shared client contract** (`kdrant-testkit`), which runs the same 30
+- Both engines are held to one **shared client contract** (M31, `kdrant-testkit`), which runs the same 30
   behavioural tests against a real Qdrant over each protocol. The REST tests that came before it
   asserted HTTP bodies, which a gRPC engine cannot satisfy by construction.
 - **`kdrant-core` is a Kotlin Multiplatform library** (M25). It builds for the JVM and for eight
@@ -98,6 +108,17 @@ All notable changes to this project are documented in this file. The format is b
   carried the same artifacts to a registry that requires authentication even for public packages, so it
   was a second place to keep in sync and no second way for anyone to depend on Kdrant. Versions up to
   and including `1.2.0` remain on GitHub Packages and are not withdrawn.
+
+### Internal
+
+- Release notes are extracted from this file by the release workflow rather than written by hand. A
+  release body composed separately is a second copy of what the changelog owns, and the two eventually
+  disagree; derived from here it cannot. The workflow fails the release if the tag has no section.
+- Every published jar is recorded as a linked artifact, so the repository's Packages panel names what it
+  built and where it went. Metadata, not a distribution channel: nothing is hosted there.
+- The set of artifacts the provenance attestation covers is derived from the build instead of listed in
+  the workflow. A hardcoded list stops covering a module the day one is added and nothing goes red,
+  which is what happened when the gRPC engine arrived.
 
 ## [1.2.0] - 2026-07-31
 
@@ -335,7 +356,8 @@ helper).
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...v1.0.0

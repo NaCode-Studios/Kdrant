@@ -33,17 +33,27 @@ jobs:
       - name: Assemble the published artifacts
         run: ./gradlew assemble --no-daemon --no-configuration-cache
 
+      # Derived from the build rather than listed by hand. A hardcoded list stops covering a module the
+      # day one is added and nothing goes red — which is what happened when the gRPC engine arrived. The
+      # match is anchored on the block, not the word: kdrant-testkit's build file explains in a comment
+      # that it carries no mavenPublishing block, and an unanchored grep attests it for saying so.
+      # compgen finds no jar for the BOM, which is how a module with nothing to attest drops out.
+      - name: Collect the published artifacts
+        id: artifacts
+        shell: bash
+        run: |
+          {
+            echo 'paths<<PATHS'
+            for m in $(grep -lE '^mavenPublishing \{' */build.gradle.kts | xargs -n1 dirname); do
+              compgen -G "$m/build/libs/*.jar" >/dev/null && echo "$m/build/libs/*.jar"
+            done
+            echo PATHS
+          } >> "$GITHUB_OUTPUT"
+
       - name: Attest build provenance (SLSA)
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: |
-            kdrant-core/build/libs/*.jar
-            kdrant-transport-grpc/build/libs/*.jar
-            kdrant-transport-rest/build/libs/*.jar
-            kdrant-spring-boot-starter/build/libs/*.jar
-            kdrant-spring-ai/build/libs/*.jar
-            kdrant-langchain4j/build/libs/*.jar
-            kdrant-micrometer/build/libs/*.jar
+          subject-path: ${{ steps.artifacts.outputs.paths }}
 
       - name: Publish to Maven Central
         if: github.event_name == 'push'
