@@ -3,8 +3,10 @@ package dev.kdrant.dsl
 import dev.kdrant.KdrantDsl
 import dev.kdrant.model.ContextPair
 import dev.kdrant.model.Direction
+import dev.kdrant.model.Expression
 import dev.kdrant.model.Filter
 import dev.kdrant.model.LookupLocation
+import dev.kdrant.model.Mmr
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Prefetch
 import dev.kdrant.model.QueryInterface
@@ -14,6 +16,7 @@ import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.ShardKey
 import dev.kdrant.model.VectorInput
 import dev.kdrant.model.WithPayload
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * DSL for `search` (`/points/query`). Provide a [query] (vector, id, fusion, order-by, sample) and/or
@@ -22,6 +25,7 @@ import dev.kdrant.model.WithPayload
 @KdrantDsl
 public class SearchBuilder {
     private var query: QueryInterface? = null
+    private var mmr: Mmr? = null
     private var filter: Filter? = null
     private var params: SearchParams? = null
     private var prefetch: MutableList<Prefetch>? = null
@@ -84,6 +88,41 @@ public class SearchBuilder {
     /** Return a random sample of points. */
     public fun sample() { query = QueryInterface.Sample }
 
+    /**
+     * Rerank with Maximal Marginal Relevance, trading some relevance for variety. Applies to a vector
+     * query and is rejected on any other kind, because MMR needs the query vector to measure
+     * dissimilarity against.
+     *
+     * ```kotlin
+     * qdrant.search("docs") { query(queryVector); mmr(diversity = 0.7f); limit = 10 }
+     * ```
+     *
+     * @param diversity 0 favours relevance, 1 favours dissimilarity; Qdrant defaults to 0.5.
+     * @param candidatesLimit how many candidates to rerank; the query's [limit] when null.
+     */
+    public fun mmr(diversity: Float? = null, candidatesLimit: Int? = null) {
+        mmr = Mmr(diversity, candidatesLimit)
+    }
+
+    /**
+     * Rescore the candidates with an arithmetic formula rather than by distance. Pair it with
+     * [prefetch] to narrow the candidates first: a formula over the whole collection is a full scan.
+     *
+     * ```kotlin
+     * search("products") {
+     *     prefetch { query(queryVector); limit = 100 }
+     *     formula(Expression.sum(Expression.score, Expression.key("popularity")))
+     *     limit = 10
+     * }
+     * ```
+     *
+     * @param defaults values substituted for payload keys a candidate does not have; without an entry
+     *   a missing key fails the query rather than counting as zero.
+     */
+    public fun formula(expression: Expression, defaults: Map<String, JsonPrimitive> = emptyMap()) {
+        query = QueryInterface.Formula(expression, defaults)
+    }
+
     /** Recommend points close to positive examples and far from negative ones. */
     public fun recommend(configure: RecommendBuilder.() -> Unit) {
         query = RecommendBuilder().apply(configure).build()
@@ -142,9 +181,15 @@ public class SearchBuilder {
             else -> {}
         }
         require(limit > 0) { "search limit must be > 0, was $limit" }
+        val reranked = mmr?.let {
+            require(q is VectorInput) {
+                "mmr reranks a vector query, so it needs query(...) rather than ${q?.let { k -> k::class.simpleName }}"
+            }
+            QueryInterface.Nearest(q, it)
+        } ?: q
         return SearchRequest(
             prefetch = pf,
-            query = q,
+            query = reranked,
             using = using,
             filter = filter,
             limit = limit,

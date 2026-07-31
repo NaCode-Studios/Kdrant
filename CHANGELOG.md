@@ -19,6 +19,15 @@ All notable changes to this project are documented in this file. The format is b
   would make Qdrant read it as a different key.
 - `ReplicaState` decodes an unrecognized state from a newer Qdrant to `UNKNOWN` rather than failing the
   whole cluster-info response, the same tolerance `CollectionStatus` already had.
+- Formula reranking and MMR, scoped in M16 and not shipped with it. `formula(expression)` rescores the
+  candidates a `prefetch` produced with arithmetic over their score and payload: multiply by a
+  popularity field, add a bonus for points matching a condition, decay by recency or by distance. The
+  `Expression` AST covers Qdrant's full operator set, including the three decay curves and
+  `geo_distance`. `mmr(diversity)` reranks a vector query for variety instead of letting ten results
+  about the same thing crowd the top.
+  Both are validated against Qdrant's published schema by the contract tests, and the bounds Qdrant
+  documents (diversity in `0..1`, a positive decay scale, a midpoint in `0..1`) are checked where they
+  are written rather than on the round trip.
 - Shard-scope snapshots, deferred out of M20 when snapshots first shipped: `createShardSnapshot`,
   `listShardSnapshots`, `deleteShardSnapshot`, `recoverShardSnapshot`, plus streaming
   `downloadShardSnapshot` and `uploadShardSnapshot`. On a sharded collection the existing

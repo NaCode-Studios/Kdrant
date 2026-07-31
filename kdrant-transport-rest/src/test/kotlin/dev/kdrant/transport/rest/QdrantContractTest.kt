@@ -7,6 +7,7 @@ import dev.kdrant.model.ClusterOperation
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
+import dev.kdrant.model.Expression
 import dev.kdrant.model.GeoPoint
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointVectors
@@ -22,6 +23,7 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest
@@ -167,6 +169,26 @@ class QdrantContractTest {
                 )
             }
             call("deleteShardKey") { c -> c.deleteShardKey("docs", ShardKey.of(7L)) }
+            call("queryWithMmr") { c -> c.search("docs") { query(0.1f, 0.2f); mmr(diversity = 0.7f, candidatesLimit = 50) } }
+            call("queryWithFormula") { c ->
+                c.search("docs") {
+                    prefetch { query(listOf(0.1f, 0.2f)); limit = 100 }
+                    formula(
+                        Expression.sum(
+                            Expression.score,
+                            Expression.mult(Expression.key("popularity"), Expression.of(0.5)),
+                            Expression.expDecay(Expression.DatetimeKey("published"), scale = 86_400.0),
+                            Expression.Div(
+                                left = Expression.Pow(Expression.score, Expression.of(2)),
+                                right = Expression.Sqrt(Expression.key("views")),
+                                byZeroDefault = 0.0,
+                            ),
+                            Expression.geoDistance(GeoPoint(lon = 9.0, lat = 45.0), to = "where"),
+                        ),
+                        defaults = mapOf("popularity" to JsonPrimitive(0.0)),
+                    )
+                }
+            }
         }
     }
 
@@ -189,7 +211,7 @@ class QdrantContractTest {
     fun `the operations covered here are the ones the engine can send a body for`() {
         // A guard on the guard: if someone adds an operation with a request body and no case above,
         // the contract coverage silently stops growing with the engine.
-        assertEquals(21, sent.size, "operations captured: ${sent.map { it.name }}")
+        assertEquals(23, sent.size, "operations captured: ${sent.map { it.name }}")
     }
 
     @Test
