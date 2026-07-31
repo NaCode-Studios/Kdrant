@@ -446,6 +446,43 @@ internal class DefaultQdrantClient(
         transport.uploadSnapshot(name, data, priority, checksum, wait)
     }
 
+    override suspend fun createShardSnapshot(name: String, shardId: Int, wait: Boolean): SnapshotDescription {
+        require(shardId >= 0) { "shardId must be >= 0, was $shardId" }
+        return transport.createShardSnapshot(name, shardId, wait)
+    }
+
+    override suspend fun listShardSnapshots(name: String, shardId: Int): List<SnapshotDescription> =
+        transport.listShardSnapshots(name, shardId)
+
+    override suspend fun deleteShardSnapshot(name: String, shardId: Int, snapshotName: String, wait: Boolean) {
+        transport.deleteShardSnapshot(name, shardId, snapshotName, wait)
+    }
+
+    override suspend fun recoverShardSnapshot(
+        name: String,
+        shardId: Int,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        transport.recoverShardSnapshot(name, shardId, location, priority, checksum, wait)
+    }
+
+    override fun downloadShardSnapshot(name: String, shardId: Int, snapshotName: String): Flow<ByteArray> =
+        transport.downloadShardSnapshot(name, shardId, snapshotName)
+
+    override suspend fun uploadShardSnapshot(
+        name: String,
+        shardId: Int,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        transport.uploadShardSnapshot(name, shardId, data, priority, checksum, wait)
+    }
+
     override suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription =
         transport.createStorageSnapshot(wait)
 

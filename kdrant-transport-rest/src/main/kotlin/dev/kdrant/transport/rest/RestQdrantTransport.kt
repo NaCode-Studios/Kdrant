@@ -609,6 +609,80 @@ internal class RestQdrantTransport(
         }
     }
 
+    // --- Shard-scope snapshots (M36) ---
+
+    override suspend fun createShardSnapshot(name: String, shardId: Int, wait: Boolean): SnapshotDescription {
+        val response = execute(name) {
+            client.post("${shardSnapshots(name, shardId)}") { parameter("wait", wait) }
+        }
+        return decodeBody(response) { it.body<SnapshotResponse>().result }
+    }
+
+    override suspend fun listShardSnapshots(name: String, shardId: Int): List<SnapshotDescription> {
+        val response = execute(name) { client.get("${shardSnapshots(name, shardId)}") }
+        return decodeBody(response) { it.body<SnapshotListResponse>().result }
+    }
+
+    override suspend fun deleteShardSnapshot(name: String, shardId: Int, snapshotName: String, wait: Boolean) {
+        execute(name) {
+            client.delete("${shardSnapshots(name, shardId)}/${encode(snapshotName)}") { parameter("wait", wait) }
+        }
+    }
+
+    override suspend fun recoverShardSnapshot(
+        name: String,
+        shardId: Int,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        execute(name) {
+            client.put("${shardSnapshots(name, shardId)}/recover") {
+                parameter("wait", wait)
+                setBody(SnapshotRecoverRequest(location, priority, checksum))
+            }
+        }
+    }
+
+    override fun downloadShardSnapshot(name: String, shardId: Int, snapshotName: String): Flow<ByteArray> =
+        downloadStream("${shardSnapshots(name, shardId)}/${encode(snapshotName)}", name)
+
+    override suspend fun uploadShardSnapshot(
+        name: String,
+        shardId: Int,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    ) {
+        coroutineScope {
+            val snapshotChannel = writer { data.collect { channel.writeFully(it) } }.channel
+            val parts = formData {
+                append(
+                    key = "snapshot",
+                    value = ChannelProvider { snapshotChannel },
+                    headers = Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=\"snapshot.snapshot\"")
+                        append(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString())
+                    },
+                )
+            }
+            execute(name) {
+                client.post("${shardSnapshots(name, shardId)}/upload") {
+                    parameter("wait", wait)
+                    priority?.let { parameter("priority", it.toWireName()) }
+                    checksum?.let { parameter("checksum", it) }
+                    setBody(MultiPartFormDataContent(parts))
+                }
+            }
+        }
+    }
+
+    /** Shard ids are server-assigned integers, so they need no encoding; the collection name does. */
+    private fun shardSnapshots(name: String, shardId: Int): String =
+        "/collections/${encode(name)}/shards/$shardId/snapshots"
+
     override suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription {
         val response = execute { client.post("/snapshots") { parameter("wait", wait) } }
         return decodeBody(response) { it.body<SnapshotResponse>().result }
