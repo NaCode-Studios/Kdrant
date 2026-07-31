@@ -13,6 +13,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -101,6 +102,26 @@ public sealed interface QueryInterface {
     /** Return a random sample of points. */
     public data object Sample : QueryInterface
 
+    /**
+     * A nearest search written in its long form, which is what carries [mmr]. The short form, a bare
+     * [VectorInput], means the same thing without reranking.
+     */
+    public data class Nearest(
+        public val input: VectorInput,
+        public val mmr: Mmr? = null,
+    ) : QueryInterface
+
+    /**
+     * Rescore the candidates with an arithmetic [formula] instead of by vector distance.
+     *
+     * @property defaults values substituted for payload keys a candidate does not have. Without an
+     *   entry, a missing key fails the query rather than being treated as zero.
+     */
+    public data class Formula(
+        public val formula: Expression,
+        public val defaults: Map<String, JsonPrimitive> = emptyMap(),
+    ) : QueryInterface
+
     /** Recommend points close to the [positive] examples and far from the [negative] ones. */
     public data class Recommend(
         public val positive: List<VectorInput> = emptyList(),
@@ -170,42 +191,69 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
         is QueryInterface.MultiVector ->
             JsonArray(value.vectors.map { row -> JsonArray(row.map { JsonPrimitive(it) }) })
 
-        is QueryInterface.Fusion -> buildJsonObject {
-            if (value.algorithm == FusionAlgorithm.RRF && (value.rrfK != null || value.rrfWeights != null)) {
-                putJsonObject("rrf") {
-                    value.rrfK?.let { put("k", it) }
-                    value.rrfWeights?.let { put("weights", JsonArray(it.map { w -> JsonPrimitive(w) })) }
-                }
-            } else {
-                put("fusion", if (value.algorithm == FusionAlgorithm.RRF) "rrf" else "dbsf")
-            }
-        }
+        is QueryInterface.Fusion -> fusionElement(value)
 
-        is QueryInterface.OrderBy -> buildJsonObject {
-            if (value.direction == null) {
-                put("order_by", value.key)
-            } else {
-                putJsonObject("order_by") {
-                    put("key", value.key)
-                    put("direction", if (value.direction == Direction.ASC) "asc" else "desc")
-                }
-            }
-        }
+        is QueryInterface.OrderBy -> orderByElement(value)
 
         QueryInterface.Sample -> buildJsonObject { put("sample", "random") }
 
-        is QueryInterface.Recommend -> buildJsonObject {
-            putJsonObject("recommend") {
-                if (value.positive.isNotEmpty()) {
-                    put("positive", JsonArray(value.positive.map { toElement(json, it) }))
-                }
-                if (value.negative.isNotEmpty()) {
-                    put("negative", JsonArray(value.negative.map { toElement(json, it) }))
-                }
-                value.strategy?.let { put("strategy", strategyWire(it)) }
+        is QueryInterface.Nearest -> nearestElement(json, value)
+
+        is QueryInterface.Formula -> formulaElement(json, value)
+
+        is QueryInterface.Recommend -> recommendElement(json, value)
+
+        else -> compositeElement(json, value)
+    }
+
+    private fun fusionElement(value: QueryInterface.Fusion): JsonElement = buildJsonObject {
+        if (value.algorithm == FusionAlgorithm.RRF && (value.rrfK != null || value.rrfWeights != null)) {
+            putJsonObject("rrf") {
+                value.rrfK?.let { put("k", it) }
+                value.rrfWeights?.let { put("weights", JsonArray(it.map { w -> JsonPrimitive(w) })) }
+            }
+        } else {
+            put("fusion", if (value.algorithm == FusionAlgorithm.RRF) "rrf" else "dbsf")
+        }
+    }
+
+    private fun orderByElement(value: QueryInterface.OrderBy): JsonElement = buildJsonObject {
+        if (value.direction == null) {
+            put("order_by", value.key)
+        } else {
+            putJsonObject("order_by") {
+                put("key", value.key)
+                put("direction", if (value.direction == Direction.ASC) "asc" else "desc")
             }
         }
+    }
 
+    private fun nearestElement(json: Json, value: QueryInterface.Nearest): JsonElement = buildJsonObject {
+        put("nearest", toElement(json, value.input))
+        value.mmr?.let { put("mmr", json.encodeToJsonElement(Mmr.serializer(), it)) }
+    }
+
+    private fun formulaElement(json: Json, value: QueryInterface.Formula): JsonElement = buildJsonObject {
+        put("formula", json.encodeToJsonElement(Expression.serializer(), value.formula))
+        if (value.defaults.isNotEmpty()) {
+            put("defaults", JsonObject(value.defaults))
+        }
+    }
+
+    private fun recommendElement(json: Json, value: QueryInterface.Recommend): JsonElement = buildJsonObject {
+        putJsonObject("recommend") {
+            if (value.positive.isNotEmpty()) {
+                put("positive", JsonArray(value.positive.map { toElement(json, it) }))
+            }
+            if (value.negative.isNotEmpty()) {
+                put("negative", JsonArray(value.negative.map { toElement(json, it) }))
+            }
+            value.strategy?.let { put("strategy", strategyWire(it)) }
+        }
+    }
+
+    /** Discover and context, the two remaining shapes that carry example pairs. */
+    private fun compositeElement(json: Json, value: QueryInterface): JsonElement = when (value) {
         is QueryInterface.Discover -> buildJsonObject {
             putJsonObject("discover") {
                 put("target", toElement(json, value.target))
@@ -216,6 +264,8 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
         is QueryInterface.Context -> buildJsonObject {
             put("context", JsonArray(value.pairs.map { pairElement(json, it) }))
         }
+
+        else -> throw SerializationException("unhandled query shape ${value::class.simpleName}")
     }
 
     private fun pairElement(json: Json, pair: ContextPair): JsonElement = buildJsonObject {
