@@ -8,6 +8,18 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- **`kdrant-koog`**, a new module: a [Koog](https://github.com/JetBrains/koog) document storage backed by
+  Kdrant, so a Koog RAG agent can keep its documents in Qdrant. It implements Koog's search-side storage
+  interfaces (`WriteStorage`, `LookupStorage`, `SearchStorage`, `DeletionStorage`) rather than
+  `VectorStorageBackend`, which has no search method: Koog's own `EmbeddingStorage` ranks by streaming
+  every stored document out of the backend and scoring in memory, and doing that through a vector
+  database would mean paying for an index and then pulling the whole collection over the network on
+  every query. Here Qdrant runs the search. The module depends only on Koog's stable `rag-base`, not on
+  the `rag-vector` beta. Koog's `namespace` becomes a payload field and a filter, so one collection can
+  hold several of them.
+
+### Added
+
 - Cluster and sharding (M32), the gap the migration guide used to name as having no Kdrant equivalent.
   `collectionClusterInfo(name)` reads how a collection's shards are spread across peers, including the
   transfers in flight; `updateCollectionCluster(name, operation)` moves, replicates, aborts or drops a

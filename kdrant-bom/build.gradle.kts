@@ -13,6 +13,7 @@ dependencies {
         api("io.github.nacode-studios:kdrant-spring-ai:${project.version}")
         api("io.github.nacode-studios:kdrant-langchain4j:${project.version}")
         api("io.github.nacode-studios:kdrant-micrometer:${project.version}")
+        api("io.github.nacode-studios:kdrant-koog:${project.version}")
     }
 }
 

@@ -1,0 +1,27 @@
+public abstract interface class dev/kdrant/koog/DocumentCodec {
+	public abstract fun document (Lkotlinx/serialization/json/JsonObject;)Ljava/lang/Object;
+	public abstract fun payload (Ljava/lang/Object;)Lkotlinx/serialization/json/JsonObject;
+	public abstract fun text (Ljava/lang/Object;)Ljava/lang/String;
+}
+
+public final class dev/kdrant/koog/KdrantDocumentStorage : ai/koog/rag/base/storage/DeletionStorage, ai/koog/rag/base/storage/LookupStorage, ai/koog/rag/base/storage/SearchStorage, ai/koog/rag/base/storage/WriteStorage {
+	public fun <init> (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ldev/kdrant/koog/DocumentCodec;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ldev/kdrant/koog/DocumentCodec;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun add (Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun delete (Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun get (Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun search (Lai/koog/rag/base/storage/search/SearchRequest;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun search (Lai/koog/rag/base/storage/search/SimilaritySearchRequest;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun update (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/kdrant/koog/TextDocuments : dev/kdrant/koog/DocumentCodec {
+	public static final field INSTANCE Ldev/kdrant/koog/TextDocuments;
+	public synthetic fun document (Lkotlinx/serialization/json/JsonObject;)Ljava/lang/Object;
+	public fun document (Lkotlinx/serialization/json/JsonObject;)Ljava/lang/String;
+	public synthetic fun payload (Ljava/lang/Object;)Lkotlinx/serialization/json/JsonObject;
+	public fun payload (Ljava/lang/String;)Lkotlinx/serialization/json/JsonObject;
+	public synthetic fun text (Ljava/lang/Object;)Ljava/lang/String;
+	public fun text (Ljava/lang/String;)Ljava/lang/String;
+}
+
