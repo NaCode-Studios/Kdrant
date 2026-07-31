@@ -58,9 +58,11 @@ All notable changes to this project are documented in this file. The format is b
 - Both engines are held to one **shared client contract** (`kdrant-testkit`), which runs the same 30
   behavioural tests against a real Qdrant over each protocol. The REST tests that came before it
   asserted HTTP bodies, which a gRPC engine cannot satisfy by construction.
-- **`kdrant-core` is a Kotlin Multiplatform library** (M25). It builds for the JVM, for JS (browser and
-  Node) and for nine Kotlin/Native targets: `iosArm64`, `iosSimulatorArm64`, `iosX64`, `macosArm64`,
-  `macosX64`, `linuxArm64`, `linuxX64` and `mingwX64`. The models, DSLs, error hierarchy and client
+- **`kdrant-core` is a Kotlin Multiplatform library** (M25). It builds for the JVM and for eight
+  Kotlin/Native targets: `iosArm64`, `iosSimulatorArm64`, `iosX64`, `macosArm64`, `macosX64`,
+  `linuxArm64`, `linuxX64` and `mingwX64`. Kotlin/JS is deliberately not among them: there is no JS
+  engine, so the target would ship models with nothing to send them over, and its test tooling is the
+  only npm dependency graph this repository would have. The models, DSLs, error hierarchy and client
   logic were already free of the JVM — that is what the transport seam was for — so the migration moved
   sources into `commonMain` and changed one declaration. The engines stay JVM-only, because Ktor CIO and
   grpc-java are.
@@ -77,9 +79,8 @@ All notable changes to this project are documented in this file. The format is b
   public API is unchanged, byte for byte — `apiCheck` reports no diff.
 - The default dispatcher is platform-dependent, and is the one declaration the migration had to split.
   It stays `Dispatchers.IO` on the JVM. On Kotlin/Native it is `Dispatchers.Default`, because the
-  coroutines library still keeps its native IO dispatcher internal, and on Kotlin/JS it is
-  `Dispatchers.Default` because a single-threaded runtime has nothing to move off. Passing your own
-  dispatcher works as before, everywhere.
+  coroutines library still keeps its native IO dispatcher internal. Passing your own dispatcher works
+  as before, everywhere.
 - Releases are built on macOS. Only a macOS host can compile the Apple targets, so a Linux runner would
   publish a release quietly missing its iOS and macOS klibs.
 - `kdrant-core`'s `-javadoc.jar` holds Dokka's HTML output rather than Javadoc HTML: the Dokka Javadoc

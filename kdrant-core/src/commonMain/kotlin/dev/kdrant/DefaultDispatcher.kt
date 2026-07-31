@@ -10,8 +10,7 @@ import kotlinx.coroutines.CoroutineDispatcher
  * blocks on a socket rather than on a CPU, so its work belongs on the elastic pool and not on the one
  * sized to the number of cores.
  *
- * Everywhere else it is `Dispatchers.Default`, for two different reasons. Kotlin/JS has a
- * single-threaded runtime and nothing to move off it. Kotlin/Native has an IO dispatcher that the
- * coroutines library still keeps internal.
+ * On Kotlin/Native it is `Dispatchers.Default`, because the IO dispatcher that exists there is still
+ * internal to the coroutines library.
  */
 internal expect val ioDispatcher: CoroutineDispatcher

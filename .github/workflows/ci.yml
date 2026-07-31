@@ -92,6 +92,7 @@ jobs:
         run: >
           ./gradlew
           :kdrant-core:compileKotlinIosArm64
+          :kdrant-core:compileKotlinIosX64
           :kdrant-core:iosSimulatorArm64Test
           :kdrant-core:macosArm64Test
           --no-daemon --stacktrace

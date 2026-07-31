@@ -288,10 +288,12 @@ Three modules keep protocol concerns out of the public API:
 | `kdrant-transport-rest` | The default REST engine (Ktor CIO) implementing `QdrantTransport`, plus the `Kdrant(...)` factory. |
 | `kdrant-transport-grpc` | The opt-in gRPC engine over Qdrant's own protobuf services, plus the `KdrantGrpc(...)` factory. Depend on it only if you want it. |
 
-`kdrant-core` builds for the JVM, JS, and nine Kotlin/Native targets: iOS, macOS, Linux and Windows.
+`kdrant-core` builds for the JVM and for eight Kotlin/Native targets: iOS, macOS, Linux and Windows.
 That is what the transport seam bought — the models, DSLs and client logic never knew about a wire, so
-they compile anywhere Kotlin does. The engines stay JVM-only: Ktor CIO and grpc-java are, so a
+they compile anywhere Kotlin does. The engines stay JVM-only, because Ktor CIO and grpc-java are, so a
 multiplatform consumer today shares its models and its query building and supplies its own transport.
+Kotlin/JS is left out for that reason rather than an accident of effort: with no JS engine the target
+would ship a DSL with nothing to send.
 
 The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only an engine
 module knows about a wire. Both engines are held to the same behavioural test suite, so the choice is

@@ -23,10 +23,12 @@ kotlin {
     // Everything the two dependencies support and someone might plausibly run a Qdrant client on.
     // watchOS and tvOS are left out: they cost one line each and neither has a use case that would
     // justify carrying the klibs, so they wait for someone to ask.
-    js(IR) {
-        browser()
-        nodejs()
-    }
+    //
+    // Kotlin/JS is left out for a stronger reason. There is no JS engine — Ktor CIO and grpc-java are
+    // both JVM-only — so kdrant-core on JS would be models and a DSL with nothing to send them over.
+    // The target is not free: its Karma and webpack test tooling is the only npm dependency graph this
+    // repository has, and it arrived carrying a high-severity advisory in a package no published
+    // artifact contains. One line brings it back the day someone writes a JS engine.
     iosArm64()
     iosSimulatorArm64()
     iosX64()
