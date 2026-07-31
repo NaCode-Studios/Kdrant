@@ -6,6 +6,20 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Cluster and sharding (M32), the gap the migration guide used to name as having no Kdrant equivalent.
+  `collectionClusterInfo(name)` reads how a collection's shards are spread across peers, including the
+  transfers in flight; `updateCollectionCluster(name, operation)` moves, replicates, aborts or drops a
+  shard; and `createShardKey` / `deleteShardKey` manage custom sharding keys. The placement calls return
+  once the transfer is **accepted**, not once it has finished, which the KDoc says rather than leaving
+  it to be discovered.
+- `ShardKey` and `shardKey` on `search` and `scroll`, so a query that concerns one region or one tenant
+  reads that key's shards instead of all of them. A numeric key stays a number on the wire; quoting it
+  would make Qdrant read it as a different key.
+- `ReplicaState` decodes an unrecognized state from a newer Qdrant to `UNKNOWN` rather than failing the
+  whole cluster-info response, the same tolerance `CollectionStatus` already had.
+
 ### Changed
 
 - Releases publish to Maven Central only. The secondary publication to GitHub Packages is gone: it

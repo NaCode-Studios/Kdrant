@@ -8,9 +8,12 @@ import dev.kdrant.internal.InternalKdrantApi
 import dev.kdrant.internal.KdrantJson
 import dev.kdrant.model.AliasDescription
 import dev.kdrant.model.AliasOperation
+import dev.kdrant.model.ClusterOperation
+import dev.kdrant.model.CollectionClusterInfo
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
+import dev.kdrant.model.CreateShardKeyRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
@@ -30,6 +33,7 @@ import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
 import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.UpdateCollectionRequest
@@ -360,6 +364,43 @@ internal class RestQdrantTransport(
         val body = buildJsonObject { put("operations", JsonArray(operations.map(::operationJson))) }
         execute(name) {
             client.post("/collections/${encode(name)}/points/batch") { parameter("wait", wait); setBody(body) }
+        }
+    }
+
+    // --- Cluster & sharding (M32) ---
+
+    override suspend fun collectionClusterInfo(name: String): CollectionClusterInfo {
+        val response = execute(name) { client.get("/collections/${encode(name)}/cluster") }
+        return decodeBody(response) { it.body<CollectionClusterResponse>().result }
+    }
+
+    override suspend fun updateCollectionCluster(name: String, operation: ClusterOperation, timeout: Int?) {
+        execute(name) {
+            client.post("/collections/${encode(name)}/cluster") {
+                timeout?.let { parameter("timeout", it) }
+                setBody(KdrantJson.encodeToJsonElement(ClusterOperation.serializer(), operation))
+            }
+        }
+    }
+
+    override suspend fun createShardKey(name: String, request: CreateShardKeyRequest, timeout: Int?) {
+        execute(name) {
+            client.put("/collections/${encode(name)}/shards") {
+                timeout?.let { parameter("timeout", it) }
+                setBody(request)
+            }
+        }
+    }
+
+    override suspend fun deleteShardKey(name: String, shardKey: ShardKey, timeout: Int?) {
+        val body = buildJsonObject {
+            put("shard_key", KdrantJson.encodeToJsonElement(ShardKey.serializer(), shardKey))
+        }
+        execute(name) {
+            client.post("/collections/${encode(name)}/shards/delete") {
+                timeout?.let { parameter("timeout", it) }
+                setBody(body)
+            }
         }
     }
 

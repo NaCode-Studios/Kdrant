@@ -13,8 +13,12 @@ you can run them side by side against the same Qdrant and move one call site at 
 
 Kdrant does not speak gRPC. If your bottleneck is raw throughput or long-lived streaming, HTTP/2 is
 still the faster wire and the official client is the right tool — the trade-off is set out in the
-[README](../README.md#footprint-vs-the-official-client). Cluster and sharding operations are not
-implemented; those calls have no Kdrant equivalent yet.
+[README](../README.md#footprint-vs-the-official-client).
+
+Cluster support covers a collection's shard distribution: reading it, moving and replicating shards,
+and creating or dropping custom sharding keys. The node-level calls that administer the raft cluster
+itself, adding and removing peers, have no Kdrant equivalent and are not planned; that is a job for
+Qdrant's own tooling rather than for a client library.
 
 ## Installation
 

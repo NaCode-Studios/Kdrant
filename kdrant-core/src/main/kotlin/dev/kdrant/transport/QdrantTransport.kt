@@ -2,9 +2,12 @@ package dev.kdrant.transport
 
 import dev.kdrant.model.AliasDescription
 import dev.kdrant.model.AliasOperation
+import dev.kdrant.model.ClusterOperation
+import dev.kdrant.model.CollectionClusterInfo
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
+import dev.kdrant.model.CreateShardKeyRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
@@ -24,6 +27,7 @@ import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
 import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.UpdateCollectionRequest
@@ -171,6 +175,20 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Distance matrix in offsets form (`POST /collections/{name}/points/search/matrix/offsets`). */
     public suspend fun searchMatrixOffsets(name: String, request: SearchMatrixRequest): SearchMatrixOffsets
+
+    // --- Cluster & sharding (M32) ---
+
+    /** How the collection's shards are distributed (`GET /collections/{name}/cluster`). */
+    public suspend fun collectionClusterInfo(name: String): CollectionClusterInfo
+
+    /** Apply a shard placement change (`POST /collections/{name}/cluster`); [timeout] is in seconds. */
+    public suspend fun updateCollectionCluster(name: String, operation: ClusterOperation, timeout: Int?)
+
+    /** Create a custom sharding key (`PUT /collections/{name}/shards`); [timeout] is in seconds. */
+    public suspend fun createShardKey(name: String, request: CreateShardKeyRequest, timeout: Int?)
+
+    /** Drop a custom sharding key and its shards (`POST /collections/{name}/shards/delete`). */
+    public suspend fun deleteShardKey(name: String, shardKey: ShardKey, timeout: Int?)
 
     // --- Snapshots (M20) ---
 

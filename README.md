@@ -303,8 +303,8 @@ version-by-version detail.
 
 **Next.** Nothing is claimed for the next release yet; the board is where it gets decided.
 
-**Later.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
-the default), and cluster / sharding.
+**Later.** Kotlin Multiplatform (`commonMain`) and an optional opt-in gRPC engine, with REST staying
+the default.
 
 The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
 exit criterion — and every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See
