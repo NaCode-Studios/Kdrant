@@ -17,6 +17,9 @@ springAi = "2.0.0"
 langchain4j = "1.18.0"
 mockk = "1.14.11"
 micrometer = "1.17.0"
+grpc = "1.83.1"
+grpcKotlin = "1.5.0"
+protobuf = "4.35.1"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -54,6 +57,16 @@ spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-sto
 spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "springAi" }
 langchain4j-core = { module = "dev.langchain4j:langchain4j-core", version.ref = "langchain4j" }
 micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+# OkHttp rather than netty-shaded: the shaded Netty jar alone is most of the official client's footprint.
+grpc-okhttp = { module = "io.grpc:grpc-okhttp", version.ref = "grpc" }
+grpc-kotlin-stub = { module = "io.grpc:grpc-kotlin-stub", version.ref = "grpcKotlin" }
+grpc-inprocess = { module = "io.grpc:grpc-inprocess", version.ref = "grpc" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
+protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
+protoc-gen-grpc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
+protoc-gen-grpc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpcKotlin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [plugins]
@@ -67,3 +80,4 @@ ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 jmh = { id = "me.champeau.jmh", version = "0.7.3" }
+protobuf = { id = "com.google.protobuf", version = "0.10.0" }
