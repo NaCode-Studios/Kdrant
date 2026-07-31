@@ -354,8 +354,8 @@ the target would ship a DSL with nothing to send.
 `kdrant-transport-grpc` is an opt-in gRPC engine behind the same `QdrantClient`, generated from Qdrant's
 own `.proto` files rather than wrapping the official client, so a REST build still resolves no gRPC, no
 protobuf and no Netty — checked on every build, not asserted. And `kdrant-core` moved to Kotlin
-Multiplatform: the JVM plus eight Kotlin/Native targets, with the JVM public API unchanged byte for
-byte. Both engines are now held to one shared behavioural suite against a real Qdrant. The major bump is
+Multiplatform: the JVM plus eight Kotlin/Native targets, a migration that changed no public API at
+all. Both engines are now held to one shared behavioural suite against a real Qdrant. The major bump is
 for the artifact layout, not the API: `kdrant-core`'s JVM classes moved to `kdrant-core-jvm`, which a
 Gradle build does not notice and a Maven build does. See
 [STABILITY.md](STABILITY.md#upgrading-from-1-x).

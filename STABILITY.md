@@ -68,19 +68,27 @@ Within a major version:
 
 ## Upgrading from `1.x`
 
-`2.0.0` breaks one thing, and it is not the API. **The JVM public API is unchanged, byte for byte** —
-`apiCheck` reports no diff against `1.2.0`. What changed is where `kdrant-core`'s JVM classes are
-published.
-
-`kdrant-core` is now a Kotlin Multiplatform library, so its own coordinate carries Gradle module
-metadata and the JVM classes live in `kdrant-core-jvm`. Gradle reads that metadata and resolves the
-variant, so **a Gradle build changes nothing but the version number**. Maven does not read it, so a
-Maven build naming `kdrant-core` gets no classes and must move to `kdrant-core-jvm`. Depending on
-`kdrant-transport-rest` or `kdrant-transport-grpc`, which is what the README recommends, is unaffected
-either way.
-
-The rest of `2.0.0` is additive: the gRPC engine is a module you do not have, and every `1.x` call site
+`2.0.0` breaks two things, and **source compatibility is not one of them**: every `1.x` call site
 compiles unchanged.
+
+**Where `kdrant-core`'s JVM classes are published.** The module is Kotlin Multiplatform now, so its own
+coordinate carries Gradle module metadata and the classes live in `kdrant-core-jvm`. Gradle reads that
+metadata and resolves the variant, so a Gradle build changes nothing but the version number. Maven does
+not read it, so a Maven build naming `kdrant-core` gets no classes and must move to `kdrant-core-jvm`.
+Depending on `kdrant-transport-rest` or `kdrant-transport-grpc`, which is what the README recommends, is
+unaffected either way.
+
+**`ScrollRequest` and `SearchRequest` gained a `shardKey` parameter.** That is the case
+[above](#what-may-still-change-in-a-minor) arriving for real: the constructor keeps its defaults and
+source keeps compiling, but the generated `copy` and `componentN` changed, so code that called `copy()`
+on either type against a `1.x` jar has to be recompiled. Nothing else in the `*.api` dump was removed.
+
+**The multiplatform migration itself changed no public API.** The dump is identical either side of it,
+which is worth stating because it is the part that sounds like it should have broken something. What
+broke is the two lines above.
+
+The rest of `2.0.0` is additive: the gRPC engine is a module you do not have yet, and cluster support,
+formula and MMR reranking, shard-scope snapshots and the Koog module are new operations.
 
 ## Java interoperability
 
