@@ -30,6 +30,7 @@ configure(
         project(":kdrant-spring-boot-starter"),
         project(":kdrant-spring-ai"),
         project(":kdrant-langchain4j"),
+        project(":kdrant-micrometer"),
         project(":example-rag"),
     ),
 ) {

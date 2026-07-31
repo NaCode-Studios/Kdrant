@@ -1,0 +1,19 @@
+public final class dev/kdrant/micrometer/KdrantMetricsConfig {
+	public fun <init> ()V
+	public final fun getPrefix ()Ljava/lang/String;
+	public final fun getRegistry ()Lio/micrometer/core/instrument/MeterRegistry;
+	public final fun getTags ()Ljava/lang/Iterable;
+	public final fun setPrefix (Ljava/lang/String;)V
+	public final fun setRegistry (Lio/micrometer/core/instrument/MeterRegistry;)V
+	public final fun setTags (Ljava/lang/Iterable;)V
+}
+
+public final class dev/kdrant/micrometer/KdrantMetricsInstallKt {
+	public static final fun kdrantMetrics (Lio/ktor/client/HttpClientConfig;Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;Ljava/lang/Iterable;)V
+	public static synthetic fun kdrantMetrics$default (Lio/ktor/client/HttpClientConfig;Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;Ljava/lang/Iterable;ILjava/lang/Object;)V
+}
+
+public final class dev/kdrant/micrometer/KdrantMetricsKt {
+	public static final fun getKdrantMetrics ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+

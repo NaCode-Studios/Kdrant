@@ -40,6 +40,17 @@ All notable changes to this project are documented in this file. The format is b
   an earlier one, but a failure part-way through leaves the earlier operations applied.
 - `ScrollBuilder.filter(Filter)`, matching the search builders.
 
+- **`kdrant-micrometer`** (M28), a new module: `configureClient = { kdrantMetrics(registry) }` times every
+  request as `kdrant.requests`, tagged with the operation, HTTP method, status and outcome. The operation
+  tag is the route template, not the URL — collection, field and snapshot names become placeholders, so a
+  deployment with thousands of collections does not become thousands of time series.
+- `X-Request-Id` correlation (M28): `Kdrant(host, requestId = { ... })` sets the header from the caller's
+  own trace id, so a Kdrant call can be followed into Qdrant's logs. Off by default, since sending a new
+  header on every request would change the bytes on the wire for everyone.
+- Connection-pool settings on the REST engine factory (M28): `maxConnectionsPerRoute` and `keepAliveTime`
+  are parameters of `Kdrant(...)`, not of `KdrantConfig`, which stays transport-neutral. This is where the
+  pool settings declined on `KdrantConfig` land.
+
 ### Fixed
 
 - `Direction` now serializes as Qdrant's lowercase `asc` / `desc`. It was only ever written through the

@@ -16,6 +16,7 @@ assertj = "3.27.7"
 springAi = "2.0.0"
 langchain4j = "1.18.0"
 mockk = "1.14.11"
+micrometer = "1.17.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -52,6 +53,7 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "springAi" }
 spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "springAi" }
 langchain4j-core = { module = "dev.langchain4j:langchain4j-core", version.ref = "langchain4j" }
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [plugins]

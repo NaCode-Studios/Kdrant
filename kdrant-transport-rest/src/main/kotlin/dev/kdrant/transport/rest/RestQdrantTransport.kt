@@ -109,6 +109,10 @@ import kotlin.time.Duration.Companion.seconds
  *   code leaves it null and gets the CIO engine.
  * @param upsertBatchSize maximum points per upsert request; larger batches are split to stay
  *   under Qdrant's 32 MiB REST payload cap.
+ * @param maxConnectionsPerRoute CIO connection-pool size per host; `null` keeps the engine default.
+ *   Ignored when [engine] is supplied, since the pool belongs to the engine.
+ * @param keepAliveTime how long CIO keeps an idle pooled connection; `null` keeps the engine default.
+ * @param requestId called to produce the `X-Request-Id` value of each request; `null` sends no header.
  */
 internal class RestQdrantTransport(
     private val config: KdrantConfig,
@@ -117,19 +121,32 @@ internal class RestQdrantTransport(
     private val maxUpsertBytes: Int = DEFAULT_MAX_UPSERT_BYTES,
     private val logLevel: LogLevel? = null,
     private val logger: Logger? = null,
+    private val maxConnectionsPerRoute: Int? = null,
+    private val keepAliveTime: Duration? = null,
+    private val requestId: (() -> String)? = null,
     private val configureClient: (HttpClientConfig<*>.() -> Unit)? = null,
 ) : QdrantTransport {
 
     init {
         require(upsertBatchSize > 0) { "upsertBatchSize must be > 0, was $upsertBatchSize" }
         require(maxUpsertBytes > 0) { "maxUpsertBytes must be > 0, was $maxUpsertBytes" }
+        maxConnectionsPerRoute?.let {
+            require(it > 0) { "maxConnectionsPerRoute must be > 0, was $it" }
+        }
+        keepAliveTime?.let { require(it.isPositive()) { "keepAliveTime must be positive, was $it" } }
     }
 
     private val client: HttpClient =
         if (engine != null) {
             HttpClient(engine) { applyCommonConfig() }
         } else {
-            HttpClient(CIO) { applyCommonConfig() }
+            HttpClient(CIO) {
+                applyCommonConfig()
+                engine {
+                    maxConnectionsPerRoute?.let { endpoint.maxConnectionsPerRoute = it }
+                    keepAliveTime?.let { endpoint.keepAliveTime = it.inWholeMilliseconds }
+                }
+            }
         }
 
     private fun HttpClientConfig<*>.applyCommonConfig() {
@@ -160,6 +177,8 @@ internal class RestQdrantTransport(
                 port = config.port
             }
             config.apiKey?.let { headers.append("api-key", it) }
+            // Evaluated per request, so a caller can hand back the id its own tracing context carries.
+            requestId?.let { headers.append(REQUEST_ID_HEADER, it()) }
             contentType(ContentType.Application.Json)
         }
         logLevel?.let { level ->
@@ -698,6 +717,9 @@ private val RETRYABLE_STATUS_CODES: Set<Int> = setOf(429, 502, 503, 504)
 
 /** Default soft cap on an upsert batch's serialized size — under Qdrant's ~32 MiB REST limit, with margin. */
 internal const val DEFAULT_MAX_UPSERT_BYTES: Int = 30 * 1024 * 1024
+
+/** Correlation header, the spelling Qdrant and the common proxies in front of it log. */
+private const val REQUEST_ID_HEADER: String = "X-Request-Id"
 
 /** Chunk size (bytes) for streaming a snapshot download. */
 private const val SNAPSHOT_CHUNK_BYTES: Int = 64 * 1024

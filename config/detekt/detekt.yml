@@ -27,7 +27,9 @@ complexity:
   TooManyFunctions:
     active: false
   LongParameterList:
-    functionThreshold: 8
+    # The Kdrant(...) factory is a settings surface like KdrantConfig: every parameter past `port` is
+    # an independently defaulted option, so the two get the same allowance.
+    functionThreshold: 12
     # KdrantConfig is a settings holder — many optional connection parameters are expected.
     constructorThreshold: 12
   # ensureSuccess is a single flat `when` mapping HTTP status codes to typed exceptions — clear despite its size.
