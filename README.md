@@ -74,9 +74,10 @@ Dependency stacks verified against `io.qdrant:client:1.18.3`:
 | Models | `kotlinx-serialization` data classes | generated protobuf messages |
 | GraalVM native / cold start | friendly (no Netty/protobuf reflection config) | needs gRPC/Netty/protobuf native config; heavier cold start |
 
-For raw throughput and streaming, gRPC/HTTP2 still wins. Reach for the official client when that is
-your bottleneck. For typical RAG and embedding-search workloads, Kdrant trades it for a fraction of
-the footprint and idiomatic Kotlin.
+For raw throughput and streaming, gRPC/HTTP2 still wins. That case now has an answer inside Kdrant:
+`kdrant-transport-grpc` is an opt-in engine behind the same `QdrantClient`, so the column above stays
+true of the default and a build that does not ask for gRPC never pays for it. For typical RAG and
+embedding-search workloads, REST trades the wire for a fraction of the footprint and idiomatic Kotlin.
 
 ## Installation
 
@@ -273,15 +274,18 @@ val hits = catching { qdrant.search("articles") { query(queryVector) } }.getOrEl
 
 ## Architecture
 
-Two modules keep protocol concerns out of the public API:
+Three modules keep protocol concerns out of the public API:
 
 | Module | Contents |
 | --- | --- |
 | `kdrant-core` | Public API (`QdrantClient`), models, DSLs, error hierarchy, and the `QdrantTransport` seam, with no wire-protocol knowledge. |
 | `kdrant-transport-rest` | The default REST engine (Ktor CIO) implementing `QdrantTransport`, plus the `Kdrant(...)` factory. |
+| `kdrant-transport-grpc` | The opt-in gRPC engine over Qdrant's own protobuf services, plus the `KdrantGrpc(...)` factory. Depend on it only if you want it. |
 
-The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only the
-engine module knows about HTTP.
+The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only an engine
+module knows about a wire. Both engines are held to the same behavioural test suite, so the choice is
+a footprint and throughput decision rather than a feature one — with the exception of the operations
+Qdrant serves over HTTP only, which the gRPC engine names rather than degrading.
 
 ## Roadmap
 
@@ -301,10 +305,8 @@ from `1.1.0` is a recompile rather than a jar swap — see
 [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor); the [CHANGELOG](CHANGELOG.md) has the
 version-by-version detail.
 
-**Next.** Nothing is claimed for the next release yet; the board is where it gets decided.
-
-**Later.** Kotlin Multiplatform (`commonMain`) and an optional opt-in gRPC engine, with REST staying
-the default.
+**Merged, unreleased.** The opt-in gRPC engine, `kdrant-transport-grpc`. It is in `main` and has not
+shipped; see the [CHANGELOG](CHANGELOG.md#unreleased) for what it changes.
 
 The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
 exit criterion — and every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See

@@ -9,11 +9,18 @@ builders and the static factory imports (`id`, `value`, `vectors`, `range`) beco
 Your collections, points, payloads and filters are untouched: both clients talk to the same server, so
 you can run them side by side against the same Qdrant and move one call site at a time.
 
+If you want to keep gRPC, only the second and third of those changes apply. Depend on
+`kdrant-transport-grpc` and build the client with `KdrantGrpc(host)` instead of `Kdrant(host)`; the port
+stays `6334` and everything else in this guide reads the same, because the API above the wire is the
+same API. What that engine cannot do is listed under [What this is not](#what-this-is-not).
+
 ## What this is not
 
-Kdrant does not speak gRPC. If your bottleneck is raw throughput or long-lived streaming, HTTP/2 is
-still the faster wire and the official client is the right tool — the trade-off is set out in the
-[README](../README.md#footprint-vs-the-official-client).
+The gRPC engine is not the whole of Qdrant. Eleven operations are served over HTTP only — telemetry,
+Prometheus metrics, the issues endpoint, snapshot recovery, snapshot download and upload, and the
+shard-scope snapshots — and on the gRPC engine each throws rather than pretending. If you need any of
+them, use the REST engine for the whole client or for that one call. The footprint trade-off between
+the two is set out in the [README](../README.md#footprint-vs-the-official-client).
 
 Cluster support covers a collection's shard distribution: reading it, moving and replicating shards,
 and creating or dropping custom sharding keys. The node-level calls that administer the raft cluster

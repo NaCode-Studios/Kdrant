@@ -1,10 +1,12 @@
 package dev.kdrant.transport.grpc
 
+import dev.kdrant.model.FacetValue
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.VectorData
+import kotlinx.serialization.json.JsonPrimitive
 import qdrant.Common
 import qdrant.Points
 
@@ -109,7 +111,33 @@ internal object PointMapping {
         id = idToModel(point.id),
         payload = PayloadMapping.toJson(point.payloadMap).takeIf { point.payloadMap.isNotEmpty() },
         vector = if (point.hasVectors()) vectorsToModel(point.vectors) else null,
+        orderValue = if (point.hasOrderValue()) orderValueToModel(point.orderValue) else null,
     )
+
+    /**
+     * The value an ordered scroll sorted this point by. It is what the client pages on — Qdrant returns
+     * no cursor for an ordered scroll — so dropping it here would silently turn a multi-page ordered
+     * scroll into its first page.
+     */
+    private fun orderValueToModel(value: Points.OrderValue): JsonPrimitive? = when (value.variantCase) {
+        Points.OrderValue.VariantCase.INT -> JsonPrimitive(value.int)
+        Points.OrderValue.VariantCase.FLOAT -> JsonPrimitive(value.float)
+        Points.OrderValue.VariantCase.VARIANT_NOT_SET, null -> null
+    }
+
+    fun groupId(id: Points.GroupId): JsonPrimitive = when (id.kindCase) {
+        Points.GroupId.KindCase.STRING_VALUE -> JsonPrimitive(id.stringValue)
+        Points.GroupId.KindCase.INTEGER_VALUE -> JsonPrimitive(id.integerValue)
+        Points.GroupId.KindCase.UNSIGNED_VALUE -> JsonPrimitive(id.unsignedValue.toULong().toString())
+        Points.GroupId.KindCase.KIND_NOT_SET, null -> JsonPrimitive("")
+    }
+
+    fun facetValue(value: Points.FacetValue): FacetValue = when (value.variantCase) {
+        Points.FacetValue.VariantCase.STRING_VALUE -> FacetValue.StringValue(value.stringValue)
+        Points.FacetValue.VariantCase.INTEGER_VALUE -> FacetValue.IntValue(value.integerValue)
+        Points.FacetValue.VariantCase.BOOL_VALUE -> FacetValue.BoolValue(value.boolValue)
+        Points.FacetValue.VariantCase.VARIANT_NOT_SET, null -> FacetValue.StringValue("")
+    }
 
     fun scoredPointToModel(point: Points.ScoredPoint): ScoredPoint = ScoredPoint(
         id = idToModel(point.id),

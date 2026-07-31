@@ -91,10 +91,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # Both engines run the same client contract from kdrant-testkit, against the same image.
       - name: Integration tests against ${{ matrix.qdrant }}
         env:
           QDRANT_IMAGE: ${{ matrix.qdrant }}
-        run: ./gradlew :kdrant-transport-rest:test --tests "*IntegrationTest*" --no-daemon --stacktrace
+        run: >
+          ./gradlew :kdrant-transport-rest:test :kdrant-transport-grpc:test
+          --tests "*IntegrationTest*" --no-daemon --stacktrace
 
   dependency-review:
     name: Dependency review
