@@ -1,30 +1,65 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.dokka.javadoc)
+    // No dokka-javadoc here: its generator refuses a multiplatform project outright. Maven Central
+    // requires a -javadoc.jar to exist rather than to be Javadoc, so the publishing plugin fills it
+    // with Dokka's HTML output, which is what a Kotlin reader wants anyway.
     alias(libs.plugins.maven.publish)
 }
 
 kotlin {
-    jvmToolchain(17)
     explicitApi()
+
+    // The JVM stays the reference target: it is what every engine and adapter in this repository
+    // compiles against, and `kdrant-core-jvm` is the artifact those modules resolve.
+    jvm {
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+    }
+
+    // Everything the two dependencies support and someone might plausibly run a Qdrant client on.
+    // watchOS and tvOS are left out: they cost one line each and neither has a use case that would
+    // justify carrying the klibs, so they wait for someone to ask.
+    js(IR) {
+        browser()
+        nodejs()
+    }
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
+    macosArm64()
+    macosX64()
+    linuxArm64()
+    linuxX64()
+    mingwX64()
+
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.coroutines.core)
+            api(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+        jvmTest.dependencies {
+            implementation(project.dependencies.platform(libs.junit.bom))
+            implementation(libs.junit.jupiter)
+            runtimeOnly(libs.junit.platform.launcher)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotest.property)
+        }
+    }
 }
 
-dependencies {
-    api(libs.kotlinx.coroutines.core)
-    api(libs.kotlinx.serialization.json)
-
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.kotest.property)
+java {
+    toolchain { languageVersion.set(JavaLanguageVersion.of(17)) }
 }
 
-tasks.test {
+tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.dokka)
     alias(libs.plugins.dokka.javadoc) apply false
@@ -73,11 +74,26 @@ configure(
     }
 
     // Treat every Kotlin compiler warning — deprecations included — as a build error, so these
-    // modules stay warning-clean across dependency and toolchain upgrades.
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    // modules stay warning-clean across dependency and toolchain upgrades. Every compilation task
+    // rather than only the JVM one: kdrant-core also compiles for JS and for nine native targets, and
+    // a warning that only appears there would otherwise never fail a build.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
         compilerOptions {
             allWarningsAsErrors.set(true)
         }
+    }
+
+    // Detekt reads declared source directories rather than the Kotlin source sets, and its defaults
+    // name src/main and src/test, which a multiplatform module does not have.
+    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+        source.setFrom(
+            files(
+                "src/main/kotlin", "src/test/kotlin",
+                "src/commonMain/kotlin", "src/commonTest/kotlin",
+                "src/jvmMain/kotlin", "src/jvmTest/kotlin",
+                "src/jsMain/kotlin", "src/nativeMain/kotlin",
+            ).filter { it.exists() },
+        )
     }
 }
 

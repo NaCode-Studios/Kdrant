@@ -58,9 +58,33 @@ All notable changes to this project are documented in this file. The format is b
 - Both engines are held to one **shared client contract** (`kdrant-testkit`), which runs the same 30
   behavioural tests against a real Qdrant over each protocol. The REST tests that came before it
   asserted HTTP bodies, which a gRPC engine cannot satisfy by construction.
+- **`kdrant-core` is a Kotlin Multiplatform library** (M25). It builds for the JVM, for JS (browser and
+  Node) and for nine Kotlin/Native targets: `iosArm64`, `iosSimulatorArm64`, `iosX64`, `macosArm64`,
+  `macosX64`, `linuxArm64`, `linuxX64` and `mingwX64`. The models, DSLs, error hierarchy and client
+  logic were already free of the JVM — that is what the transport seam was for — so the migration moved
+  sources into `commonMain` and changed one declaration. The engines stay JVM-only, because Ktor CIO and
+  grpc-java are.
+- A `commonTest` suite that runs on every target, covering the places a platform could actually
+  differ: the hand-written serializers, the uint64 point id, integer payload values above 2^53, and the
+  config's validation.
 
 ### Changed
 
+- **`kdrant-core`'s artifact layout changed with the multiplatform move.** The `kdrant-core` coordinate
+  now carries Gradle module metadata and the JVM classes live in `kdrant-core-jvm`. A Gradle build
+  resolves the right variant from the same coordinate and needs no change; a Maven build names the
+  artifact directly and must move to `kdrant-core-jvm`, which the BOM now constrains as well. The JVM
+  public API is unchanged, byte for byte — `apiCheck` reports no diff.
+- The default dispatcher is platform-dependent, and is the one declaration the migration had to split.
+  It stays `Dispatchers.IO` on the JVM. On Kotlin/Native it is `Dispatchers.Default`, because the
+  coroutines library still keeps its native IO dispatcher internal, and on Kotlin/JS it is
+  `Dispatchers.Default` because a single-threaded runtime has nothing to move off. Passing your own
+  dispatcher works as before, everywhere.
+- Releases are built on macOS. Only a macOS host can compile the Apple targets, so a Linux runner would
+  publish a release quietly missing its iOS and macOS klibs.
+- `kdrant-core`'s `-javadoc.jar` holds Dokka's HTML output rather than Javadoc HTML: the Dokka Javadoc
+  generator refuses a multiplatform project. Maven Central requires the jar to exist rather than to be
+  Javadoc, and HTML is what a Kotlin reader wants.
 - Eleven `QdrantTransport` operations have no gRPC equivalent, because the seam was shaped by Qdrant's
   REST API and Qdrant serves these over HTTP only: `telemetry`, `metrics`, `listIssues`, `clearIssues`,
   `recoverSnapshot`, snapshot download and upload, and the five shard-scope snapshot operations. On the

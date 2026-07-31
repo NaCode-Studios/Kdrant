@@ -70,6 +70,32 @@ jobs:
             **/build/test-results/
           retention-days: 7
 
+  # The Linux build above compiles kdrant-core for the JVM, JS, Linux and Windows, and skips the Apple
+  # targets because no Linux host can build them. Without this job an iOS or macOS break would first be
+  # seen at release time, on the one runner that does compile them.
+  apple-targets:
+    name: Apple targets (kdrant-core)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Compile and test the Apple targets
+        run: >
+          ./gradlew
+          :kdrant-core:compileKotlinIosArm64
+          :kdrant-core:iosSimulatorArm64Test
+          :kdrant-core:macosArm64Test
+          --no-daemon --stacktrace
+
   qdrant-compat:
     name: Integration (${{ matrix.qdrant }})
     runs-on: ubuntu-latest

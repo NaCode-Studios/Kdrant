@@ -1,7 +1,6 @@
 package dev.kdrant
 
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -26,7 +25,8 @@ public annotation class KdrantDsl
  * @property retryBaseDelay base delay before the first retry; each subsequent retry backs off
  *   exponentially, capped at [retryMaxDelay]. The server's `Retry-After` is honored when present.
  * @property retryMaxDelay upper bound on a single retry delay.
- * @property dispatcher dispatcher the client runs on; injectable for tests.
+ * @property dispatcher dispatcher the client runs on; injectable for tests. The default is
+ *   platform-dependent, see [ioDispatcher].
  */
 public class KdrantConfig(
     public val host: String,
@@ -39,7 +39,7 @@ public class KdrantConfig(
     public val maxRetries: Int = 3,
     public val retryBaseDelay: Duration = 500.milliseconds,
     public val retryMaxDelay: Duration = 5.seconds,
-    public val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    public val dispatcher: CoroutineDispatcher = ioDispatcher,
 ) {
     init {
         require(port in 1..65535) { "port must be in 1..65535, was $port" }
@@ -94,8 +94,8 @@ public class KdrantConfigBuilder internal constructor(
     /** Upper bound on a single retry delay. */
     public var retryMaxDelay: Duration = 5.seconds
 
-    /** Dispatcher used for client work. Injectable for tests; defaults to [Dispatchers.IO]. */
-    public var dispatcher: CoroutineDispatcher = Dispatchers.IO
+    /** Dispatcher used for client work. Injectable for tests; defaults to [ioDispatcher]. */
+    public var dispatcher: CoroutineDispatcher = ioDispatcher
 
     internal fun build(): KdrantConfig =
         KdrantConfig(

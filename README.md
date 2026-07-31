@@ -89,7 +89,13 @@ dependencies {
 }
 ```
 
-`kdrant-transport-rest` brings in `kdrant-core` transitively; it is the only dependency you add.
+`kdrant-transport-rest` brings in `kdrant-core` transitively; it is the only dependency you add. To use
+the gRPC engine instead, depend on `kdrant-transport-grpc` and build the client with `KdrantGrpc(host)`;
+nothing else in this README changes, because the API above the wire is the same API.
+
+`kdrant-core` is a Kotlin Multiplatform library and publishes one artifact per target. A Gradle build
+resolves the right one from the `kdrant-core` coordinate and needs no change. A Maven build names the
+artifact directly and wants `kdrant-core-jvm`. The engines and adapters are JVM-only and are unaffected.
 
 You also need a running Qdrant. For local development:
 
@@ -282,6 +288,11 @@ Three modules keep protocol concerns out of the public API:
 | `kdrant-transport-rest` | The default REST engine (Ktor CIO) implementing `QdrantTransport`, plus the `Kdrant(...)` factory. |
 | `kdrant-transport-grpc` | The opt-in gRPC engine over Qdrant's own protobuf services, plus the `KdrantGrpc(...)` factory. Depend on it only if you want it. |
 
+`kdrant-core` builds for the JVM, JS, and nine Kotlin/Native targets: iOS, macOS, Linux and Windows.
+That is what the transport seam bought — the models, DSLs and client logic never knew about a wire, so
+they compile anywhere Kotlin does. The engines stay JVM-only: Ktor CIO and grpc-java are, so a
+multiplatform consumer today shares its models and its query building and supplies its own transport.
+
 The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only an engine
 module knows about a wire. Both engines are held to the same behavioural test suite, so the choice is
 a footprint and throughput decision rather than a feature one — with the exception of the operations
@@ -305,8 +316,10 @@ from `1.1.0` is a recompile rather than a jar swap — see
 [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor); the [CHANGELOG](CHANGELOG.md) has the
 version-by-version detail.
 
-**Merged, unreleased.** The opt-in gRPC engine, `kdrant-transport-grpc`. It is in `main` and has not
-shipped; see the [CHANGELOG](CHANGELOG.md#unreleased) for what it changes.
+**Merged, unreleased.** The opt-in gRPC engine, `kdrant-transport-grpc`, and the move of `kdrant-core`
+to Kotlin Multiplatform. Both are in `main` and neither has shipped; see the
+[CHANGELOG](CHANGELOG.md#unreleased) for what they change and what the multiplatform move does to
+`kdrant-core`'s artifact coordinates.
 
 The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
 exit criterion — and every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See

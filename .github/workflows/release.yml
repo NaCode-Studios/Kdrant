@@ -13,7 +13,9 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    # macOS, because kdrant-core is multiplatform and only a macOS host can compile the Apple targets.
+    # A Linux runner would silently skip them and publish a release missing its iOS and macOS klibs.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
 
@@ -36,6 +38,7 @@ jobs:
         with:
           subject-path: |
             kdrant-core/build/libs/*.jar
+            kdrant-transport-grpc/build/libs/*.jar
             kdrant-transport-rest/build/libs/*.jar
             kdrant-spring-boot-starter/build/libs/*.jar
             kdrant-spring-ai/build/libs/*.jar
@@ -64,18 +67,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          for module in kdrant-core kdrant-transport-rest kdrant-spring-boot-starter \
-                        kdrant-spring-ai kdrant-langchain4j kdrant-micrometer; do
-            jar="$module/build/libs/$module-$VERSION.jar"
+          # kdrant-core is multiplatform, so its JVM jar is published as kdrant-core-jvm and the
+          # kdrant-core coordinate carries only Gradle metadata. The record names the artifact that
+          # exists; the digest has to match a file, not a coordinate.
+          for artifact in kdrant-core-jvm kdrant-transport-rest kdrant-transport-grpc \
+                          kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer; do
+            module="${artifact%-jvm}"
+            jar="$module/build/libs/$artifact-$VERSION.jar"
             [ -f "$jar" ] || { echo "::error::$jar not found"; exit 1; }
-            digest="sha256:$(sha256sum "$jar" | cut -d' ' -f1)"
-            echo "recording $module $VERSION $digest"
+            digest="sha256:$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+            echo "recording $artifact $VERSION $digest"
             gh api -X POST "/orgs/${GITHUB_REPOSITORY_OWNER}/artifacts/metadata/storage-record" \
-              -f name="$module" \
+              -f name="$artifact" \
               -f version="$VERSION" \
               -f digest="$digest" \
               -f registry_url="https://repo1.maven.org/maven2/" \
-              -f artifact_url="https://repo1.maven.org/maven2/io/github/nacode-studios/$module/$VERSION/$module-$VERSION.jar" \
+              -f artifact_url="https://repo1.maven.org/maven2/io/github/nacode-studios/$artifact/$VERSION/$artifact-$VERSION.jar" \
               --silent
           done
 
