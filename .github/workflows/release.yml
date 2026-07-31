@@ -64,38 +64,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
 
-      # Linked artifacts: tell GitHub which jars this build produced and where they now live. This is
-      # metadata, not a second distribution channel — nobody resolves a dependency from here. It is
-      # keyed on the same digest as the attestation above, so the repository can say what it built,
-      # where it went, and that the two are provably the same file.
-      #
-      # Only the main jars: sources and javadoc would triple the records for no added claim, and the
-      # API documents no DELETE, so a record is permanent. The BOM has no jar and is skipped.
-      - name: Record the published artifacts (linked artifacts)
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          # kdrant-core is multiplatform, so its JVM jar is published as kdrant-core-jvm and the
-          # kdrant-core coordinate carries only Gradle metadata. The record names the artifact that
-          # exists; the digest has to match a file, not a coordinate.
-          for artifact in kdrant-core-jvm kdrant-transport-rest kdrant-transport-grpc \
-                          kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer; do
-            module="${artifact%-jvm}"
-            jar="$module/build/libs/$artifact-$VERSION.jar"
-            [ -f "$jar" ] || { echo "::error::$jar not found"; exit 1; }
-            digest="sha256:$(shasum -a 256 "$jar" | cut -d' ' -f1)"
-            echo "recording $artifact $VERSION $digest"
-            gh api -X POST "/orgs/${GITHUB_REPOSITORY_OWNER}/artifacts/metadata/storage-record" \
-              -f name="$artifact" \
-              -f version="$VERSION" \
-              -f digest="$digest" \
-              -f registry_url="https://repo1.maven.org/maven2/" \
-              -f artifact_url="https://repo1.maven.org/maven2/io/github/nacode-studios/$artifact/$VERSION/$artifact-$VERSION.jar" \
-              --silent
-          done
-
       # The body is extracted from CHANGELOG.md, never written by hand: a release note composed
       # separately is a second copy of what the changelog owns, and the two eventually disagree.
       # Relative links resolve against the tag, so [STABILITY.md](STABILITY.md) points at the released
@@ -114,3 +82,53 @@ jobs:
           # An empty body means the tag and the changelog disagree. Fail rather than publish a blank one.
           [ -s notes.md ] || { echo "::error::no CHANGELOG.md section for $VERSION"; exit 1; }
           gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
+
+      # Linked artifacts: tell GitHub which jars this build produced and where they now live. This is
+      # metadata, not a second distribution channel — nobody resolves a dependency from here. It is
+      # keyed on the same digest as the attestation above, so the repository can say what it built,
+      # where it went, and that the two are provably the same file.
+      #
+      # It runs last and cannot fail the job. On the v2.0.0 tag it returned 404 "no artifacts found"
+      # for a digest that does have an attestation, and it took down a release whose jars were already
+      # published and attested. A metadata step that can undo a successful publish is worth less than
+      # the metadata. `continue-on-error` and a per-artifact `|| true` are the fix; the run's log still
+      # says which records were not written.
+      #
+      # GH_TOKEN falls back to GITHUB_TOKEN. Whether that token may write to this org-level endpoint is
+      # undocumented — the docs state only `artifact-metadata:read` for reads — so a PAT with
+      # `artifact-metadata` goes in ARTIFACT_METADATA_TOKEN if the 404 turns out to be permission.
+      #
+      # Only the main jars: sources and javadoc would triple the records for no added claim, and the
+      # API documents no DELETE, so a record is permanent. The BOM has no jar and is skipped.
+      - name: Record the published artifacts (linked artifacts)
+        if: github.event_name == 'push'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.ARTIFACT_METADATA_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # kdrant-core is multiplatform, so its JVM jar is published as kdrant-core-jvm and the
+          # kdrant-core coordinate carries only Gradle metadata. The record names the artifact that
+          # exists; the digest has to match a file, not a coordinate.
+          for artifact in kdrant-core-jvm kdrant-transport-rest kdrant-transport-grpc \
+                          kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer; do
+            module="${artifact%-jvm}"
+            jar="$module/build/libs/$artifact-$VERSION.jar"
+            [ -f "$jar" ] || { echo "::warning::$jar not found, not recorded"; continue; }
+            digest="sha256:$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+            # The API has no DELETE, so a duplicate cannot be cleaned up: check before writing.
+            if gh api "/orgs/${GITHUB_REPOSITORY_OWNER}/artifacts/$digest/metadata/storage-records" \
+                 --silent 2>/dev/null; then
+              echo "already recorded: $artifact $VERSION"
+              continue
+            fi
+            echo "recording $artifact $VERSION $digest"
+            gh api -X POST "/orgs/${GITHUB_REPOSITORY_OWNER}/artifacts/metadata/storage-record" \
+              -f name="$artifact" \
+              -f version="$VERSION" \
+              -f digest="$digest" \
+              -f registry_url="https://repo1.maven.org/maven2/" \
+              -f artifact_url="https://repo1.maven.org/maven2/io/github/nacode-studios/$artifact/$VERSION/$artifact-$VERSION.jar" \
+              --silent || echo "::warning::could not record $artifact $VERSION"
+          done
+
