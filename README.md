@@ -291,7 +291,8 @@ a genuine drop-in swap; contract tests validating every request body against Qdr
 so a wire change is a failing build rather than a silent difference; `ensureCollection`, an ordered
 `scroll` that resumes, and `batchUpdate` for rerunnable bootstrap scripts and resumable ETL; a
 `kdrant-micrometer` module, `X-Request-Id` correlation and connection-pool settings; and a
-[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md). On top of the earlier
+[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) with
+[measured latency](benchmarks/README.md#measured-latency) behind it. On top of the earlier
 `1.x` line: collection aliases, snapshots with streaming backup and restore, the service, health and
 analytics endpoints, a granular transport seam with a `FloatArray` no-boxing hot path, the modern
 `/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors, recommend / discover /
@@ -300,8 +301,7 @@ from `1.1.0` is a recompile rather than a jar swap — see
 [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor); the [CHANGELOG](CHANGELOG.md) has the
 version-by-version detail.
 
-**Next.** Published benchmark numbers, the one part of Tier 6 still open: the JMH harness and the
-workflow that runs it against a pinned Qdrant are in place, the numbers themselves are not.
+**Next.** Nothing is claimed for the next release yet; the board is where it gets decided.
 
 **Later.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
 the default), and cluster / sharding.

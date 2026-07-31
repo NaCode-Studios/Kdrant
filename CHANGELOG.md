@@ -8,11 +8,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [1.2.0] - 2026-07-31
 
-Tier 6 closes the gaps that made Kdrant harder to adopt than it needed to be: the framework adapters
-honour metadata filters, deployment scripts get `ensureCollection`, an ordered `scroll` and
-`batchUpdate`, observability ships instead of being reachable by hand, and the wire format is held to
-Qdrant's own schema by contract tests. M30 is partly here — the migration guide and the design
-rationale, not yet the published benchmark numbers.
+Tier 6, complete. The framework adapters honour metadata filters, deployment scripts get
+`ensureCollection`, an ordered `scroll` and `batchUpdate`, observability ships instead of being
+reachable by hand, the wire format is held to Qdrant's own schema by contract tests, and switching
+from the official client has a guide and measured numbers behind it.
 
 **Upgrading is a recompile, not a jar swap.** `apiCheck` reads this release as additive, but new members
 on `QdrantClient` and `QdrantTransport` break a class that implemented them against `1.1.0`, and the
@@ -80,7 +79,11 @@ stays compatible; see [STABILITY.md](STABILITY.md#what-may-still-change-in-a-min
   `ListenableFuture`-to-`suspend` shift, protobuf builders against the DSL, and where the official
   client is still the right tool.
 - A dispatchable `Benchmarks` workflow (M30) that runs the JMH harness against a chosen Qdrant image on
-  a clean runner and uploads the results, so a published latency number has a run behind it.
+  a clean runner and uploads the results, and the first
+  [measured numbers](benchmarks/README.md#measured-latency) from it: `search` p50 1.97 ms / p99
+  5.40 ms, `upsert` p50 3.37 ms / p99 9.81 ms against Qdrant `v1.18.2`. Published with the conditions
+  they were taken under, including the ones that make them a floor rather than a capacity figure: no
+  network between client and server, a 1 000-point collection, and no concurrency.
 - The design rationale in [STABILITY.md](STABILITY.md) (M30) now states what a `1.x` upgrade actually
   guarantees: `QdrantClient` and `QdrantTransport` are interfaces to call rather than implement, and a
   field added to a public data class changes its generated `copy`, so a minor is a recompile rather
