@@ -47,6 +47,10 @@ public data class SearchRequest(
     /** Where to look up vectors for a query-by-id (another collection and optional vector name). */
     @SerialName("lookup_from")
     public val lookupFrom: LookupLocation? = null,
+
+    /** Restrict the search to the shards holding this key. `null` searches every shard. */
+    @SerialName("shard_key")
+    public val shardKey: ShardKey? = null,
 )
 
 /**

@@ -3,12 +3,14 @@ package dev.kdrant.transport.rest
 import dev.kdrant.QdrantClient
 import dev.kdrant.dsl.payloadOf
 import dev.kdrant.kdrantConfig
+import dev.kdrant.model.ClusterOperation
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
 import dev.kdrant.model.GeoPoint
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.VectorData
 import dev.kdrant.model.WithPayload
 import io.ktor.client.engine.mock.MockEngine
@@ -87,6 +89,7 @@ class QdrantContractTest {
                     scoreThreshold = 0.5
                     withPayload = WithPayload.All
                     withVector = true
+                    shardKey = ShardKey.of("eu-west")
                     params { hnswEf = 128; exact = false }
                     prefetch { query(listOf(0.1f, 0.2f)); limit = 50 }
                     filter {
@@ -113,6 +116,7 @@ class QdrantContractTest {
                 c.scroll("docs", pageSize = 2) {
                     withPayload = WithPayload.Include(listOf("lang"))
                     orderBy("ts", Direction.DESC, startFrom = 100)
+                    shardKey = ShardKey.of("eu-west")
                 }.toList()
             }
             call("count") { c -> c.count("docs", exact = true) { must { "lang" eq "en" } } }
@@ -150,6 +154,19 @@ class QdrantContractTest {
                 c.updateAliases(timeout = 5) { deleteAlias("docs"); createAlias(collection = "docs-v2", alias = "docs") }
             }
             call("recoverSnapshot") { c -> c.recoverSnapshot("docs", location = "file:///s.snapshot") }
+            call("updateCollectionCluster") { c ->
+                c.updateCollectionCluster("docs", ClusterOperation.MoveShard(0, fromPeerId = 1, toPeerId = 2))
+            }
+            call("createShardKey") { c ->
+                c.createShardKey(
+                    "docs",
+                    ShardKey.of("eu-west"),
+                    shardsNumber = 2,
+                    replicationFactor = 1,
+                    placement = listOf(1L, 2L),
+                )
+            }
+            call("deleteShardKey") { c -> c.deleteShardKey("docs", ShardKey.of(7L)) }
         }
     }
 
@@ -172,7 +189,7 @@ class QdrantContractTest {
     fun `the operations covered here are the ones the engine can send a body for`() {
         // A guard on the guard: if someone adds an operation with a request body and no case above,
         // the contract coverage silently stops growing with the engine.
-        assertEquals(18, sent.size, "operations captured: ${sent.map { it.name }}")
+        assertEquals(21, sent.size, "operations captured: ${sent.map { it.name }}")
     }
 
     @Test
@@ -201,6 +218,8 @@ class QdrantContractTest {
             "facet" to """{"result":{"hits":[]},"status":"ok"}""",
             "aliases" to """{"result":true,"status":"ok"}""",
             "recover" to """{"result":true,"status":"ok"}""",
+            "cluster" to """{"result":true,"status":"ok"}""",
+            "shards" to """{"result":true,"status":"ok"}""",
         )
     }
 }

@@ -11,6 +11,7 @@ import dev.kdrant.model.QueryInterface
 import dev.kdrant.model.RecommendStrategy
 import dev.kdrant.model.SearchParams
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.VectorInput
 import dev.kdrant.model.WithPayload
 
@@ -43,6 +44,9 @@ public class SearchBuilder {
 
     /** Whether to return the stored vectors. */
     public var withVector: Boolean? = null
+
+    /** Search only the shards holding this key. `null` (default) searches every shard. */
+    public var shardKey: ShardKey? = null
 
     /** Search by an explicit dense query vector. */
     public fun query(values: List<Float>) { query = QueryInterface.Vector(values) }
@@ -150,6 +154,7 @@ public class SearchBuilder {
             scoreThreshold = scoreThreshold,
             params = params,
             lookupFrom = lookupFrom,
+            shardKey = shardKey,
         )
     }
 }

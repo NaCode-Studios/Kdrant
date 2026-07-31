@@ -12,6 +12,8 @@ import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.internal.DefaultQdrantClient
 import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.ClusterOperation
+import dev.kdrant.model.CollectionClusterInfo
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.DeleteSelector
@@ -26,6 +28,7 @@ import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.WithPayload
@@ -395,6 +398,66 @@ public interface QdrantClient : AutoCloseable {
      * @throws IllegalArgumentException if no action is added.
      */
     public suspend fun updateAliases(timeout: Int? = null, configure: UpdateAliasesBuilder.() -> Unit)
+
+    /**
+     * How the collection's shards are spread across the cluster, as the answering peer sees it.
+     *
+     * ```kotlin
+     * val info = qdrant.collectionClusterInfo("docs")
+     * val moving = info.shardTransfers.isNotEmpty()
+     * ```
+     *
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     */
+    public suspend fun collectionClusterInfo(name: String): CollectionClusterInfo
+
+    /**
+     * Move, replicate or drop a shard.
+     *
+     * ```kotlin
+     * qdrant.updateCollectionCluster("docs", ClusterOperation.ReplicateShard(shardId = 0, fromPeerId = 1, toPeerId = 2))
+     * ```
+     *
+     * These move data between peers, so the call returns once the transfer is **accepted**, not once it
+     * has finished. Watch [collectionClusterInfo]'s `shardTransfers` to see it complete.
+     *
+     * @param timeout optional server-side commit timeout, in seconds.
+     */
+    public suspend fun updateCollectionCluster(
+        name: String,
+        operation: ClusterOperation,
+        timeout: Int? = null,
+    )
+
+    /**
+     * Create a custom sharding key, so a query that names it touches only its shards.
+     *
+     * ```kotlin
+     * qdrant.createShardKey("docs", ShardKey.of("eu-west"), shardsNumber = 2)
+     * ```
+     *
+     * The collection must have been created with custom sharding for this to be accepted.
+     *
+     * @param shardsNumber shards to create for this key; the server's default when null.
+     * @param replicationFactor replicas per shard; the server's default when null.
+     * @param placement peer ids allowed to hold these shards; anywhere when null.
+     * @param timeout optional server-side commit timeout, in seconds.
+     */
+    public suspend fun createShardKey(
+        name: String,
+        shardKey: ShardKey,
+        shardsNumber: Int? = null,
+        replicationFactor: Int? = null,
+        placement: List<Long>? = null,
+        timeout: Int? = null,
+    )
+
+    /**
+     * Drop a custom sharding key **and the points in its shards**. There is no undo.
+     *
+     * @param timeout optional server-side commit timeout, in seconds.
+     */
+    public suspend fun deleteShardKey(name: String, shardKey: ShardKey, timeout: Int? = null)
 
     /** List every alias across all collections. */
     public suspend fun listAliases(): List<AliasDescription>

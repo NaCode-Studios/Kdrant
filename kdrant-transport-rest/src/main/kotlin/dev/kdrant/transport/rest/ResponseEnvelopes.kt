@@ -1,6 +1,7 @@
 package dev.kdrant.transport.rest
 
 import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.CollectionClusterInfo
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.FacetHit
@@ -124,4 +125,9 @@ internal data class SnapshotResponse(
 @Serializable
 internal data class SnapshotListResponse(
     @SerialName("result") val result: List<SnapshotDescription>,
+)
+
+@Serializable
+internal data class CollectionClusterResponse(
+    @SerialName("result") val result: CollectionClusterInfo,
 )

@@ -14,9 +14,12 @@ import dev.kdrant.dsl.UpdateCollectionBuilder
 import dev.kdrant.dsl.UpsertBuilder
 import dev.kdrant.dsl.hasConditions
 import dev.kdrant.model.AliasDescription
+import dev.kdrant.model.ClusterOperation
+import dev.kdrant.model.CollectionClusterInfo
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CreateCollectionRequest
+import dev.kdrant.model.CreateShardKeyRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Payload
@@ -30,6 +33,7 @@ import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SnapshotPriority
 import dev.kdrant.model.VectorParams
@@ -331,6 +335,34 @@ internal class DefaultQdrantClient(
             "updateAliases needs at least one action (createAlias / deleteAlias / renameAlias)"
         }
         transport.updateAliases(operations, timeout)
+    }
+
+    override suspend fun collectionClusterInfo(name: String): CollectionClusterInfo =
+        transport.collectionClusterInfo(name)
+
+    override suspend fun updateCollectionCluster(name: String, operation: ClusterOperation, timeout: Int?) {
+        transport.updateCollectionCluster(name, operation, timeout)
+    }
+
+    override suspend fun createShardKey(
+        name: String,
+        shardKey: ShardKey,
+        shardsNumber: Int?,
+        replicationFactor: Int?,
+        placement: List<Long>?,
+        timeout: Int?,
+    ) {
+        shardsNumber?.let { require(it > 0) { "shardsNumber must be > 0, was $it" } }
+        replicationFactor?.let { require(it > 0) { "replicationFactor must be > 0, was $it" } }
+        transport.createShardKey(
+            name,
+            CreateShardKeyRequest(shardKey, shardsNumber, replicationFactor, placement?.takeIf { it.isNotEmpty() }),
+            timeout,
+        )
+    }
+
+    override suspend fun deleteShardKey(name: String, shardKey: ShardKey, timeout: Int?) {
+        transport.deleteShardKey(name, shardKey, timeout)
     }
 
     override suspend fun listAliases(): List<AliasDescription> = transport.listAliases()

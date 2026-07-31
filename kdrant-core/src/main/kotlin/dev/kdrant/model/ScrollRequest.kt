@@ -30,6 +30,10 @@ public data class ScrollRequest(
      */
     @SerialName("order_by")
     public val orderBy: OrderBy? = null,
+
+    /** Restrict the scroll to the shards holding this key. `null` reads every shard. */
+    @SerialName("shard_key")
+    public val shardKey: ShardKey? = null,
 )
 
 /**

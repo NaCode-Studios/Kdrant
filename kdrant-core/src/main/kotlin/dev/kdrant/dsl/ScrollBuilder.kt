@@ -6,6 +6,7 @@ import dev.kdrant.model.Filter
 import dev.kdrant.model.OrderBy
 import dev.kdrant.model.PointId
 import dev.kdrant.model.ScrollRequest
+import dev.kdrant.model.ShardKey
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -20,6 +21,9 @@ public class ScrollBuilder internal constructor(private val pageSize: Int) {
 
     /** Whether to return the stored vectors. */
     public var withVector: Boolean? = null
+
+    /** Scroll only the shards holding this key. `null` (default) reads every shard. */
+    public var shardKey: ShardKey? = null
 
     /** Restrict the scroll to points matching this filter. */
     public fun filter(configure: FilterBuilder.() -> Unit) {
@@ -60,5 +64,6 @@ public class ScrollBuilder internal constructor(private val pageSize: Int) {
         withPayload = withPayload,
         withVector = withVector,
         orderBy = orderBy?.let { if (startFrom == null) it else it.copy(startFrom = startFrom) },
+        shardKey = shardKey,
     )
 }
