@@ -17,6 +17,7 @@ springAi = "2.0.0"
 langchain4j = "1.18.0"
 mockk = "1.14.11"
 micrometer = "1.17.0"
+koog = "1.1.1"
 grpc = "1.83.1"
 grpcKotlin = "1.5.0"
 protobuf = "4.35.1"
@@ -57,6 +58,9 @@ spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-sto
 spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "springAi" }
 langchain4j-core = { module = "dev.langchain4j:langchain4j-core", version.ref = "langchain4j" }
 micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+# rag-base only. The search SPI lives here and is stable; rag-vector is published as a beta and its
+# VectorStorageBackend has no search method, so it is the wrong seam as well as the unstable one.
+koog-rag-base = { module = "ai.koog:rag-base-jvm", version.ref = "koog" }
 grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 # OkHttp rather than netty-shaded: the shaded Netty jar alone is most of the official client's footprint.

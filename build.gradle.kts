@@ -38,6 +38,7 @@ configure(
         project(":kdrant-spring-ai"),
         project(":kdrant-langchain4j"),
         project(":kdrant-micrometer"),
+        project(":kdrant-koog"),
         project(":example-rag"),
     ),
 ) {
@@ -76,6 +77,7 @@ dependencies {
     kover(project(":kdrant-spring-ai"))
     kover(project(":kdrant-langchain4j"))
     kover(project(":kdrant-micrometer"))
+    kover(project(":kdrant-koog"))
 }
 
 kover {

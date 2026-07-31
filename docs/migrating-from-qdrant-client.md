@@ -224,4 +224,5 @@ backoff, honouring `Retry-After`; what surfaces is the failure that survived the
 If you reached Qdrant through Spring AI or LangChain4j rather than directly, swap the store rather
 than the client: `KdrantVectorStore` implements Spring AI's `VectorStore` and `KdrantEmbeddingStore`
 implements LangChain4j's `EmbeddingStore<TextSegment>`, both including metadata-filter translation.
-The Spring Boot starter configures the client from `application.yml`.
+`KdrantDocumentStorage` does the same for a Koog agent's document storage. The Spring Boot starter
+configures the client from `application.yml`.

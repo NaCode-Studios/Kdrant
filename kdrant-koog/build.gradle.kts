@@ -1,0 +1,66 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
+    alias(libs.plugins.maven.publish)
+}
+
+kotlin {
+    jvmToolchain(17)
+    explicitApi()
+}
+
+dependencies {
+    api(project(":kdrant-core"))
+    api(libs.koog.rag.base)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+    coordinates("io.github.nacode-studios", "kdrant-koog", version.toString())
+    pom {
+        name.set("Kdrant Koog storage")
+        description.set(
+            "A JetBrains Koog document storage backed by Kdrant, the coroutine-first Kotlin client for " +
+                "the Qdrant vector database — Qdrant runs the similarity search rather than the agent " +
+                "ranking a streamed collection in memory.",
+        )
+        inceptionYear.set("2026")
+        url.set("https://github.com/NaCode-Studios/Kdrant")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("NaCode-Studios")
+                name.set("NaCode Studios")
+                url.set("https://github.com/NaCode-Studios")
+            }
+        }
+        scm {
+            url.set("https://github.com/NaCode-Studios/Kdrant")
+            connection.set("scm:git:https://github.com/NaCode-Studios/Kdrant.git")
+            developerConnection.set("scm:git:ssh://git@github.com/NaCode-Studios/Kdrant.git")
+        }
+    }
+}
