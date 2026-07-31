@@ -20,6 +20,31 @@ All notable changes to this project are documented in this file. The format is b
 - `SearchBuilder.filter(Filter)` and `PrefetchBuilder.filter(Filter)`, plus
   `QdrantClient.delete(name, selector, wait)` — the entry points a translator needs to pass an
   already-built filter, alongside the existing DSL forms.
+- `ensureCollection(name) { ... }` (M27): creates the collection if it is missing and otherwise checks
+  that the one already there has the dense vector names, sizes and distances, and the sparse vector
+  names, that were asked for. Returns whether it created the collection, absorbs a create that lost a
+  race to another process, and fails loudly on a mismatch rather than leaving an application to
+  discover the wrong vector size on its first upsert. Everything the server defaults (HNSW, optimizers,
+  quantization) is deliberately not compared.
+- The enriched `getCollection` read-back that check reads: `CollectionInfo.config` (vectors, sparse
+  vectors, shard number, replication factor, on-disk payload) and `CollectionInfo.payloadSchema`. An
+  index type a future Qdrant adds is kept as its wire string rather than failing the whole response.
+- An ordered `scroll` (M27): `scroll("docs") { orderBy("ts", Direction.DESC) }`, plus `orderByDatetime`
+  for RFC 3339 keys, `startFrom` to resume a partly consumed pass, and `Record.orderValue`. Qdrant
+  returns no page cursor for an ordered scroll, so the client pages on the order value and drops the
+  points a page repeats at the boundary; each point is still emitted exactly once. A scroll that cannot
+  advance — more points tied on one order value than fit in a page — fails with a message saying so
+  instead of silently truncating.
+- `batchUpdate(name, wait) { ... }` (M27): one request applying an ordered, mixed sequence of point,
+  vector and payload operations. Ordered but **not** transactional: a later operation sees the effect of
+  an earlier one, but a failure part-way through leaves the earlier operations applied.
+- `ScrollBuilder.filter(Filter)`, matching the search builders.
+
+### Fixed
+
+- `Direction` now serializes as Qdrant's lowercase `asc` / `desc`. It was only ever written through the
+  hand-rolled query serializer, which spelled it correctly, so no shipped request was affected; the enum
+  itself would have sent `ASC` the moment anything else serialized it.
 
 ## [1.1.0] - 2026-07-20
 

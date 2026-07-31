@@ -1,6 +1,7 @@
 package dev.kdrant.model
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.FloatArraySerializer
@@ -20,8 +21,18 @@ import kotlinx.serialization.json.putJsonObject
 /** Fusion algorithm combining the results of several [Prefetch] sources. */
 public enum class FusionAlgorithm { RRF, DBSF }
 
-/** Sort direction for [QueryInterface.OrderBy]. */
-public enum class Direction { ASC, DESC }
+/**
+ * Sort direction for [QueryInterface.OrderBy] and for an ordered [dev.kdrant.model.ScrollRequest].
+ * Qdrant spells these lowercase on the wire.
+ */
+@Serializable
+public enum class Direction {
+    @SerialName("asc")
+    ASC,
+
+    @SerialName("desc")
+    DESC,
+}
 
 /** How [QueryInterface.Recommend] uses positive/negative examples. Default (`null`) is average-vector. */
 public enum class RecommendStrategy { AVERAGE_VECTOR, BEST_SCORE, SUM_SCORES }

@@ -1,6 +1,7 @@
 package dev.kdrant
 
 import dev.kdrant.dsl.BatchSearchBuilder
+import dev.kdrant.dsl.BatchUpdateBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
@@ -63,6 +64,28 @@ public interface QdrantClient : AutoCloseable {
      * @throws KdrantException.Transport on a connection failure or server error.
      */
     public suspend fun createCollection(name: String, configure: CreateCollectionBuilder.() -> Unit)
+
+    /**
+     * Create the collection if it is missing, and otherwise check that the one already there is the one
+     * asked for — the primitive a rerunnable bootstrap script needs.
+     *
+     * ```kotlin
+     * qdrant.ensureCollection("docs") { vector { size = 768; distance = Distance.COSINE } }
+     * ```
+     *
+     * The check compares only what [configure] actually asked for: the dense vector names with their
+     * size and distance, and the sparse vector names. Everything the server fills in by default (HNSW,
+     * optimizers, quantization) is left alone, so a collection tuned after creation still passes. Read
+     * [getCollection] for the full stored config.
+     *
+     * A mismatch fails loudly rather than being ignored, because the alternative is an application that
+     * starts up and only discovers the wrong vector size on its first upsert.
+     *
+     * @return `true` if this call created the collection, `false` if it was already there.
+     * @throws IllegalStateException if the existing collection's vectors differ from the requested ones,
+     *   or the server returned no config to check against.
+     */
+    public suspend fun ensureCollection(name: String, configure: CreateCollectionBuilder.() -> Unit): Boolean
 
     /**
      * Update an existing collection's config (optimizers, HNSW, quantization).
@@ -177,7 +200,14 @@ public interface QdrantClient : AutoCloseable {
      *     .collect { record -> /* ... */ }
      * ```
      *
+     * Points arrive ordered by id unless the builder sets an
+     * [orderBy][dev.kdrant.dsl.ScrollBuilder.orderBy]. Qdrant returns no page cursor for an ordered
+     * scroll, so this follows the order value instead and drops the points a page repeats at the
+     * boundary; a point is therefore emitted exactly once either way.
+     *
      * @param pageSize how many points to fetch per request.
+     * @throws IllegalStateException if an ordered scroll cannot advance because more than [pageSize]
+     *   points share one order value, or the server returned a page without order values.
      */
     public fun scroll(name: String, pageSize: Int = 64, configure: ScrollBuilder.() -> Unit = {}): Flow<Record>
 
@@ -314,6 +344,25 @@ public interface QdrantClient : AutoCloseable {
 
     /** Clear all payload from the selected points. */
     public suspend fun clearPayload(name: String, selector: DeleteSelector, wait: Boolean = false)
+
+    /**
+     * Apply a mixed sequence of point, vector and payload changes in one request, in the order given.
+     *
+     * ```kotlin
+     * qdrant.batchUpdate("docs", wait = true) {
+     *     upsert { point(1) { vector(0.1f, 0.2f) } }
+     *     setPayload(payloadOf("reviewed" to true), byId(1))
+     *     delete(byFilter { must { "stale" eq true } })
+     * }
+     * ```
+     *
+     * Ordered, **not transactional**: a later operation sees the effect of an earlier one, but there is
+     * no rollback across the batch — if the third operation fails, the first two stay applied.
+     *
+     * @throws IllegalArgumentException if no operation is added.
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     */
+    public suspend fun batchUpdate(name: String, wait: Boolean = false, configure: BatchUpdateBuilder.() -> Unit)
 
     /**
      * Update the vectors of existing points, keeping their payload.

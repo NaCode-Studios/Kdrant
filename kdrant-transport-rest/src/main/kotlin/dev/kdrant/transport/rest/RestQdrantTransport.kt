@@ -20,6 +20,7 @@ import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.PointsUpdateOperation
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -91,6 +92,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import java.io.IOException
 import java.net.URLEncoder
 import kotlin.time.Duration
@@ -331,6 +333,14 @@ internal class RestQdrantTransport(
         }
         execute(name) {
             client.post("/collections/${encode(name)}/points/vectors/delete") { parameter("wait", wait); setBody(body) }
+        }
+    }
+
+    override suspend fun batchUpdate(name: String, operations: List<PointsUpdateOperation>, wait: Boolean) {
+        if (operations.isEmpty()) return
+        val body = buildJsonObject { put("operations", JsonArray(operations.map(::operationJson))) }
+        execute(name) {
+            client.post("/collections/${encode(name)}/points/batch") { parameter("wait", wait); setBody(body) }
         }
     }
 
@@ -700,6 +710,50 @@ private fun SnapshotPriority.toWireName(): String = when (this) {
 }
 
 /** Adds the `points` or `filter` selector to a payload/vector mutation body. */
+/**
+ * One entry of a `points/batch` body: a single-key object naming the operation, whose value is the
+ * same shape the standalone endpoint for that operation takes.
+ */
+private fun operationJson(operation: PointsUpdateOperation): JsonObject = buildJsonObject {
+    when (operation) {
+        is PointsUpdateOperation.Upsert -> putJsonObject("upsert") {
+            put(
+                "points",
+                JsonArray(
+                    operation.points.map {
+                        KdrantJson.encodeToJsonElement(PointStruct.serializer(), it)
+                    },
+                ),
+            )
+        }
+        is PointsUpdateOperation.Delete -> putJsonObject("delete") { putSelector(operation.selector) }
+        is PointsUpdateOperation.SetPayload -> putJsonObject("set_payload") {
+            put("payload", operation.payload)
+            putSelector(operation.selector)
+            operation.key?.let { put("key", JsonPrimitive(it)) }
+        }
+        is PointsUpdateOperation.OverwritePayload -> putJsonObject("overwrite_payload") {
+            put("payload", operation.payload)
+            putSelector(operation.selector)
+        }
+        is PointsUpdateOperation.DeletePayload -> putJsonObject("delete_payload") {
+            put("keys", JsonArray(operation.keys.map { JsonPrimitive(it) }))
+            putSelector(operation.selector)
+        }
+        is PointsUpdateOperation.ClearPayload -> putJsonObject("clear_payload") { putSelector(operation.selector) }
+        is PointsUpdateOperation.UpdateVectors -> putJsonObject("update_vectors") {
+            put(
+                "points",
+                JsonArray(operation.points.map { KdrantJson.encodeToJsonElement(PointVectors.serializer(), it) }),
+            )
+        }
+        is PointsUpdateOperation.DeleteVectors -> putJsonObject("delete_vectors") {
+            put("vector", JsonArray(operation.vectors.map { JsonPrimitive(it) }))
+            putSelector(operation.selector)
+        }
+    }
+}
+
 private fun JsonObjectBuilder.putSelector(selector: DeleteSelector) {
     when (selector) {
         is DeleteSelector.Ids ->
