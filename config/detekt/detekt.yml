@@ -6,6 +6,12 @@ naming:
   FunctionNaming:
     ignoreAnnotated: []
     functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    # kdrant-testkit holds the shared client contract, which is a test suite that happens to live in a
+    # main source set because two other modules' test source sets consume it. Its test names are
+    # backtick sentences like every other test in the repository, so it gets the exclusion detekt
+    # already gives src/test.
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/*.Test.kt',
+               '**/*.Spec.kt', '**/*.Spek.kt', '**/kdrant-testkit/**']
   # DSL helpers are grouped by concept into *Dsl.kt files (e.g. PayloadDsl.kt holds PayloadBuilder + payloadOf).
   MatchingDeclarationName:
     active: false

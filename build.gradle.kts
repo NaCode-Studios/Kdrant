@@ -15,11 +15,12 @@ subprojects {
     version = "1.2.0"
 }
 
-// The runnable example and the benchmark harness are not published libraries — exclude them from
-// public-API tracking.
+// The runnable example, the benchmark harness and the shared test suite are not published libraries —
+// exclude them from public-API tracking.
 apiValidation {
     ignoredProjects.add("example-rag")
     ignoredProjects.add("benchmarks")
+    ignoredProjects.add("kdrant-testkit")
     // The gRPC engine's protobuf and stub classes are generated from Qdrant's own .proto files, so
     // their surface is Qdrant's to change, not ours to promise. Tracking them would bury the module's
     // real API — the transport factory — under thousands of generated lines. Everything hand-written
@@ -39,6 +40,7 @@ configure(
         project(":kdrant-langchain4j"),
         project(":kdrant-micrometer"),
         project(":kdrant-koog"),
+        project(":kdrant-testkit"),
         project(":example-rag"),
     ),
 ) {
