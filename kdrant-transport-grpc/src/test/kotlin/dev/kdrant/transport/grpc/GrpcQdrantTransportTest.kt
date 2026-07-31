@@ -289,6 +289,21 @@ class GrpcQdrantTransportTest {
     }
 
     @Test
+    fun `a request that did not choose leaves the selectors off, so Qdrant applies its own defaults`() =
+        runTest {
+            // Scroll and retrieve default with_payload to true on the server. Sending an explicit
+            // `enable = false` for "the caller said nothing" is a different request, and it silently
+            // drops the payload from every call that did not ask for one.
+            transport.scroll("docs", ScrollRequest(limit = 10))
+            transport.retrieve("docs", listOf(PointId.num(1)), withPayload = null, withVector = null)
+
+            assertFalse(points.scrolls.single().hasWithPayload())
+            assertFalse(points.scrolls.single().hasWithVectors())
+            assertFalse(points.gets.single().hasWithPayload())
+            assertFalse(points.gets.single().hasWithVectors())
+        }
+
+    @Test
     fun `a scroll resuming from an id sends it as the offset`() = runTest {
         transport.scroll("docs", ScrollRequest(limit = 10, offset = PointId.num(7)))
 

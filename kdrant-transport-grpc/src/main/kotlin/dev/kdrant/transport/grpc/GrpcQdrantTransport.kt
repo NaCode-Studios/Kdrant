@@ -234,12 +234,12 @@ public class GrpcQdrantTransport internal constructor(
     ): List<Record> = call(name) {
         points.deadlined()
             .get(
-                Points.GetPoints.newBuilder()
-                    .setCollectionName(name)
-                    .addAllIds(ids.map(PointMapping::idToProto))
-                    .setWithPayload(RequestMapping.withPayload(withPayload))
-                    .setWithVectors(RequestMapping.withVectors(withVector))
-                    .build(),
+                Points.GetPoints.newBuilder().apply {
+                    collectionName = name
+                    addAllIds(ids.map(PointMapping::idToProto))
+                    RequestMapping.withPayload(withPayload)?.let { setWithPayload(it) }
+                    RequestMapping.withVectors(withVector)?.let { setWithVectors(it) }
+                }.build(),
             )
             .resultList
             .map(PointMapping::recordToModel)

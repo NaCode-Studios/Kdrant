@@ -43,8 +43,8 @@ internal object QueryMapping {
             RequestMapping.searchParams(request.params)?.let { params = it }
             request.lookupFrom?.let { lookupFrom = lookupLocation(it) }
             RequestMapping.shardKeySelector(request.shardKey)?.let { shardKeySelector = it }
-            withPayload = RequestMapping.withPayload(request.withPayload)
-            withVectors = RequestMapping.withVectors(request.withVector)
+            RequestMapping.withPayload(request.withPayload)?.let { withPayload = it }
+            RequestMapping.withVectors(request.withVector)?.let { withVectors = it }
         }.build()
 
     fun queryGroups(collection: String, request: SearchGroupsRequest): Points.QueryPointGroups =
@@ -60,8 +60,8 @@ internal object QueryMapping {
             request.scoreThreshold?.let { scoreThreshold = it.toFloat() }
             RequestMapping.searchParams(request.params)?.let { params = it }
             request.lookupFrom?.let { lookupFrom = lookupLocation(it) }
-            withPayload = RequestMapping.withPayload(request.withPayload)
-            withVectors = RequestMapping.withVectors(request.withVector)
+            RequestMapping.withPayload(request.withPayload)?.let { withPayload = it }
+            RequestMapping.withVectors(request.withVector)?.let { withVectors = it }
         }.build()
 
     fun searchMatrix(collection: String, request: SearchMatrixRequest): Points.SearchMatrixPoints =

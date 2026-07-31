@@ -26,22 +26,32 @@ import qdrant.Points
  */
 internal object RequestMapping {
 
-    fun withPayload(selector: WithPayload?): Points.WithPayloadSelector =
+    /**
+     * `null` means the caller did not choose, and the field is left off the request so Qdrant applies
+     * its own default. Sending `enable = false` instead is not the same request: a scroll and a
+     * retrieve default `with_payload` to **true**, so an explicit false would silently drop the payload
+     * from every call that did not ask for one. The REST engine omits the field for the same reason,
+     * and this is the difference the shared client contract caught.
+     */
+    fun withPayload(selector: WithPayload?): Points.WithPayloadSelector? = selector?.let {
         Points.WithPayloadSelector.newBuilder().apply {
-            when (selector) {
-                null, WithPayload.None -> enable = false
+            when (it) {
+                WithPayload.None -> enable = false
                 WithPayload.All -> enable = true
                 is WithPayload.Include -> include = Points.PayloadIncludeSelector.newBuilder()
-                    .addAllFields(selector.fields)
+                    .addAllFields(it.fields)
                     .build()
                 is WithPayload.Exclude -> exclude = Points.PayloadExcludeSelector.newBuilder()
-                    .addAllFields(selector.fields)
+                    .addAllFields(it.fields)
                     .build()
             }
         }.build()
+    }
 
-    fun withVectors(include: Boolean?): Points.WithVectorsSelector =
-        Points.WithVectorsSelector.newBuilder().setEnable(include ?: false).build()
+    /** As [withPayload]: `null` leaves the field off rather than sending an explicit false. */
+    fun withVectors(include: Boolean?): Points.WithVectorsSelector? = include?.let {
+        Points.WithVectorsSelector.newBuilder().setEnable(it).build()
+    }
 
     fun pointsSelector(selector: DeleteSelector): Points.PointsSelector =
         Points.PointsSelector.newBuilder().apply {
@@ -97,8 +107,8 @@ internal object RequestMapping {
             request.offset?.let { offset = PointMapping.idToProto(it) }
             request.orderBy?.let { orderBy = RequestMapping.orderBy(it) }
             RequestMapping.shardKeySelector(request.shardKey)?.let { shardKeySelector = it }
-            withPayload = RequestMapping.withPayload(request.withPayload)
-            withVectors = RequestMapping.withVectors(request.withVector)
+            withPayload(request.withPayload)?.let { withPayload = it }
+            withVectors(request.withVector)?.let { withVectors = it }
         }.build()
 
     fun pointVectors(vectors: PointVectors): Points.PointVectors = Points.PointVectors.newBuilder()
