@@ -7,8 +7,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.longOrNull
 import qdrant.JsonWithInt
 
 /**
@@ -35,10 +33,12 @@ internal object PayloadMapping {
         when (element) {
             is JsonNull -> builder.nullValue = JsonWithInt.NullValue.NULL_VALUE
             is JsonPrimitive -> primitiveToProto(builder, element)
-            is JsonObject -> builder.structValue =
-                JsonWithInt.Struct.newBuilder().putAllFields(toProto(element)).build()
-            is JsonArray -> builder.listValue =
-                JsonWithInt.ListValue.newBuilder().addAllValues(element.map { valueToProto(it) }).build()
+            is JsonObject ->
+                builder.structValue =
+                    JsonWithInt.Struct.newBuilder().putAllFields(toProto(element)).build()
+            is JsonArray ->
+                builder.listValue =
+                    JsonWithInt.ListValue.newBuilder().addAllValues(element.map { valueToProto(it) }).build()
         }
         return builder.build()
     }
