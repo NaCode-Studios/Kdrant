@@ -12,11 +12,12 @@ Tier 5, complete, and the release the transport seam was built for. `kdrant-tran
 opt-in gRPC engine behind the same `QdrantClient`, and `kdrant-core` compiles for the JVM and eight
 Kotlin/Native targets. Adding a second engine changed no line of `kdrant-core`.
 
-**The major bump is for the artifact layout, not the API.** The JVM public API is unchanged byte for
-byte — `apiCheck` reports no diff against `1.2.0`. `kdrant-core`'s JVM classes moved to
-`kdrant-core-jvm` because the module is multiplatform now: a Gradle build changes only the version
-number, a Maven build naming `kdrant-core` has to move. See
-[STABILITY.md](STABILITY.md#upgrading-from-1-x).
+**Two things make this a major.** `kdrant-core`'s JVM classes moved to `kdrant-core-jvm`, because the
+module is multiplatform now: a Gradle build changes only the version number, a Maven build naming
+`kdrant-core` has to move. And `ScrollRequest` and `SearchRequest` gained a `shardKey` parameter, which
+changed their generated constructor and `copy`, so code that called `copy()` on either against a `1.x`
+jar has to be recompiled. Source stays compatible. The multiplatform migration itself changed no public
+API at all. See [STABILITY.md](STABILITY.md#upgrading-from-1-x).
 
 ### Added
 
@@ -85,8 +86,8 @@ number, a Maven build naming `kdrant-core` has to move. See
 - **`kdrant-core`'s artifact layout changed with the multiplatform move.** The `kdrant-core` coordinate
   now carries Gradle module metadata and the JVM classes live in `kdrant-core-jvm`. A Gradle build
   resolves the right variant from the same coordinate and needs no change; a Maven build names the
-  artifact directly and must move to `kdrant-core-jvm`, which the BOM now constrains as well. The JVM
-  public API is unchanged, byte for byte — `apiCheck` reports no diff.
+  artifact directly and must move to `kdrant-core-jvm`, which the BOM now constrains as well. The
+  migration changed no public API: the `*.api` dump is identical either side of it.
 - The default dispatcher is platform-dependent, and is the one declaration the migration had to split.
   It stays `Dispatchers.IO` on the JVM. On Kotlin/Native it is `Dispatchers.Default`, because the
   coroutines library still keeps its native IO dispatcher internal. Passing your own dispatcher works
