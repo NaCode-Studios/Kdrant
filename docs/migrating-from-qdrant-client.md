@@ -16,9 +16,10 @@ same API. What that engine cannot do is listed under [What this is not](#what-th
 
 ## What this is not
 
-The gRPC engine is not the whole of Qdrant. Eleven operations are served over HTTP only — telemetry,
-Prometheus metrics, the issues endpoint, snapshot recovery, snapshot download and upload, and the
-shard-scope snapshots — and on the gRPC engine each throws rather than pretending. If you need any of
+The gRPC engine is not the whole of Qdrant. Fourteen operations are served over HTTP only: telemetry,
+Prometheus metrics, the two issues calls, snapshot recovery, the snapshot and storage-snapshot
+transfers, and the six shard-scope snapshot operations. On the gRPC engine each of them throws rather
+than pretending. If you need any of
 them, use the REST engine for the whole client or for that one call. The footprint trade-off between
 the two is set out in the [README](../README.md#footprint-vs-the-official-client).
 
@@ -41,13 +42,13 @@ dependencies {
 ## Creating a client
 
 ```java
-// io.qdrant:client — gRPC, port 6334
+// io.qdrant:client, gRPC on port 6334
 QdrantClient client =
     new QdrantClient(QdrantGrpcClient.newBuilder("localhost").withApiKey("<apikey>").build());
 ```
 
 ```kotlin
-// Kdrant — REST, port 6333
+// Kdrant, REST on port 6333
 val qdrant = Kdrant(host = "localhost", port = 6333) {
     apiKey = "<apikey>"
     useTls = true
@@ -204,7 +205,7 @@ backoff, honouring `Retry-After`; what surfaces is the failure that survived the
 | `io.qdrant:client` | Kdrant |
 | --- | --- |
 | `createCollectionAsync(name, params)` | `createCollection(name) { vector { … } }` |
-| — | `ensureCollection(name) { vector { … } }` |
+| no equivalent | `ensureCollection(name) { vector { … } }` |
 | `deleteCollectionAsync(name)` | `deleteCollection(name)` |
 | `collectionExistsAsync(name)` | `collectionExists(name)` |
 | `getCollectionInfoAsync(name)` | `getCollection(name)` |
