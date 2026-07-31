@@ -14,7 +14,7 @@
 [![Website](https://img.shields.io/badge/website-nacodestudios.it-232B45?labelColor=0B0E17)](https://nacodestudios.it/en/project/kdrant)
 
 Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests are
-assembled with protobuf builders, and the wire is decided for you — gRPC, with a shaded Netty on your
+assembled with protobuf builders, and the wire is decided for you: gRPC, with a shaded Netty on your
 classpath whether you needed the throughput or not. Kdrant is the client you'd actually want to write
 Kotlin against: `suspend` functions, a type-safe DSL, `kotlinx-serialization` models, and a wire you
 pick. The default engine is pure-Kotlin REST and pulls in no gRPC, no protobuf and no Netty; the gRPC
@@ -47,7 +47,7 @@ your own embedding model; Kdrant does not generate embeddings.
 > **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `2.0`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
+> **Status: `2.0`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
 > and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, cluster and sharding,
 > service/analytics endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI,
@@ -135,9 +135,9 @@ val qdrant: QdrantClient =
 
 Every example below reads the same either way, because the API above the wire is the same API. Two
 differences are worth knowing before you switch. The **port** is 6334, not 6333, and nothing rewrites
-it for you. And Qdrant serves eleven operations over HTTP only — telemetry, Prometheus metrics, the
-issues endpoint, snapshot recovery, snapshot download and upload, and the shard-scope snapshots — which
-the gRPC engine refuses by name rather than degrading quietly.
+it for you. And Qdrant serves eleven operations over HTTP only: telemetry, Prometheus metrics, the
+issues endpoint, snapshot recovery, snapshot download and upload, and the shard-scope snapshots. The
+gRPC engine refuses each of them by name rather than degrading quietly.
 
 `kdrant-core` is a Kotlin Multiplatform library and publishes one artifact per target. A Gradle build
 resolves the right one from the `kdrant-core` coordinate and needs no change. A Maven build names the
@@ -337,10 +337,10 @@ kdrant-core          QdrantClient, models, DSLs, KdrantException, QdrantTranspor
    +-- kdrant-transport-grpc    grpc-kotlin   KdrantGrpc(host)    JVM
 ```
 
-That is the arrangement the second engine tested. Adding gRPC changed **no line of `kdrant-core`**, and
-the same behavioural suite runs against both engines against the same Qdrant, so the choice between them
-is a footprint and throughput decision rather than a feature one — except for the operations Qdrant
-serves over HTTP only, which the gRPC engine names.
+That is the arrangement the second engine tested. Adding gRPC changed no line of `kdrant-core`, and the
+same behavioural suite runs against both engines against the same Qdrant, so the choice between them is
+a footprint and throughput decision rather than a feature one. The exception is the set of operations
+Qdrant serves over HTTP only, which the gRPC engine names.
 
 It is also why the core compiles for iOS, macOS, Linux and Windows: code that never knew there was a
 wire has nothing platform-specific to port. The engines stay JVM-only, because Ktor CIO and grpc-java
@@ -353,7 +353,7 @@ the target would ship a DSL with nothing to send.
 **Shipped (`2.0.0`).** Tier 5 closes the two things the transport seam existed to make possible.
 `kdrant-transport-grpc` is an opt-in gRPC engine behind the same `QdrantClient`, generated from Qdrant's
 own `.proto` files rather than wrapping the official client, so a REST build still resolves no gRPC, no
-protobuf and no Netty — checked on every build, not asserted. And `kdrant-core` moved to Kotlin
+protobuf and no Netty, checked on every build rather than asserted. And `kdrant-core` moved to Kotlin
 Multiplatform: the JVM plus eight Kotlin/Native targets, a migration that changed no public API at
 all. Both engines are now held to one shared behavioural suite against a real Qdrant. The major bump is
 for the artifact layout, not the API: `kdrant-core`'s JVM classes moved to `kdrant-core-jvm`, which a
@@ -371,8 +371,8 @@ engine, and typed-payload DX. The [CHANGELOG](CHANGELOG.md) has the version-by-v
 
 **Next.** Nothing is claimed yet; the board is where it gets decided.
 
-The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
-exit criterion — and every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See
+The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4), one item per milestone, each with its
+exit criterion. Every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See
 [STABILITY.md](STABILITY.md) for the versioning and stability policy.
 
 ## Building and testing
