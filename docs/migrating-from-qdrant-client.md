@@ -23,7 +23,7 @@ Replace the dependency. Kdrant needs JDK 17, where the official client needs 8.
 ```kotlin
 dependencies {
     // implementation("io.qdrant:client:1.18.3")
-    implementation("io.github.nacode-studios:kdrant-transport-rest:1.1.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:1.2.0")
 }
 ```
 

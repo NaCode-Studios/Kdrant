@@ -44,7 +44,7 @@ your own embedding model; Kdrant does not generate embeddings.
 > **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status: `1.1`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
+> **Status — `1.2`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
 > and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, service/analytics
 > endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI and LangChain4j
@@ -84,7 +84,7 @@ Requires JDK 17+. Artifacts are published to Maven Central under `io.github.naco
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:1.1.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:1.2.0")
 }
 ```
 
@@ -285,29 +285,23 @@ engine module knows about HTTP.
 
 ## Roadmap
 
-**Shipped (`1.1.0`).** A maintenance and compatibility release: the Spring adapters move to Spring AI
-`2.0` / Spring Boot `4.1` and `kdrant-langchain4j` to LangChain4j `1.18`, on Kotlin `2.4.10` and Gradle
-`9.6.1`, with Kdrant's own public API unchanged. On top of **`1.0.0`**: collection aliases (zero-downtime
-reindex); snapshots and backup/restore
-(streaming download/upload); the server-side service, health (`healthz` / `readyz` / `livez`) and
-analytics (`facet`, distance `matrix`) endpoints; a granular transport seam (`configureClient`,
-api-key-redacting logs, tuned timeouts) with `Flow` / `Sequence` upsert and a `FloatArray` no-boxing
-hot path with byte-aware batching; and the `catching { }` helper. Plus Spring Boot, Spring AI
-(`VectorStore`) and LangChain4j (`EmbeddingStore`) integrations and a runnable RAG example
-([`example-rag`](example-rag/)). The pipeline is hardened too: ktlint and detekt gates, a JDK and
-Qdrant-version CI matrix, Dependabot, and property-based serialization tests. All on top of `0.2.0`'s
-modern `/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors, `recommend` /
-`discover` / `context`, batch and grouped search), payload and vector management, collection config,
-resilient retries, and typed-payload DX (`payloadAs<T>` / `searchAs<T>`).
-
-**On `main`, not yet released.** Tier 6 closes the gaps that made adoption harder than it needed to be:
+**Shipped (`1.2.0`).** Tier 6 closes the gaps that made adoption harder than it needed to be:
 metadata-filter translation in the Spring AI and LangChain4j adapters, so a filtered RAG application is
 a genuine drop-in swap; contract tests validating every request body against Qdrant's OpenAPI document,
 so a wire change is a failing build rather than a silent difference; `ensureCollection`, an ordered
 `scroll` that resumes, and `batchUpdate` for rerunnable bootstrap scripts and resumable ETL; a
 `kdrant-micrometer` module, `X-Request-Id` correlation and connection-pool settings; and a
-[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md). See the
-[CHANGELOG](CHANGELOG.md) for the detail.
+[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md). On top of the earlier
+`1.x` line: collection aliases, snapshots with streaming backup and restore, the service, health and
+analytics endpoints, a granular transport seam with a `FloatArray` no-boxing hot path, the modern
+`/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors, recommend / discover /
+context, batch and grouped search), payload and vector management, and typed-payload DX. Upgrading
+from `1.1.0` is a recompile rather than a jar swap — see
+[STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor); the [CHANGELOG](CHANGELOG.md) has the
+version-by-version detail.
+
+**Next.** Published benchmark numbers, the one part of Tier 6 still open: the JMH harness and the
+workflow that runs it against a pinned Qdrant are in place, the numbers themselves are not.
 
 **Later.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
 the default), and cluster / sharding.

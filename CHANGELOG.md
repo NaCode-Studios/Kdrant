@@ -6,6 +6,19 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-31
+
+Tier 6 closes the gaps that made Kdrant harder to adopt than it needed to be: the framework adapters
+honour metadata filters, deployment scripts get `ensureCollection`, an ordered `scroll` and
+`batchUpdate`, observability ships instead of being reachable by hand, and the wire format is held to
+Qdrant's own schema by contract tests. M30 is partly here — the migration guide and the design
+rationale, not yet the published benchmark numbers.
+
+**Upgrading is a recompile, not a jar swap.** `apiCheck` reads this release as additive, but new members
+on `QdrantClient` and `QdrantTransport` break a class that implemented them against `1.1.0`, and the
+fields added to `CollectionInfo`, `ScrollRequest` and `Record` change their generated `copy`. Source
+stays compatible; see [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor).
+
 ### Added
 
 - Metadata-filter translation for the framework adapters (M26). `kdrant-spring-ai` and `kdrant-langchain4j`
@@ -78,6 +91,16 @@ All notable changes to this project are documented in this file. The format is b
 - `Direction` now serializes as Qdrant's lowercase `asc` / `desc`. It was only ever written through the
   hand-rolled query serializer, which spelled it correctly, so no shipped request was affected; the enum
   itself would have sent `ASC` the moment anything else serialized it.
+
+### Internal
+
+- ktlint `12.1.2` → `14.2.0`. Version 14 turns on `class-signature` and `function-signature`, which
+  collapse a multi-line parameter list onto one line and push the supertype onto its own; both are
+  disabled in `.editorconfig`, for the same reason the codebase picked `intellij_idea` over
+  `ktlint_official` in the first place. Two files were rewritten before the rules were turned off.
+- detekt's `LongParameterList.functionThreshold` raised from 8 to 12. The `Kdrant(...)` factory is a
+  settings surface like `KdrantConfig`, where every parameter past `port` is an independently defaulted
+  option, so the two now get the same allowance.
 
 ## [1.1.0] - 2026-07-20
 
@@ -216,7 +239,8 @@ helper).
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.1.0...v0.2.0
