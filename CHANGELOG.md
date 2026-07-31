@@ -97,9 +97,10 @@ API at all. See [STABILITY.md](STABILITY.md#upgrading-from-1-x).
 - `kdrant-core`'s `-javadoc.jar` holds Dokka's HTML output rather than Javadoc HTML: the Dokka Javadoc
   generator refuses a multiplatform project. Maven Central requires the jar to exist rather than to be
   Javadoc, and HTML is what a Kotlin reader wants.
-- Eleven `QdrantTransport` operations have no gRPC equivalent, because the seam was shaped by Qdrant's
-  REST API and Qdrant serves these over HTTP only: `telemetry`, `metrics`, `listIssues`, `clearIssues`,
-  `recoverSnapshot`, snapshot download and upload, and the five shard-scope snapshot operations. On the
+- Fourteen `QdrantTransport` operations have no gRPC equivalent, because the seam was shaped by
+  Qdrant's REST API and Qdrant serves these over HTTP only: `telemetry`, `metrics`, `listIssues`,
+  `clearIssues`, `recoverSnapshot`, the snapshot and storage-snapshot transfers, and the six
+  shard-scope snapshot operations. On the
   gRPC engine each throws an `UnsupportedOperationException` naming the operation and pointing at REST,
   rather than degrading quietly. A snapshot download that returns nothing is a backup that does not
   exist. The REST engine is unchanged.

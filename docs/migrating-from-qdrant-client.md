@@ -16,9 +16,10 @@ same API. What that engine cannot do is listed under [What this is not](#what-th
 
 ## What this is not
 
-The gRPC engine is not the whole of Qdrant. Eleven operations are served over HTTP only: telemetry,
-Prometheus metrics, the issues endpoint, snapshot recovery, snapshot download and upload, and the
-shard-scope snapshots. On the gRPC engine each of them throws rather than pretending. If you need any of
+The gRPC engine is not the whole of Qdrant. Fourteen operations are served over HTTP only: telemetry,
+Prometheus metrics, the two issues calls, snapshot recovery, the snapshot and storage-snapshot
+transfers, and the six shard-scope snapshot operations. On the gRPC engine each of them throws rather
+than pretending. If you need any of
 them, use the REST engine for the whole client or for that one call. The footprint trade-off between
 the two is set out in the [README](../README.md#footprint-vs-the-official-client).
 

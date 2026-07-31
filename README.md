@@ -135,9 +135,10 @@ val qdrant: QdrantClient =
 
 Every example below reads the same either way, because the API above the wire is the same API. Two
 differences are worth knowing before you switch. The **port** is 6334, not 6333, and nothing rewrites
-it for you. And Qdrant serves eleven operations over HTTP only: telemetry, Prometheus metrics, the
-issues endpoint, snapshot recovery, snapshot download and upload, and the shard-scope snapshots. The
-gRPC engine refuses each of them by name rather than degrading quietly.
+it for you. And Qdrant serves fourteen operations over HTTP only: telemetry, Prometheus metrics, the
+two issues calls, snapshot recovery, the snapshot and storage-snapshot transfers, and the six
+shard-scope snapshot operations. The gRPC engine refuses each of them by name rather than degrading
+quietly.
 
 `kdrant-core` is a Kotlin Multiplatform library and publishes one artifact per target. A Gradle build
 resolves the right one from the `kdrant-core` coordinate and needs no change. A Maven build names the

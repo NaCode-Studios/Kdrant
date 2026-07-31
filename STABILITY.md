@@ -29,9 +29,9 @@ tests validate every request body the REST engine builds against Qdrant's own Op
 to the version the CI matrix runs against, and a shared behavioural suite runs both engines against a
 real Qdrant, so a wire change is a failing build rather than a silent difference.
 
-The two engines are held to the same behaviour, with one stated exception. Qdrant serves eleven
-operations over HTTP only: telemetry, Prometheus metrics, the issues endpoint, `recoverSnapshot`,
-snapshot download and upload, and the five shard-scope snapshot operations. On the gRPC engine each
+The two engines are held to the same behaviour, with one stated exception. Qdrant serves fourteen
+operations over HTTP only: telemetry, Prometheus metrics, the two issues calls, `recoverSnapshot`, the
+snapshot and storage-snapshot transfers, and the six shard-scope snapshot operations. On the gRPC engine each
 throws an `UnsupportedOperationException` naming itself and naming REST. That list is part of this
 contract: an operation leaving it is an additive change, and an operation joining it would be a
 breaking one.
