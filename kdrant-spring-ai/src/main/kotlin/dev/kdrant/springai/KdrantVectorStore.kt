@@ -1,6 +1,7 @@
 package dev.kdrant.springai
 
 import dev.kdrant.QdrantClient
+import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.PointId
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.WithPayload
@@ -25,7 +26,8 @@ import org.springframework.ai.vectorstore.filter.Filter
  * the document text is kept under the `doc_content` payload key and the rest of the metadata alongside it.
  * The collection must already exist with a vector size matching the embedding model.
  *
- * Metadata-filter expressions are not yet supported (they throw); everything else maps straight through.
+ * Metadata-filter expressions are translated into Kdrant's filter DSL by [toKdrantFilter], which documents
+ * the operator mapping.
  */
 public class KdrantVectorStore(
     private val client: QdrantClient,
@@ -56,22 +58,20 @@ public class KdrantVectorStore(
         runBlocking { client.delete(collectionName, idList.map { PointId.uuid(it) }) }
     }
 
-    override fun delete(filterExpression: Filter.Expression): Unit = throw UnsupportedOperationException(
-        "kdrant-spring-ai does not yet support delete by a metadata filter expression",
-    )
+    override fun delete(filterExpression: Filter.Expression) {
+        val selector = DeleteSelector.ByFilter(filterExpression.toKdrantFilter())
+        runBlocking { client.delete(collectionName, selector) }
+    }
 
     override fun similaritySearch(request: SearchRequest): List<Document> {
-        if (request.hasFilterExpression()) {
-            throw UnsupportedOperationException(
-                "kdrant-spring-ai does not yet support metadata filter expressions in similaritySearch",
-            )
-        }
+        val filter = request.filterExpression?.toKdrantFilter()
         val queryVector = embeddingModel.embed(request.query)
         val hits = runBlocking {
             client.search(collectionName) {
                 query(*queryVector)
                 limit = request.topK
                 if (request.similarityThreshold > 0.0) scoreThreshold = request.similarityThreshold
+                if (filter != null) filter(filter)
                 withPayload = WithPayload.All
             }
         }

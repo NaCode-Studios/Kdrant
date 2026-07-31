@@ -100,6 +100,11 @@ public class SearchBuilder {
         filter = FilterBuilder().apply(configure).build()
     }
 
+    /** Restrict the search to points matching an already-built [Filter] — for filters produced by a translator. */
+    public fun filter(filter: Filter) {
+        this.filter = filter
+    }
+
     /** Tune the accuracy/speed trade-off. */
     public fun params(configure: SearchParamsBuilder.() -> Unit) {
         params = SearchParamsBuilder().apply(configure).build()
@@ -193,6 +198,11 @@ public class PrefetchBuilder {
     /** Restrict this prefetch to points matching the filter. */
     public fun filter(configure: FilterBuilder.() -> Unit) {
         filter = FilterBuilder().apply(configure).build()
+    }
+
+    /** Restrict this prefetch to points matching an already-built [Filter]. */
+    public fun filter(filter: Filter) {
+        this.filter = filter
     }
 
     /** Tune the accuracy/speed trade-off. */

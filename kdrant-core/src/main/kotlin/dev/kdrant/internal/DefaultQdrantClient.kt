@@ -142,16 +142,19 @@ internal class DefaultQdrantClient(
         wait: Boolean,
         filter: FilterBuilder.() -> Unit,
     ) {
-        val built = FilterBuilder().apply(filter).build()
-        require(
-            !built.must.isNullOrEmpty() ||
-                !built.should.isNullOrEmpty() ||
-                !built.mustNot.isNullOrEmpty() ||
-                built.minShould != null,
-        ) {
-            "delete-by-filter requires at least one condition; an empty filter would match every point"
+        delete(name, DeleteSelector.ByFilter(FilterBuilder().apply(filter).build()), wait)
+    }
+
+    override suspend fun delete(name: String, selector: DeleteSelector, wait: Boolean) {
+        when (selector) {
+            is DeleteSelector.Ids ->
+                require(selector.ids.isNotEmpty()) { "delete(ids) needs at least one id" }
+            is DeleteSelector.ByFilter ->
+                require(selector.filter.hasConditions()) {
+                    "delete-by-filter requires at least one condition; an empty filter would match every point"
+                }
         }
-        transport.delete(name, DeleteSelector.ByFilter(built), wait)
+        transport.delete(name, selector, wait)
     }
 
     override suspend fun collectionExists(name: String): Boolean =

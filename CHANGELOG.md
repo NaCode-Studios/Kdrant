@@ -6,6 +6,21 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Metadata-filter translation for the framework adapters (M26). `kdrant-spring-ai` and `kdrant-langchain4j`
+  used to throw on any filter expression, which meant a filtered RAG application was not the drop-in swap
+  the modules advertised. Both now translate their framework's filter model into Kdrant's:
+  `Filter.Expression.toKdrantFilter()` for Spring AI and `Filter.toKdrantFilter()` for LangChain4j, wired
+  into `similaritySearch`, `VectorStore.delete(Expression)` and `EmbeddingStore.search`. Boolean chains
+  flatten into a single `must` / `should` clause, comparisons pick Qdrant's numeric or RFC 3339 `range`
+  variant from the value's runtime type, and Spring AI's `IS NULL` maps to `is_empty` (which, unlike
+  Qdrant's `is_null`, also covers a missing key). A value Qdrant cannot express is rejected with an
+  `IllegalArgumentException` rather than dropped, so a filter never silently widens a result set.
+- `SearchBuilder.filter(Filter)` and `PrefetchBuilder.filter(Filter)`, plus
+  `QdrantClient.delete(name, selector, wait)` — the entry points a translator needs to pass an
+  already-built filter, alongside the existing DSL forms.
+
 ## [1.1.0] - 2026-07-20
 
 ### Changed

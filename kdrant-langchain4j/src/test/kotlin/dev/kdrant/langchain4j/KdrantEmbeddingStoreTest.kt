@@ -2,20 +2,26 @@ package dev.kdrant.langchain4j
 
 import dev.kdrant.QdrantClient
 import dev.kdrant.dsl.UpsertBuilder
+import dev.kdrant.model.Condition
+import dev.kdrant.model.FieldMatcher
+import dev.kdrant.model.Filter
 import dev.kdrant.model.PointId
 import dev.kdrant.model.ScoredPoint
+import dev.kdrant.model.SearchRequest
+import dev.kdrant.transport.QdrantTransport
 import dev.langchain4j.data.embedding.Embedding
 import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest
-import dev.langchain4j.store.embedding.filter.Filter
+import dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class KdrantEmbeddingStoreTest {
@@ -59,13 +65,20 @@ class KdrantEmbeddingStoreTest {
     }
 
     @Test
-    fun `search with a metadata filter is unsupported`() {
-        val filter = mockk<Filter>(relaxed = true)
+    fun `search carries the translated metadata filter into the wire request`() {
+        val transport = mockk<QdrantTransport>()
+        val captured = slot<SearchRequest>()
+        coEvery { transport.query(eq("docs"), capture(captured)) } returns emptyList()
         val request = EmbeddingSearchRequest.builder()
             .queryEmbedding(Embedding.from(floatArrayOf(0.1f)))
-            .filter(filter)
+            .filter(metadataKey("lang").isEqualTo("en"))
             .build()
 
-        assertThrows(UnsupportedOperationException::class.java) { store.search(request) }
+        KdrantEmbeddingStore(QdrantClient(transport), "docs").search(request)
+
+        assertEquals(
+            Filter(must = listOf(Condition.Field("lang", FieldMatcher.Match(JsonPrimitive("en"))))),
+            captured.captured.filter,
+        )
     }
 }

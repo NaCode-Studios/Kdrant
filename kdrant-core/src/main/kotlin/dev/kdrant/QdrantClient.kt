@@ -199,6 +199,15 @@ public interface QdrantClient : AutoCloseable {
     public suspend fun delete(name: String, wait: Boolean = false, filter: FilterBuilder.() -> Unit)
 
     /**
+     * Delete the points chosen by an already-built [DeleteSelector] — the form the framework adapters use,
+     * where the filter comes from a translator rather than the DSL.
+     *
+     * @throws IllegalArgumentException if the selector carries no ids, or a filter with no conditions
+     *   (which would match every point).
+     */
+    public suspend fun delete(name: String, selector: DeleteSelector, wait: Boolean = false)
+
+    /**
      * Whether a collection exists. Returns `false` (not an error) for a missing collection.
      *
      * @throws KdrantException.Unauthorized if the API key is missing or wrong.
