@@ -40,6 +40,7 @@ configure(
         project(":kdrant-langchain4j"),
         project(":kdrant-micrometer"),
         project(":kdrant-koog"),
+        project(":kdrant-transport-grpc"),
         project(":kdrant-testkit"),
         project(":example-rag"),
     ),
@@ -52,6 +53,23 @@ configure(
         buildUponDefaultConfig = true
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
         parallel = true
+    }
+
+    // protoc writes Kotlin into the main source set, so the checks above would otherwise run over tens
+    // of thousands of generated lines: ktlint would rewrite them on the next format, and coverage would
+    // be dominated by builders no test calls. Neither says anything about the code in this repository.
+    // Detekt needs no such exclusion — it reads the declared source directories, not the build output.
+    extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        filter { exclude { it.file.path.contains("${File.separator}generated${File.separator}") } }
+    }
+    extensions.configure<kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension> {
+        reports {
+            filters {
+                excludes {
+                    packages("qdrant", "grpc.health.v1")
+                }
+            }
+        }
     }
 
     // Treat every Kotlin compiler warning — deprecations included — as a build error, so these
@@ -75,6 +93,7 @@ dependencies {
 dependencies {
     kover(project(":kdrant-core"))
     kover(project(":kdrant-transport-rest"))
+    kover(project(":kdrant-transport-grpc"))
     kover(project(":kdrant-spring-boot-starter"))
     kover(project(":kdrant-spring-ai"))
     kover(project(":kdrant-langchain4j"))
@@ -84,6 +103,13 @@ dependencies {
 
 kover {
     reports {
+        // The merged report is assembled here, so the generated-code exclusion has to be repeated here:
+        // a filter set in a module applies to that module's own report, not to this one.
+        filters {
+            excludes {
+                packages("qdrant", "grpc.health.v1")
+            }
+        }
         // The integration tests need Docker and are skipped without it, so the floor is set for the
         // unit-test-only run every contributor and every CI job does. It is a floor, not a target:
         // it exists to catch a module arriving untested, not to be inched towards.
