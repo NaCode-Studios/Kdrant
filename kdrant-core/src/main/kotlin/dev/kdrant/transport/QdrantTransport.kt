@@ -222,6 +222,40 @@ public interface QdrantTransport : AutoCloseable {
         wait: Boolean,
     )
 
+    // --- Shard-scope snapshots (M36) ---
+
+    /** Create a snapshot of one shard (`POST /collections/{name}/shards/{shard}/snapshots`). */
+    public suspend fun createShardSnapshot(name: String, shardId: Int, wait: Boolean): SnapshotDescription
+
+    /** List one shard's snapshots (`GET /collections/{name}/shards/{shard}/snapshots`). */
+    public suspend fun listShardSnapshots(name: String, shardId: Int): List<SnapshotDescription>
+
+    /** Delete a shard snapshot (`DELETE /collections/{name}/shards/{shard}/snapshots/{snapshot}`). */
+    public suspend fun deleteShardSnapshot(name: String, shardId: Int, snapshotName: String, wait: Boolean)
+
+    /** Recover one shard from a snapshot location (`PUT /collections/{name}/shards/{shard}/snapshots/recover`). */
+    public suspend fun recoverShardSnapshot(
+        name: String,
+        shardId: Int,
+        location: String,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    )
+
+    /** Stream a shard snapshot's bytes (`GET /collections/{name}/shards/{shard}/snapshots/{snapshot}`). */
+    public fun downloadShardSnapshot(name: String, shardId: Int, snapshotName: String): Flow<ByteArray>
+
+    /** Upload a shard snapshot and recover from it (`POST /collections/{name}/shards/{shard}/snapshots/upload`). */
+    public suspend fun uploadShardSnapshot(
+        name: String,
+        shardId: Int,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority?,
+        checksum: String?,
+        wait: Boolean,
+    )
+
     /** Create a full-storage snapshot (`POST /snapshots`). */
     public suspend fun createStorageSnapshot(wait: Boolean): SnapshotDescription
 

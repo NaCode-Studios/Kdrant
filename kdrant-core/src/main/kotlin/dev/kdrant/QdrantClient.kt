@@ -591,6 +591,63 @@ public interface QdrantClient : AutoCloseable {
         wait: Boolean = true,
     )
 
+    /**
+     * Create a snapshot of a single shard rather than the whole collection.
+     *
+     * ```kotlin
+     * val info = qdrant.collectionClusterInfo("docs")
+     * val snap = qdrant.createShardSnapshot("docs", info.localShards.first().shardId)
+     * ```
+     *
+     * On a sharded collection a whole-collection snapshot is every shard at once, which on a large
+     * collection is the difference between a backup that fits in a window and one that does not. Shard
+     * ids come from [collectionClusterInfo].
+     *
+     * @param wait if `true` (the default) return only once the snapshot exists. See [createSnapshot].
+     * @throws KdrantException.CollectionNotFound if the collection does not exist.
+     * @throws KdrantException.InvalidRequest if the shard is not on the node that answered.
+     */
+    public suspend fun createShardSnapshot(name: String, shardId: Int, wait: Boolean = true): SnapshotDescription
+
+    /** List the snapshots of one shard. */
+    public suspend fun listShardSnapshots(name: String, shardId: Int): List<SnapshotDescription>
+
+    /** Delete a shard snapshot. */
+    public suspend fun deleteShardSnapshot(
+        name: String,
+        shardId: Int,
+        snapshotName: String,
+        wait: Boolean = true,
+    )
+
+    /**
+     * Recover one shard from a snapshot at [location], leaving the collection's other shards alone.
+     *
+     * @param priority which data wins if the shard has replicas (see [SnapshotPriority]).
+     * @param checksum optional SHA-256 checksum verified before recovery.
+     */
+    public suspend fun recoverShardSnapshot(
+        name: String,
+        shardId: Int,
+        location: String,
+        priority: SnapshotPriority? = null,
+        checksum: String? = null,
+        wait: Boolean = true,
+    )
+
+    /** Stream a shard snapshot's bytes as a cold [Flow]. See [downloadSnapshot]. */
+    public fun downloadShardSnapshot(name: String, shardId: Int, snapshotName: String): Flow<ByteArray>
+
+    /** Upload a shard snapshot file (streamed from [data]) and recover that shard from it. */
+    public suspend fun uploadShardSnapshot(
+        name: String,
+        shardId: Int,
+        data: Flow<ByteArray>,
+        priority: SnapshotPriority? = null,
+        checksum: String? = null,
+        wait: Boolean = true,
+    )
+
     /** Create a snapshot of the whole storage (all collections). See [createSnapshot] for the `wait` note. */
     public suspend fun createStorageSnapshot(wait: Boolean = true): SnapshotDescription
 

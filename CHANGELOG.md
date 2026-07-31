@@ -19,6 +19,12 @@ All notable changes to this project are documented in this file. The format is b
   would make Qdrant read it as a different key.
 - `ReplicaState` decodes an unrecognized state from a newer Qdrant to `UNKNOWN` rather than failing the
   whole cluster-info response, the same tolerance `CollectionStatus` already had.
+- Shard-scope snapshots, deferred out of M20 when snapshots first shipped: `createShardSnapshot`,
+  `listShardSnapshots`, `deleteShardSnapshot`, `recoverShardSnapshot`, plus streaming
+  `downloadShardSnapshot` and `uploadShardSnapshot`. On a sharded collection the existing
+  whole-collection snapshot is every shard at once, which on a large collection is the difference
+  between a backup that fits in a window and one that does not. Shard ids come from
+  `collectionClusterInfo`.
 
 ### Changed
 
