@@ -12,7 +12,7 @@ Tier 5, complete, and the release the transport seam was built for. `kdrant-tran
 opt-in gRPC engine behind the same `QdrantClient`, and `kdrant-core` compiles for the JVM and eight
 Kotlin/Native targets. Adding a second engine changed no line of `kdrant-core`.
 
-**Two things make this a major.** `kdrant-core`'s JVM classes moved to `kdrant-core-jvm`, because the
+Two things make this a major. `kdrant-core`'s JVM classes moved to `kdrant-core-jvm`, because the
 module is multiplatform now: a Gradle build changes only the version number, a Maven build naming
 `kdrant-core` has to move. And `ScrollRequest` and `SearchRequest` gained a `shardKey` parameter, which
 changed their generated constructor and `copy`, so code that called `copy()` on either against a `1.x`
@@ -63,9 +63,9 @@ API at all. See [STABILITY.md](STABILITY.md#upgrading-from-1-x).
   client. Nothing changes for a REST user: the module is separate, and a build that does not ask for it
   resolves no gRPC, no protobuf and no Netty.
   The stubs are generated from Qdrant's own `.proto` files, vendored verbatim at v1.18.2, rather than
-  taken from `io.qdrant:client` — grpc-kotlin emits suspend functions and `Flow`s, which is the shape
-  the transport seam already has, and generating decides the dependency set instead of inheriting a
-  shaded Netty jar that is most of the official client's footprint.
+  taken from `io.qdrant:client`. grpc-kotlin emits suspend functions and `Flow`s, which is the shape the
+  transport seam already has, and generating decides the dependency set instead of inheriting a shaded
+  Netty jar that is most of the official client's footprint.
 - Both engines are held to one **shared client contract** (M31, `kdrant-testkit`), which runs the same 30
   behavioural tests against a real Qdrant over each protocol. The REST tests that came before it
   asserted HTTP bodies, which a gRPC engine cannot satisfy by construction.
@@ -74,7 +74,7 @@ API at all. See [STABILITY.md](STABILITY.md#upgrading-from-1-x).
   `linuxArm64`, `linuxX64` and `mingwX64`. Kotlin/JS is deliberately not among them: there is no JS
   engine, so the target would ship models with nothing to send them over, and its test tooling is the
   only npm dependency graph this repository would have. The models, DSLs, error hierarchy and client
-  logic were already free of the JVM — that is what the transport seam was for — so the migration moved
+  logic were already free of the JVM, which is what the transport seam was for, so the migration moved
   sources into `commonMain` and changed one declaration. The engines stay JVM-only, because Ktor CIO and
   grpc-java are.
 - A `commonTest` suite that runs on every target, covering the places a platform could actually
@@ -101,7 +101,7 @@ API at all. See [STABILITY.md](STABILITY.md#upgrading-from-1-x).
   REST API and Qdrant serves these over HTTP only: `telemetry`, `metrics`, `listIssues`, `clearIssues`,
   `recoverSnapshot`, snapshot download and upload, and the five shard-scope snapshot operations. On the
   gRPC engine each throws an `UnsupportedOperationException` naming the operation and pointing at REST,
-  rather than degrading quietly — a snapshot download that returns nothing is a backup that does not
+  rather than degrading quietly. A snapshot download that returns nothing is a backup that does not
   exist. The REST engine is unchanged.
 
 
