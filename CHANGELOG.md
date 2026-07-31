@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- Releases publish to Maven Central only. The secondary publication to GitHub Packages is gone: it
+  carried the same artifacts to a registry that requires authentication even for public packages, so it
+  was a second place to keep in sync and no second way for anyone to depend on Kdrant. Versions up to
+  and including `1.2.0` remain on GitHub Packages and are not withdrawn.
+
 ## [1.2.0] - 2026-07-31
 
 Tier 6, complete. The framework adapters honour metadata filters, deployment scripts get
