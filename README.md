@@ -300,11 +300,14 @@ modern `/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors,
 `discover` / `context`, batch and grouped search), payload and vector management, collection config,
 resilient retries, and typed-payload DX (`payloadAs<T>` / `searchAs<T>`).
 
-**Next.** Metadata-filter translation for the Spring AI and LangChain4j adapters, so a filtered RAG
-application is a genuine drop-in swap; contract tests against the Qdrant OpenAPI schema, so a Qdrant
-minor cannot break a wire format silently; `ensureCollection` and an ordered `scroll` for rerunnable
-bootstrap scripts and resumable ETL; a `kdrant-micrometer` module with `X-Request-Id` correlation; and a
-migration guide from `io.qdrant:client` alongside published benchmark numbers.
+**On `main`, not yet released.** Tier 6 closes the gaps that made adoption harder than it needed to be:
+metadata-filter translation in the Spring AI and LangChain4j adapters, so a filtered RAG application is
+a genuine drop-in swap; contract tests validating every request body against Qdrant's OpenAPI document,
+so a wire change is a failing build rather than a silent difference; `ensureCollection`, an ordered
+`scroll` that resumes, and `batchUpdate` for rerunnable bootstrap scripts and resumable ETL; a
+`kdrant-micrometer` module, `X-Request-Id` correlation and connection-pool settings; and a
+[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md). See the
+[CHANGELOG](CHANGELOG.md) for the detail.
 
 **Later.** Kotlin Multiplatform (`commonMain`), an optional opt-in gRPC engine (REST stays
 the default), and cluster / sharding.

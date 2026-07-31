@@ -62,6 +62,16 @@ All notable changes to this project are documented in this file. The format is b
 - SLSA build provenance on release (M29): the release workflow assembles the jars, attests them with
   `actions/attest-build-provenance`, and only then publishes, so the attestation covers the exact files
   that reach Maven Central and GitHub Packages.
+- A [migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) (M30), mapping the
+  official client operation by operation, with the differences that actually bite: the port, the
+  `ListenableFuture`-to-`suspend` shift, protobuf builders against the DSL, and where the official
+  client is still the right tool.
+- A dispatchable `Benchmarks` workflow (M30) that runs the JMH harness against a chosen Qdrant image on
+  a clean runner and uploads the results, so a published latency number has a run behind it.
+- The design rationale in [STABILITY.md](STABILITY.md) (M30) now states what a `1.x` upgrade actually
+  guarantees: `QdrantClient` and `QdrantTransport` are interfaces to call rather than implement, and a
+  field added to a public data class changes its generated `copy`, so a minor is a recompile rather
+  than a jar swap.
 
 ### Fixed
 
