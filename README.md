@@ -13,10 +13,13 @@
 [![API docs](https://img.shields.io/badge/API%20docs-Dokka-232B45?labelColor=0B0E17)](https://nacode-studios.github.io/Kdrant/)
 [![Website](https://img.shields.io/badge/website-nacodestudios.it-232B45?labelColor=0B0E17)](https://nacodestudios.it/en/project/kdrant)
 
-Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests
-are assembled with protobuf builders, and it pulls a large gRPC/Netty stack onto your classpath.
-Kdrant is the client you'd actually want to write Kotlin against: `suspend` functions, a type-safe
-DSL, `kotlinx-serialization` models, and a small, coroutine-native footprint.
+Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests are
+assembled with protobuf builders, and the wire is decided for you — gRPC, with a shaded Netty on your
+classpath whether you needed the throughput or not. Kdrant is the client you'd actually want to write
+Kotlin against: `suspend` functions, a type-safe DSL, `kotlinx-serialization` models, and a wire you
+pick. The default engine is pure-Kotlin REST and pulls in no gRPC, no protobuf and no Netty; the gRPC
+engine is one dependency away when throughput is the bottleneck. Both are the same `QdrantClient` and
+are held to the same behavioural test suite.
 
 ```kotlin
 val qdrant = Kdrant(host = "localhost", port = 6333) {
@@ -44,11 +47,12 @@ your own embedding model; Kdrant does not generate embeddings.
 > **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `1.2`, stable.** The REST client is feature-complete: collections, `upsert`, the modern
+> **Status — `2.0`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
-> and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, service/analytics
-> endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI and LangChain4j
-> integrations. The public API is stable under SemVer; see [STABILITY.md](STABILITY.md).
+> and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, cluster and sharding,
+> service/analytics endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI,
+> LangChain4j, Koog and Micrometer modules. `kdrant-core` builds for the JVM and eight Kotlin/Native
+> targets. The public API is stable under SemVer; see [STABILITY.md](STABILITY.md).
 
 ## Why Kdrant
 
@@ -56,10 +60,13 @@ your own embedding model; Kdrant does not generate embeddings.
   `CancellationException` is always propagated.
 - Collections, points, payloads and filters are built declaratively through scope-isolated builders
   (`@DslMarker`) rather than verbose request objects.
-- The engine is pure Kotlin REST on Ktor and kotlinx-serialization, which keeps gRPC, Netty and
-  protobuf off your classpath.
-- Failures surface as a sealed `KdrantException` you can handle exhaustively.
-- The wire protocol sits behind a `QdrantTransport` seam, so the public API stays independent of it.
+- The default engine is pure Kotlin REST on Ktor and kotlinx-serialization, so gRPC, Netty and
+  protobuf reach your classpath only if you ask for the gRPC engine by name.
+- Failures surface as a sealed `KdrantException` you can handle exhaustively, whichever engine raised
+  them.
+- The wire protocol sits behind a `QdrantTransport` seam. That is not a claim about layering: it is why
+  a second engine could be added without changing one line of `kdrant-core`, and why the models and the
+  query DSL compile for iOS, macOS, Linux and Windows as well as the JVM.
 
 ### Footprint vs the official client
 
@@ -85,13 +92,52 @@ Requires JDK 17+. Artifacts are published to Maven Central under `io.github.naco
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:1.2.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:2.0.0")
 }
 ```
 
-`kdrant-transport-rest` brings in `kdrant-core` transitively; it is the only dependency you add. To use
-the gRPC engine instead, depend on `kdrant-transport-grpc` and build the client with `KdrantGrpc(host)`;
-nothing else in this README changes, because the API above the wire is the same API.
+`kdrant-transport-rest` brings in `kdrant-core` transitively; it is the only dependency you add.
+
+### The modules
+
+Everything below is optional and additive. Take the engine you want and nothing else.
+
+| Artifact | What you get |
+| --- | --- |
+| `kdrant-transport-rest` | **The one to start with.** The REST engine on Ktor CIO and the `Kdrant(...)` factory. Brings `kdrant-core` with it. |
+| `kdrant-transport-grpc` | The opt-in gRPC engine and the `KdrantGrpc(...)` factory. Reach for it when throughput or long-lived streaming is the bottleneck. |
+| `kdrant-core` | The public API, models, DSLs and the `QdrantTransport` seam, with no wire-protocol knowledge. Multiplatform. You rarely depend on it directly. |
+| `kdrant-spring-boot-starter` | Spring Boot auto-configuration: `kdrant.*` properties and a ready `QdrantClient` bean. |
+| `kdrant-spring-ai` | A Spring AI `VectorStore` backed by Kdrant, metadata filters included. |
+| `kdrant-langchain4j` | A LangChain4j `EmbeddingStore` backed by Kdrant, metadata filters included. |
+| `kdrant-koog` | A [Koog](https://github.com/JetBrains/koog) document storage where Qdrant runs the search instead of the agent scoring in memory. |
+| `kdrant-micrometer` | Request timings and outcomes per Qdrant operation, tagged by route template rather than by URL. |
+| `kdrant-bom` | A platform that keeps the versions above aligned. Import it and drop the versions. |
+
+```kotlin
+dependencies {
+    implementation(platform("io.github.nacode-studios:kdrant-bom:2.0.0"))
+    implementation("io.github.nacode-studios:kdrant-transport-rest")
+    implementation("io.github.nacode-studios:kdrant-spring-ai")
+}
+```
+
+### Choosing an engine
+
+REST is the default and the right answer for most applications: it is a smaller dependency set, it
+needs no native configuration under GraalVM, and it is the engine every operation is available on.
+
+```kotlin
+val qdrant: QdrantClient =
+    if (useGrpc) KdrantGrpc(host = "localhost")   // gRPC, port 6334
+    else Kdrant(host = "localhost")               // REST, port 6333
+```
+
+Every example below reads the same either way, because the API above the wire is the same API. Two
+differences are worth knowing before you switch. The **port** is 6334, not 6333, and nothing rewrites
+it for you. And Qdrant serves eleven operations over HTTP only — telemetry, Prometheus metrics, the
+issues endpoint, snapshot recovery, snapshot download and upload, and the shard-scope snapshots — which
+the gRPC engine refuses by name rather than degrading quietly.
 
 `kdrant-core` is a Kotlin Multiplatform library and publishes one artifact per target. A Gradle build
 resolves the right one from the `kdrant-core` coordinate and needs no change. A Maven build names the
@@ -100,8 +146,10 @@ artifact directly and wants `kdrant-core-jvm`. The engines and adapters are JVM-
 You also need a running Qdrant. For local development:
 
 ```bash
-docker run -p 6333:6333 qdrant/qdrant
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
 ```
+
+6333 is the REST port and 6334 the gRPC one; map both and either engine connects.
 
 ## Usage
 
@@ -280,48 +328,48 @@ val hits = catching { qdrant.search("articles") { query(queryVector) } }.getOrEl
 
 ## Architecture
 
-Three modules keep protocol concerns out of the public API:
+The wire lives behind one interface, `QdrantTransport`, and everything above it is protocol-neutral:
 
-| Module | Contents |
-| --- | --- |
-| `kdrant-core` | Public API (`QdrantClient`), models, DSLs, error hierarchy, and the `QdrantTransport` seam, with no wire-protocol knowledge. |
-| `kdrant-transport-rest` | The default REST engine (Ktor CIO) implementing `QdrantTransport`, plus the `Kdrant(...)` factory. |
-| `kdrant-transport-grpc` | The opt-in gRPC engine over Qdrant's own protobuf services, plus the `KdrantGrpc(...)` factory. Depend on it only if you want it. |
+```
+kdrant-core          QdrantClient, models, DSLs, KdrantException, QdrantTransport
+   |                 no wire-protocol knowledge · JVM + 8 Kotlin/Native targets
+   +-- kdrant-transport-rest    Ktor CIO      Kdrant(host)        JVM
+   +-- kdrant-transport-grpc    grpc-kotlin   KdrantGrpc(host)    JVM
+```
 
-`kdrant-core` builds for the JVM and for eight Kotlin/Native targets: iOS, macOS, Linux and Windows.
-That is what the transport seam bought — the models, DSLs and client logic never knew about a wire, so
-they compile anywhere Kotlin does. The engines stay JVM-only, because Ktor CIO and grpc-java are, so a
-multiplatform consumer today shares its models and its query building and supplies its own transport.
-Kotlin/JS is left out for that reason rather than an accident of effort: with no JS engine the target
-would ship a DSL with nothing to send.
+That is the arrangement the second engine tested. Adding gRPC changed **no line of `kdrant-core`**, and
+the same behavioural suite runs against both engines against the same Qdrant, so the choice between them
+is a footprint and throughput decision rather than a feature one — except for the operations Qdrant
+serves over HTTP only, which the gRPC engine names.
 
-The DSLs and client logic live in `kdrant-core` and are independent of the protocol; only an engine
-module knows about a wire. Both engines are held to the same behavioural test suite, so the choice is
-a footprint and throughput decision rather than a feature one — with the exception of the operations
-Qdrant serves over HTTP only, which the gRPC engine names rather than degrading.
+It is also why the core compiles for iOS, macOS, Linux and Windows: code that never knew there was a
+wire has nothing platform-specific to port. The engines stay JVM-only, because Ktor CIO and grpc-java
+are, so a multiplatform consumer today shares its models and its query building and supplies its own
+transport. Kotlin/JS is left out for that reason rather than an accident of effort: with no JS engine
+the target would ship a DSL with nothing to send.
 
 ## Roadmap
 
-**Shipped (`1.2.0`).** Tier 6 closes the gaps that made adoption harder than it needed to be:
-metadata-filter translation in the Spring AI and LangChain4j adapters, so a filtered RAG application is
-a genuine drop-in swap; contract tests validating every request body against Qdrant's OpenAPI document,
-so a wire change is a failing build rather than a silent difference; `ensureCollection`, an ordered
-`scroll` that resumes, and `batchUpdate` for rerunnable bootstrap scripts and resumable ETL; a
-`kdrant-micrometer` module, `X-Request-Id` correlation and connection-pool settings; and a
-[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) with
-[measured latency](benchmarks/README.md#measured-latency) behind it. On top of the earlier
-`1.x` line: collection aliases, snapshots with streaming backup and restore, the service, health and
-analytics endpoints, a granular transport seam with a `FloatArray` no-boxing hot path, the modern
-`/points/query` engine (hybrid RRF/DBSF fusion, sparse and multi-vectors, recommend / discover /
-context, batch and grouped search), payload and vector management, and typed-payload DX. Upgrading
-from `1.1.0` is a recompile rather than a jar swap — see
-[STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor); the [CHANGELOG](CHANGELOG.md) has the
-version-by-version detail.
+**Shipped (`2.0.0`).** Tier 5 closes the two things the transport seam existed to make possible.
+`kdrant-transport-grpc` is an opt-in gRPC engine behind the same `QdrantClient`, generated from Qdrant's
+own `.proto` files rather than wrapping the official client, so a REST build still resolves no gRPC, no
+protobuf and no Netty — checked on every build, not asserted. And `kdrant-core` moved to Kotlin
+Multiplatform: the JVM plus eight Kotlin/Native targets, with the JVM public API unchanged byte for
+byte. Both engines are now held to one shared behavioural suite against a real Qdrant. The major bump is
+for the artifact layout, not the API: `kdrant-core`'s JVM classes moved to `kdrant-core-jvm`, which a
+Gradle build does not notice and a Maven build does. See
+[STABILITY.md](STABILITY.md#upgrading-from-1-x).
 
-**Merged, unreleased.** The opt-in gRPC engine, `kdrant-transport-grpc`, and the move of `kdrant-core`
-to Kotlin Multiplatform. Both are in `main` and neither has shipped; see the
-[CHANGELOG](CHANGELOG.md#unreleased) for what they change and what the multiplatform move does to
-`kdrant-core`'s artifact coordinates.
+On top of the `1.x` line: metadata-filter translation in the Spring AI and LangChain4j adapters,
+contract tests validating every request body against Qdrant's OpenAPI document, `ensureCollection`, an
+ordered `scroll` that resumes, `batchUpdate`, the `kdrant-micrometer` module, `X-Request-Id`
+correlation, cluster and sharding, collection aliases, snapshots with streaming backup and restore, the
+service, health and analytics endpoints, a `FloatArray` no-boxing hot path, the modern `/points/query`
+engine, and typed-payload DX. The [CHANGELOG](CHANGELOG.md) has the version-by-version detail, and the
+[migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) has
+[measured latency](benchmarks/README.md#measured-latency) behind it.
+
+**Next.** Nothing is claimed yet; the board is where it gets decided.
 
 The plan lives on the [Kdrant board](https://github.com/orgs/NaCode-Studios/projects/4) — one item per milestone, each with its
 exit criterion — and every tier is a [milestone](https://github.com/NaCode-Studios/Kdrant/milestones) in this repository. See
