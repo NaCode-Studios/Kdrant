@@ -13,6 +13,7 @@ dependencies {
         // otherwise get no constraint from this platform.
         api("io.github.nacode-studios:kdrant-core-jvm:${project.version}")
         api("io.github.nacode-studios:kdrant-transport-rest:${project.version}")
+        api("io.github.nacode-studios:kdrant-transport-grpc:${project.version}")
         api("io.github.nacode-studios:kdrant-spring-boot-starter:${project.version}")
         api("io.github.nacode-studios:kdrant-spring-ai:${project.version}")
         api("io.github.nacode-studios:kdrant-langchain4j:${project.version}")
