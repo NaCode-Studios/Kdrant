@@ -1,7 +1,9 @@
 package dev.kdrant.internal
 
+import dev.kdrant.KdrantException
 import dev.kdrant.QdrantClient
 import dev.kdrant.dsl.BatchSearchBuilder
+import dev.kdrant.dsl.BatchUpdateBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
 import dev.kdrant.dsl.ScrollBuilder
@@ -14,6 +16,7 @@ import dev.kdrant.dsl.hasConditions
 import dev.kdrant.model.AliasDescription
 import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
+import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Payload
@@ -29,13 +32,17 @@ import dev.kdrant.model.SearchMatrixOffsets
 import dev.kdrant.model.SearchMatrixPairs
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SnapshotPriority
+import dev.kdrant.model.VectorParams
+import dev.kdrant.model.VectorsConfig
 import dev.kdrant.model.WithPayload
 import dev.kdrant.transport.QdrantTransport
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Protocol-independent [QdrantClient]: turns the ergonomic DSL into request models and
@@ -51,6 +58,64 @@ internal class DefaultQdrantClient(
     ) {
         val request = CreateCollectionBuilder().apply(configure).build()
         transport.createCollection(name, request)
+    }
+
+    override suspend fun ensureCollection(name: String, configure: CreateCollectionBuilder.() -> Unit): Boolean {
+        val request = CreateCollectionBuilder().apply(configure).build()
+        if (!transport.collectionExists(name)) {
+            try {
+                transport.createCollection(name, request)
+                return true
+            } catch (_: KdrantException.AlreadyExists) {
+                // Another process created it between the check and the create. That is the case this
+                // operation exists to absorb, so fall through and verify what is there.
+            }
+        }
+        verifyVectors(name, request, transport.getCollection(name))
+        return false
+    }
+
+    /**
+     * Compares only what the caller asked for — the dense vector names with their size and distance,
+     * and the sparse vector names. Anything the server defaults (HNSW, optimizers, quantization) is
+     * left alone, so a collection tuned after creation still passes.
+     */
+    private fun verifyVectors(name: String, requested: CreateCollectionRequest, actual: CollectionInfo) {
+        val params = checkNotNull(actual.config?.params) {
+            "collection '$name' exists but the server returned no config, so it could not be checked " +
+                "against the requested one"
+        }
+        val expected = requested.vectors.asNamedMap()
+        val found = params.vectors.asNamedMap()
+        val problems = buildList {
+            (expected.keys + found.keys).sorted().forEach { vectorName ->
+                val label = if (vectorName.isEmpty()) "the anonymous vector" else "vector '$vectorName'"
+                val want = expected[vectorName]
+                val have = found[vectorName]
+                when {
+                    want == null -> add("$label exists but was not requested")
+                    have == null -> add("$label was requested but does not exist")
+                    want.size != have.size -> add("$label has size ${have.size}, expected ${want.size}")
+                    want.distance != have.distance ->
+                        add("$label uses ${have.distance}, expected ${want.distance}")
+                }
+            }
+            val expectedSparse = requested.sparseVectors.orEmpty().keys
+            val foundSparse = params.sparseVectors.orEmpty().keys
+            (expectedSparse - foundSparse).sorted().forEach { add("sparse vector '$it' does not exist") }
+            (foundSparse - expectedSparse).sorted().forEach { add("sparse vector '$it' was not requested") }
+        }
+        check(problems.isEmpty()) {
+            "collection '$name' already exists and does not match the requested config: " +
+                problems.joinToString("; ")
+        }
+    }
+
+    /** Both vector shapes as one map; the anonymous single vector keys on the empty string. */
+    private fun VectorsConfig?.asNamedMap(): Map<String, VectorParams> = when (this) {
+        null -> emptyMap()
+        is VectorsConfig.Single -> mapOf("" to params)
+        is VectorsConfig.Named -> vectors
     }
 
     override suspend fun updateCollection(name: String, configure: UpdateCollectionBuilder.() -> Unit) {
@@ -123,12 +188,44 @@ internal class DefaultQdrantClient(
         require(pageSize > 0) { "pageSize must be > 0, was $pageSize" }
         return flow {
             val builder = ScrollBuilder(pageSize).apply(configure)
-            var offset: PointId? = null
-            while (true) {
-                val page = transport.scroll(name, builder.build(offset))
-                page.points.forEach { emit(it) }
-                offset = page.nextPageOffset ?: break
+            if (builder.isOrdered) scrollOrdered(name, builder, pageSize) else scrollById(name, builder)
+        }
+    }
+
+    private suspend fun FlowCollector<Record>.scrollById(name: String, builder: ScrollBuilder) {
+        var offset: PointId? = null
+        while (true) {
+            val page = transport.scroll(name, builder.build(offset))
+            page.points.forEach { emit(it) }
+            offset = page.nextPageOffset ?: break
+        }
+    }
+
+    /**
+     * Qdrant never returns a page cursor for an ordered scroll, so paging follows the order value
+     * instead. `start_from` is inclusive and filters by value alone, so the next page repeats every
+     * point sharing the boundary value: those ids are remembered (only those — the set stays bounded
+     * by how many points share one value) and filtered out, which keeps each point emitted once.
+     */
+    private suspend fun FlowCollector<Record>.scrollOrdered(name: String, builder: ScrollBuilder, pageSize: Int) {
+        var startFrom: JsonPrimitive? = null
+        var seenAtBoundary: Set<PointId> = emptySet()
+        while (true) {
+            val page = transport.scroll(name, builder.build(offset = null, startFrom = startFrom))
+            val fresh = page.points.filterNot { it.id in seenAtBoundary }
+            fresh.forEach { emit(it) }
+            if (page.points.size < pageSize) break
+
+            val boundary = checkNotNull(page.points.last().orderValue) {
+                "an ordered scroll of '$name' returned points without an order value, so it cannot be resumed"
             }
+            check(fresh.isNotEmpty()) {
+                "an ordered scroll of '$name' cannot advance: more than $pageSize points share the order " +
+                    "value $boundary. Raise pageSize above that, or order by a key with fewer ties."
+            }
+            val atBoundary = page.points.filter { it.orderValue == boundary }.map { it.id }
+            seenAtBoundary = if (boundary == startFrom) seenAtBoundary + atBoundary else atBoundary.toSet()
+            startFrom = boundary
         }
     }
 
@@ -142,16 +239,19 @@ internal class DefaultQdrantClient(
         wait: Boolean,
         filter: FilterBuilder.() -> Unit,
     ) {
-        val built = FilterBuilder().apply(filter).build()
-        require(
-            !built.must.isNullOrEmpty() ||
-                !built.should.isNullOrEmpty() ||
-                !built.mustNot.isNullOrEmpty() ||
-                built.minShould != null,
-        ) {
-            "delete-by-filter requires at least one condition; an empty filter would match every point"
+        delete(name, DeleteSelector.ByFilter(FilterBuilder().apply(filter).build()), wait)
+    }
+
+    override suspend fun delete(name: String, selector: DeleteSelector, wait: Boolean) {
+        when (selector) {
+            is DeleteSelector.Ids ->
+                require(selector.ids.isNotEmpty()) { "delete(ids) needs at least one id" }
+            is DeleteSelector.ByFilter ->
+                require(selector.filter.hasConditions()) {
+                    "delete-by-filter requires at least one condition; an empty filter would match every point"
+                }
         }
-        transport.delete(name, DeleteSelector.ByFilter(built), wait)
+        transport.delete(name, selector, wait)
     }
 
     override suspend fun collectionExists(name: String): Boolean =
@@ -213,6 +313,10 @@ internal class DefaultQdrantClient(
 
     override suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean): Unit =
         transport.updateVectors(name, points, wait)
+
+    override suspend fun batchUpdate(name: String, wait: Boolean, configure: BatchUpdateBuilder.() -> Unit) {
+        transport.batchUpdate(name, BatchUpdateBuilder().apply(configure).build(), wait)
+    }
 
     override suspend fun deleteVectors(
         name: String,

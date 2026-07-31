@@ -43,4 +43,35 @@ class CollectionInfoDeserializationTest {
         assertEquals(CollectionStatus.UNKNOWN, info.status)
         assertEquals(1L, info.pointsCount)
     }
+
+    @Test
+    fun `the config read-back carries the vectors a correctness check needs`() {
+        val info = KdrantJson.decodeFromString(
+            CollectionInfo.serializer(),
+            """{"status":"green","config":{"params":{
+                 "vectors":{"text":{"size":768,"distance":"Cosine"}},
+                 "sparse_vectors":{"bm25":{"modifier":"idf"}},
+                 "shard_number":2,"replication_factor":1,"on_disk_payload":true}},
+               "payload_schema":{"lang":{"data_type":"keyword","points":42}}}""",
+        )
+
+        val params = info.config!!.params!!
+        assertEquals(VectorsConfig.Named(mapOf("text" to VectorParams(768, Distance.COSINE))), params.vectors)
+        assertEquals(setOf("bm25"), params.sparseVectors!!.keys)
+        assertEquals(2, params.shardNumber)
+        assertEquals(true, params.onDiskPayload)
+        assertEquals(PayloadSchemaType.KEYWORD, info.payloadSchema["lang"]!!.schemaType)
+        assertEquals(42L, info.payloadSchema["lang"]!!.points)
+    }
+
+    @Test
+    fun `an index type this client does not know does not fail the whole response`() {
+        val info = KdrantJson.decodeFromString(
+            CollectionInfo.serializer(),
+            """{"status":"green","payload_schema":{"embedding":{"data_type":"tensor","points":7}}}""",
+        )
+
+        assertEquals("tensor", info.payloadSchema["embedding"]!!.dataType)
+        assertNull(info.payloadSchema["embedding"]!!.schemaType)
+    }
 }

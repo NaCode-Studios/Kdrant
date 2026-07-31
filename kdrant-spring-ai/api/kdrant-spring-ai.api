@@ -7,3 +7,7 @@ public final class dev/kdrant/springai/KdrantVectorStore : org/springframework/a
 	public fun similaritySearch (Lorg/springframework/ai/vectorstore/SearchRequest;)Ljava/util/List;
 }
 
+public final class dev/kdrant/springai/SpringAiFiltersKt {
+	public static final fun toKdrantFilter (Lorg/springframework/ai/vectorstore/filter/Filter$Expression;)Ldev/kdrant/model/Filter;
+}
+

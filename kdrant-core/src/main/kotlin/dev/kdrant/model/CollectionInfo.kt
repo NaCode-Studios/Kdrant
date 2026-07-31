@@ -65,4 +65,63 @@ public data class CollectionInfo(
 
     @SerialName("segments_count")
     public val segmentsCount: Int? = null,
+
+    /**
+     * The collection's stored configuration. This is the read-back that makes a rerunnable bootstrap
+     * script able to check what it found rather than assume it — see `ensureCollection`.
+     */
+    @SerialName("config")
+    public val config: CollectionConfig? = null,
+
+    /** The payload field indexes that exist, keyed by field name. */
+    @SerialName("payload_schema")
+    public val payloadSchema: Map<String, PayloadIndexInfo> = emptyMap(),
 )
+
+/** A collection's stored configuration, as returned by `getCollection`. */
+@Serializable
+public data class CollectionConfig(
+    @SerialName("params")
+    public val params: CollectionParams? = null,
+)
+
+/** The vector and sharding parameters a collection was created with. */
+@Serializable
+public data class CollectionParams(
+    @SerialName("vectors")
+    public val vectors: VectorsConfig? = null,
+
+    @SerialName("sparse_vectors")
+    public val sparseVectors: Map<String, SparseVectorParams>? = null,
+
+    @SerialName("shard_number")
+    public val shardNumber: Int? = null,
+
+    @SerialName("replication_factor")
+    public val replicationFactor: Int? = null,
+
+    @SerialName("write_consistency_factor")
+    public val writeConsistencyFactor: Int? = null,
+
+    @SerialName("on_disk_payload")
+    public val onDiskPayload: Boolean? = null,
+)
+
+/** What kind of index exists on a payload field, and how many points it covers. */
+@Serializable
+public data class PayloadIndexInfo(
+    /**
+     * The index type's wire name (`keyword`, `integer`, ...). Kept as a string so an index type added
+     * by a newer Qdrant cannot fail the whole `getCollection` response; use [schemaType] for the
+     * typed form.
+     */
+    @SerialName("data_type")
+    public val dataType: String? = null,
+
+    @SerialName("points")
+    public val points: Long? = null,
+) {
+    /** [dataType] as a [PayloadSchemaType], or `null` if this client version does not know the type. */
+    public val schemaType: PayloadSchemaType?
+        get() = PayloadSchemaType.entries.firstOrNull { it.name.equals(dataType, ignoreCase = true) }
+}

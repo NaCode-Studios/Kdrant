@@ -6,6 +6,79 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Metadata-filter translation for the framework adapters (M26). `kdrant-spring-ai` and `kdrant-langchain4j`
+  used to throw on any filter expression, which meant a filtered RAG application was not the drop-in swap
+  the modules advertised. Both now translate their framework's filter model into Kdrant's:
+  `Filter.Expression.toKdrantFilter()` for Spring AI and `Filter.toKdrantFilter()` for LangChain4j, wired
+  into `similaritySearch`, `VectorStore.delete(Expression)` and `EmbeddingStore.search`. Boolean chains
+  flatten into a single `must` / `should` clause, comparisons pick Qdrant's numeric or RFC 3339 `range`
+  variant from the value's runtime type, and Spring AI's `IS NULL` maps to `is_empty` (which, unlike
+  Qdrant's `is_null`, also covers a missing key). A value Qdrant cannot express is rejected with an
+  `IllegalArgumentException` rather than dropped, so a filter never silently widens a result set.
+- `SearchBuilder.filter(Filter)` and `PrefetchBuilder.filter(Filter)`, plus
+  `QdrantClient.delete(name, selector, wait)` — the entry points a translator needs to pass an
+  already-built filter, alongside the existing DSL forms.
+- `ensureCollection(name) { ... }` (M27): creates the collection if it is missing and otherwise checks
+  that the one already there has the dense vector names, sizes and distances, and the sparse vector
+  names, that were asked for. Returns whether it created the collection, absorbs a create that lost a
+  race to another process, and fails loudly on a mismatch rather than leaving an application to
+  discover the wrong vector size on its first upsert. Everything the server defaults (HNSW, optimizers,
+  quantization) is deliberately not compared.
+- The enriched `getCollection` read-back that check reads: `CollectionInfo.config` (vectors, sparse
+  vectors, shard number, replication factor, on-disk payload) and `CollectionInfo.payloadSchema`. An
+  index type a future Qdrant adds is kept as its wire string rather than failing the whole response.
+- An ordered `scroll` (M27): `scroll("docs") { orderBy("ts", Direction.DESC) }`, plus `orderByDatetime`
+  for RFC 3339 keys, `startFrom` to resume a partly consumed pass, and `Record.orderValue`. Qdrant
+  returns no page cursor for an ordered scroll, so the client pages on the order value and drops the
+  points a page repeats at the boundary; each point is still emitted exactly once. A scroll that cannot
+  advance — more points tied on one order value than fit in a page — fails with a message saying so
+  instead of silently truncating.
+- `batchUpdate(name, wait) { ... }` (M27): one request applying an ordered, mixed sequence of point,
+  vector and payload operations. Ordered but **not** transactional: a later operation sees the effect of
+  an earlier one, but a failure part-way through leaves the earlier operations applied.
+- `ScrollBuilder.filter(Filter)`, matching the search builders.
+
+- **`kdrant-micrometer`** (M28), a new module: `configureClient = { kdrantMetrics(registry) }` times every
+  request as `kdrant.requests`, tagged with the operation, HTTP method, status and outcome. The operation
+  tag is the route template, not the URL — collection, field and snapshot names become placeholders, so a
+  deployment with thousands of collections does not become thousands of time series.
+- `X-Request-Id` correlation (M28): `Kdrant(host, requestId = { ... })` sets the header from the caller's
+  own trace id, so a Kdrant call can be followed into Qdrant's logs. Off by default, since sending a new
+  header on every request would change the bytes on the wire for everyone.
+- Connection-pool settings on the REST engine factory (M28): `maxConnectionsPerRoute` and `keepAliveTime`
+  are parameters of `Kdrant(...)`, not of `KdrantConfig`, which stays transport-neutral. This is where the
+  pool settings declined on `KdrantConfig` land.
+
+- Contract tests against Qdrant's OpenAPI schema (M29). Every request body the REST engine builds is
+  captured from a real client call and validated against the schema Qdrant publishes for that endpoint,
+  with unknown properties treated as failures. Qdrant's document is vendored under
+  `kdrant-transport-rest/src/test/resources` and pinned to the version the CI matrix runs against, so
+  refreshing it is how a wire change that would otherwise pass silently becomes a failing build.
+- Kover coverage (M29), which the Kotlin 2.4 incompatibility had deferred. `./gradlew koverHtmlReport`
+  covers the six published modules; CI runs it on JDK 17 and enforces a 75% line floor — a floor to
+  catch a module arriving untested, not a number to inch towards. Current line coverage is 82.8%.
+- SLSA build provenance on release (M29): the release workflow assembles the jars, attests them with
+  `actions/attest-build-provenance`, and only then publishes, so the attestation covers the exact files
+  that reach Maven Central and GitHub Packages.
+- A [migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) (M30), mapping the
+  official client operation by operation, with the differences that actually bite: the port, the
+  `ListenableFuture`-to-`suspend` shift, protobuf builders against the DSL, and where the official
+  client is still the right tool.
+- A dispatchable `Benchmarks` workflow (M30) that runs the JMH harness against a chosen Qdrant image on
+  a clean runner and uploads the results, so a published latency number has a run behind it.
+- The design rationale in [STABILITY.md](STABILITY.md) (M30) now states what a `1.x` upgrade actually
+  guarantees: `QdrantClient` and `QdrantTransport` are interfaces to call rather than implement, and a
+  field added to a public data class changes its generated `copy`, so a minor is a recompile rather
+  than a jar swap.
+
+### Fixed
+
+- `Direction` now serializes as Qdrant's lowercase `asc` / `desc`. It was only ever written through the
+  hand-rolled query serializer, which spelled it correctly, so no shipped request was affected; the enum
+  itself would have sent `ASC` the moment anything else serialized it.
+
 ## [1.1.0] - 2026-07-20
 
 ### Changed

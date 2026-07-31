@@ -20,6 +20,7 @@ include(
     "kdrant-spring-boot-starter",
     "kdrant-spring-ai",
     "kdrant-langchain4j",
+    "kdrant-micrometer",
     "example-rag",
     "benchmarks",
 )

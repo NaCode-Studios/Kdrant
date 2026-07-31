@@ -10,3 +10,7 @@ public final class dev/kdrant/langchain4j/KdrantEmbeddingStore : dev/langchain4j
 	public fun search (Ldev/langchain4j/store/embedding/EmbeddingSearchRequest;)Ldev/langchain4j/store/embedding/EmbeddingSearchResult;
 }
 
+public final class dev/kdrant/langchain4j/LangChain4jFiltersKt {
+	public static final fun toKdrantFilter (Ldev/langchain4j/store/embedding/filter/Filter;)Ldev/kdrant/model/Filter;
+}
+

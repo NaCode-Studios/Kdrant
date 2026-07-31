@@ -27,7 +27,8 @@ import java.util.UUID
  *
  * Each embedding is stored as a point in [collectionName]; the segment text is kept under the `text`
  * payload key and its metadata alongside it. The collection must already exist with a matching vector size.
- * Metadata filters on `search` are not yet supported (they throw).
+ * Metadata filters on `search` are translated into Kdrant's filter DSL by [toKdrantFilter], which documents
+ * the operator mapping.
  */
 public class KdrantEmbeddingStore(
     private val client: QdrantClient,
@@ -77,15 +78,14 @@ public class KdrantEmbeddingStore(
     }
 
     override fun search(request: EmbeddingSearchRequest): EmbeddingSearchResult<TextSegment> {
-        if (request.filter() != null) {
-            throw UnsupportedOperationException("kdrant-langchain4j does not yet support metadata filters in search")
-        }
+        val filter = request.filter()?.toKdrantFilter()
         val queryVector = request.queryEmbedding().vector()
         val hits = runBlocking {
             client.search(collectionName) {
                 query(*queryVector)
                 limit = request.maxResults()
                 if (request.minScore() > 0.0) scoreThreshold = request.minScore()
+                if (filter != null) filter(filter)
                 withPayload = WithPayload.All
             }
         }

@@ -14,6 +14,7 @@ import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.PointsUpdateOperation
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -90,6 +91,12 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Update the vectors of existing points (`PUT /collections/{name}/points/vectors`). */
     public suspend fun updateVectors(name: String, points: List<PointVectors>, wait: Boolean)
+
+    /**
+     * Apply an ordered sequence of point/vector/payload operations in one request
+     * (`POST /collections/{name}/points/batch`). Ordered but not transactional.
+     */
+    public suspend fun batchUpdate(name: String, operations: List<PointsUpdateOperation>, wait: Boolean)
 
     /** Delete named vectors from the selected points (`POST /collections/{name}/points/vectors/delete`). */
     public suspend fun deleteVectors(name: String, vectors: List<String>, selector: DeleteSelector, wait: Boolean)

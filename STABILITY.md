@@ -22,7 +22,27 @@ declarations, or symbols annotated `@InternalKdrantApi` — is not public API an
 
 The **wire behaviour** of the REST engine (the requests it sends and the responses it parses) is also part
 of the contract: a change that alters the bytes on the wire for an existing operation is treated as a
-breaking change unless it is a bug fix bringing Kdrant in line with Qdrant's documented API.
+breaking change unless it is a bug fix bringing Kdrant in line with Qdrant's documented API. Contract
+tests validate every request body the engine builds against Qdrant's own OpenAPI document, pinned to the
+version the CI matrix runs against, so a wire change is a failing build rather than a silent difference.
+
+### What may still change in a minor
+
+Two Kotlin details are additive to `apiCheck` but not binary-compatible for every caller, and it is
+better to say so than to discover it later.
+
+**`QdrantClient` and `QdrantTransport` are interfaces you call, not interfaces you implement.** Kdrant
+adds operations to both as Qdrant grows, and a new member on a Kotlin interface breaks a class that
+implemented it against an older jar. If you need a decorator, delegate to the interface (`by transport`)
+so the compiler tells you what a new release added; if you need a stub in a test, generate it. A
+third-party wire engine is a supported use of `QdrantTransport`, but it is a use that recompiles against
+each minor.
+
+**Adding a field to a public `data class` changes its generated `copy` and `componentN`.** New response
+fields arrive as Qdrant returns more, and while the constructor keeps its defaults and source keeps
+compiling, code that called `copy()` against an older jar needs recompiling. Kdrant does not add fields
+gratuitously and each one is listed in the [CHANGELOG](CHANGELOG.md), but a `1.x` upgrade is a
+recompile, not a jar swap.
 
 ## Pre-`1.0` (the `0.x` line)
 
