@@ -6,6 +6,18 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-31
+
+Tier 6, complete. The framework adapters honour metadata filters, deployment scripts get
+`ensureCollection`, an ordered `scroll` and `batchUpdate`, observability ships instead of being
+reachable by hand, the wire format is held to Qdrant's own schema by contract tests, and switching
+from the official client has a guide and measured numbers behind it.
+
+**Upgrading is a recompile, not a jar swap.** `apiCheck` reads this release as additive, but new members
+on `QdrantClient` and `QdrantTransport` break a class that implemented them against `1.1.0`, and the
+fields added to `CollectionInfo`, `ScrollRequest` and `Record` change their generated `copy`. Source
+stays compatible; see [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor).
+
 ### Added
 
 - Metadata-filter translation for the framework adapters (M26). `kdrant-spring-ai` and `kdrant-langchain4j`
@@ -67,7 +79,11 @@ All notable changes to this project are documented in this file. The format is b
   `ListenableFuture`-to-`suspend` shift, protobuf builders against the DSL, and where the official
   client is still the right tool.
 - A dispatchable `Benchmarks` workflow (M30) that runs the JMH harness against a chosen Qdrant image on
-  a clean runner and uploads the results, so a published latency number has a run behind it.
+  a clean runner and uploads the results, and the first
+  [measured numbers](benchmarks/README.md#measured-latency) from it: `search` p50 1.97 ms / p99
+  5.40 ms, `upsert` p50 3.37 ms / p99 9.81 ms against Qdrant `v1.18.2`. Published with the conditions
+  they were taken under, including the ones that make them a floor rather than a capacity figure: no
+  network between client and server, a 1 000-point collection, and no concurrency.
 - The design rationale in [STABILITY.md](STABILITY.md) (M30) now states what a `1.x` upgrade actually
   guarantees: `QdrantClient` and `QdrantTransport` are interfaces to call rather than implement, and a
   field added to a public data class changes its generated `copy`, so a minor is a recompile rather
@@ -78,6 +94,16 @@ All notable changes to this project are documented in this file. The format is b
 - `Direction` now serializes as Qdrant's lowercase `asc` / `desc`. It was only ever written through the
   hand-rolled query serializer, which spelled it correctly, so no shipped request was affected; the enum
   itself would have sent `ASC` the moment anything else serialized it.
+
+### Internal
+
+- ktlint `12.1.2` → `14.2.0`. Version 14 turns on `class-signature` and `function-signature`, which
+  collapse a multi-line parameter list onto one line and push the supertype onto its own; both are
+  disabled in `.editorconfig`, for the same reason the codebase picked `intellij_idea` over
+  `ktlint_official` in the first place. Two files were rewritten before the rules were turned off.
+- detekt's `LongParameterList.functionThreshold` raised from 8 to 12. The `Kdrant(...)` factory is a
+  settings surface like `KdrantConfig`, where every parameter past `port` is an independently defaulted
+  option, so the two now get the same allowance.
 
 ## [1.1.0] - 2026-07-20
 
@@ -216,7 +242,8 @@ helper).
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v0.1.0...v0.2.0

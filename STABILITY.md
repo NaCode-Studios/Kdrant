@@ -80,8 +80,9 @@ gRPC engine (post-`1.0`, see M25). The gates, all met:
    Dependabot, and property-based serialization tests are in place; the public API is tracked.
 3. **This stability policy (this document).**
 4. **Benchmarks.** A reproducible JMH harness for upsert/search latency ships in [`benchmarks/`](benchmarks/);
-   the published numbers come from running it in CI against a pinned Qdrant, alongside the footprint table in
-   the [README](README.md#footprint-vs-the-official-client), honest about where gRPC/HTTP2 wins.
+   the [published numbers](benchmarks/README.md#measured-latency) come from running it in CI against a pinned
+   Qdrant, alongside the footprint table in the [README](README.md#footprint-vs-the-official-client), honest
+   about where gRPC/HTTP2 wins.
 
 With those gates met, **`1.0.0` is this release** — built on `0.2.0`, adding M19–M24. From here the public
 API is stable under SemVer; new capabilities arrive as additive `1.x` minors, and breaking changes wait for
