@@ -20,6 +20,12 @@ subprojects {
 apiValidation {
     ignoredProjects.add("example-rag")
     ignoredProjects.add("benchmarks")
+    // The gRPC engine's protobuf and stub classes are generated from Qdrant's own .proto files, so
+    // their surface is Qdrant's to change, not ours to promise. Tracking them would bury the module's
+    // real API — the transport factory — under thousands of generated lines. Everything hand-written
+    // lives in dev.kdrant.transport.grpc and stays tracked.
+    ignoredPackages.add("qdrant")
+    ignoredPackages.add("grpc.health.v1")
 }
 
 // Quality tooling (format, static analysis, coverage) on the Kotlin source modules — the code-less
