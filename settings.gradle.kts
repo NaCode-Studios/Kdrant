@@ -21,6 +21,7 @@ include(
     "kdrant-spring-ai",
     "kdrant-langchain4j",
     "kdrant-micrometer",
+    "kdrant-transport-grpc",
     "example-rag",
     "benchmarks",
 )
