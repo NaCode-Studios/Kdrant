@@ -48,6 +48,18 @@ jobs:
       - name: Build, test, lint (ktlint + detekt) and verify public API
         run: ./gradlew build --no-daemon --stacktrace
 
+      - name: Coverage (Kover)
+        if: matrix.java == '17'
+        run: ./gradlew koverXmlReport koverHtmlReport koverVerify --no-daemon --stacktrace
+
+      - name: Upload coverage report
+        if: matrix.java == '17'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: build/reports/kover/
+          retention-days: 7
+
       - name: Upload reports
         if: failure()
         uses: actions/upload-artifact@v7

@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
   packages: write
+  # Build provenance: id-token signs the attestation, attestations stores it against the repository.
+  id-token: write
+  attestations: write
 
 jobs:
   publish:
@@ -23,6 +26,22 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      # Build the jars first so the provenance is attested for the exact artifacts the publish steps
+      # upload: those tasks find them up to date and republish these files rather than rebuilding.
+      - name: Assemble the published artifacts
+        run: ./gradlew assemble --no-daemon --no-configuration-cache
+
+      - name: Attest build provenance (SLSA)
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            kdrant-core/build/libs/*.jar
+            kdrant-transport-rest/build/libs/*.jar
+            kdrant-spring-boot-starter/build/libs/*.jar
+            kdrant-spring-ai/build/libs/*.jar
+            kdrant-langchain4j/build/libs/*.jar
+            kdrant-micrometer/build/libs/*.jar
 
       - name: Publish to Maven Central
         if: github.event_name == 'push'

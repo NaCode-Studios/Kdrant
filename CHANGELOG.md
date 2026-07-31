@@ -51,6 +51,18 @@ All notable changes to this project are documented in this file. The format is b
   are parameters of `Kdrant(...)`, not of `KdrantConfig`, which stays transport-neutral. This is where the
   pool settings declined on `KdrantConfig` land.
 
+- Contract tests against Qdrant's OpenAPI schema (M29). Every request body the REST engine builds is
+  captured from a real client call and validated against the schema Qdrant publishes for that endpoint,
+  with unknown properties treated as failures. Qdrant's document is vendored under
+  `kdrant-transport-rest/src/test/resources` and pinned to the version the CI matrix runs against, so
+  refreshing it is how a wire change that would otherwise pass silently becomes a failing build.
+- Kover coverage (M29), which the Kotlin 2.4 incompatibility had deferred. `./gradlew koverHtmlReport`
+  covers the six published modules; CI runs it on JDK 17 and enforces a 75% line floor — a floor to
+  catch a module arriving untested, not a number to inch towards. Current line coverage is 82.8%.
+- SLSA build provenance on release (M29): the release workflow assembles the jars, attests them with
+  `actions/attest-build-provenance`, and only then publishes, so the attestation covers the exact files
+  that reach Maven Central and GitHub Packages.
+
 ### Fixed
 
 - `Direction` now serializes as Qdrant's lowercase `asc` / `desc`. It was only ever written through the

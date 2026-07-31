@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.binary.compatibility.validator)
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.kover)
 }
 
 subprojects {
@@ -21,8 +22,8 @@ apiValidation {
     ignoredProjects.add("benchmarks")
 }
 
-// Quality tooling (format, static analysis) on the Kotlin source modules — the code-less kdrant-bom is excluded.
-// (Kover coverage is deferred: 0.9.1 is not yet compatible with the Kotlin 2.4 Gradle plugin.)
+// Quality tooling (format, static analysis, coverage) on the Kotlin source modules — the code-less
+// kdrant-bom is excluded.
 configure(
     listOf(
         project(":kdrant-core"),
@@ -36,6 +37,7 @@ configure(
 ) {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "org.jetbrains.kotlinx.kover")
 
     extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
         buildUponDefaultConfig = true
@@ -57,4 +59,28 @@ configure(
 dependencies {
     dokka(project(":kdrant-core"))
     dokka(project(":kdrant-transport-rest"))
+}
+
+// Coverage over the published library modules. The example and the benchmark harness are excluded:
+// neither ships, and counting them would move the number without saying anything about the library.
+dependencies {
+    kover(project(":kdrant-core"))
+    kover(project(":kdrant-transport-rest"))
+    kover(project(":kdrant-spring-boot-starter"))
+    kover(project(":kdrant-spring-ai"))
+    kover(project(":kdrant-langchain4j"))
+    kover(project(":kdrant-micrometer"))
+}
+
+kover {
+    reports {
+        // The integration tests need Docker and are skipped without it, so the floor is set for the
+        // unit-test-only run every contributor and every CI job does. It is a floor, not a target:
+        // it exists to catch a module arriving untested, not to be inched towards.
+        verify {
+            rule {
+                minBound(75)
+            }
+        }
+    }
 }
