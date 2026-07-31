@@ -28,7 +28,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.client.mock)
 
-    // Integration tests spin up a real Qdrant in Docker.
+    // Integration tests spin up a real Qdrant in Docker. The testkit carries the shared client
+    // contract both engines are held to, and brings JUnit and Testcontainers with it.
+    testImplementation(project(":kdrant-testkit"))
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.qdrant)
 }

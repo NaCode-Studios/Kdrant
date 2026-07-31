@@ -23,6 +23,7 @@ include(
     "kdrant-micrometer",
     "kdrant-koog",
     "kdrant-transport-grpc",
+    "kdrant-testkit",
     "example-rag",
     "benchmarks",
 )
