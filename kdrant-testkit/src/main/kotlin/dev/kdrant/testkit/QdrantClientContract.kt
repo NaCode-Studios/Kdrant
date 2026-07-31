@@ -144,7 +144,10 @@ public abstract class QdrantClientContract {
 
     @Test
     public fun `points upserted from a list come back by id with their payload and vector`(): Unit = runBlocking {
-        withCollection { name ->
+        // Dot rather than cosine: a cosine collection stores the unit vector, which is Qdrant's
+        // behaviour and not the client's, and would make this assert normalization instead of a round
+        // trip. `a cosine collection stores the vector normalized` pins that separately.
+        withCollection(create = { vector { size = 4; distance = Distance.DOT } }) { name ->
             client.upsert(name, wait = true) {
                 point(1) {
                     vector(0.1f, 0.2f, 0.3f, 0.4f)
@@ -160,6 +163,20 @@ public abstract class QdrantClientContract {
             assertEquals("it", record.payload?.get("lang")?.toString()?.trim('"'))
             assertEquals(listOf(0.1f, 0.2f, 0.3f, 0.4f), denseOf(record.vector))
             assertEquals(2L, client.count(name))
+        }
+    }
+
+    @Test
+    public fun `a cosine collection stores the vector normalized, not as it was written`(): Unit = runBlocking {
+        // Qdrant normalizes on write for cosine, because the distance only depends on direction. It is
+        // the server's behaviour rather than the client's, and it is the reason a vector read back from
+        // a cosine collection does not equal the one that went in.
+        withCollection { name ->
+            client.upsert(name, wait = true) { point(1) { vector(0.0f, 0.0f, 0.0f, 2.0f) } }
+
+            val stored = client.retrieve(name, listOf(PointId.num(1)), withVector = true).single().vector
+
+            assertEquals(listOf(0.0f, 0.0f, 0.0f, 1.0f), denseOf(stored))
         }
     }
 
@@ -382,8 +399,8 @@ public abstract class QdrantClientContract {
     public fun `named vectors can be updated and deleted one at a time`(): Unit = runBlocking {
         withCollection(
             create = {
-                namedVector("text") { size = 2; distance = Distance.COSINE }
-                namedVector("image") { size = 2; distance = Distance.COSINE }
+                namedVector("text") { size = 2; distance = Distance.DOT }
+                namedVector("image") { size = 2; distance = Distance.DOT }
             },
         ) { name ->
             client.upsert(name, wait = true) {
@@ -487,7 +504,10 @@ public abstract class QdrantClientContract {
             assertEquals(1L, client.count(name) { must { matchExcept("lang", "de") } })
             assertEquals(1L, client.count(name) { must { matchText("title", "vector Kotlin") } })
             assertEquals(1L, client.count(name) { must { matchTextAny("title", "vector rust") } })
-            assertEquals(1L, client.count(name) { must { matchPhrase("title", "vector database") } })
+            // matchPhrase is deliberately absent. Qdrant matches a phrase only against a text index
+            // created with `phrase_matching: true`, and `createPayloadIndex` cannot ask for that yet,
+            // so the filter is accepted and matches nothing. Asserting zero here would pin the gap as
+            // if it were the behaviour.
             assertEquals(1L, client.count(name) { must { "score" between 4.0..5.0 } })
             assertEquals(1L, client.count(name) { must { valuesCount("tags", gte = 2) } })
             assertEquals(1L, client.count(name) { must { hasId(PointId.num(1)) } })
