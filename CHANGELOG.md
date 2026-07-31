@@ -17,9 +17,6 @@ All notable changes to this project are documented in this file. The format is b
   every query. Here Qdrant runs the search. The module depends only on Koog's stable `rag-base`, not on
   the `rag-vector` beta. Koog's `namespace` becomes a payload field and a filter, so one collection can
   hold several of them.
-
-### Added
-
 - Cluster and sharding (M32), the gap the migration guide used to name as having no Kdrant equivalent.
   `collectionClusterInfo(name)` reads how a collection's shards are spread across peers, including the
   transfers in flight; `updateCollectionCluster(name, operation)` moves, replicates, aborts or drops a
@@ -47,7 +44,30 @@ All notable changes to this project are documented in this file. The format is b
   between a backup that fits in a window and one that does not. Shard ids come from
   `collectionClusterInfo`.
 
+
+- **`kdrant-transport-grpc`** (M31), the opt-in gRPC engine. `KdrantGrpc(host)` returns the same
+  `QdrantClient` the REST factory does, over Qdrant's `Collections`, `Points`, `Snapshots` and `Health`
+  services on port **6334**. REST stays the recommended engine; reach for this one when throughput or
+  long-lived streaming is the bottleneck, which is the case the README used to concede to the official
+  client. Nothing changes for a REST user: the module is separate, and a build that does not ask for it
+  resolves no gRPC, no protobuf and no Netty.
+  The stubs are generated from Qdrant's own `.proto` files, vendored verbatim at v1.18.2, rather than
+  taken from `io.qdrant:client` — grpc-kotlin emits suspend functions and `Flow`s, which is the shape
+  the transport seam already has, and generating decides the dependency set instead of inheriting a
+  shaded Netty jar that is most of the official client's footprint.
+- Both engines are held to one **shared client contract** (`kdrant-testkit`), which runs the same 30
+  behavioural tests against a real Qdrant over each protocol. The REST tests that came before it
+  asserted HTTP bodies, which a gRPC engine cannot satisfy by construction.
+
 ### Changed
+
+- Eleven `QdrantTransport` operations have no gRPC equivalent, because the seam was shaped by Qdrant's
+  REST API and Qdrant serves these over HTTP only: `telemetry`, `metrics`, `listIssues`, `clearIssues`,
+  `recoverSnapshot`, snapshot download and upload, and the five shard-scope snapshot operations. On the
+  gRPC engine each throws an `UnsupportedOperationException` naming the operation and pointing at REST,
+  rather than degrading quietly — a snapshot download that returns nothing is a backup that does not
+  exist. The REST engine is unchanged.
+
 
 - Releases publish to Maven Central only. The secondary publication to GitHub Packages is gone: it
   carried the same artifacts to a registry that requires authentication even for public packages, so it

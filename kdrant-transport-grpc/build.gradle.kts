@@ -33,6 +33,11 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.grpc.inprocess)
+
+    // The shared client contract, run here against the same real Qdrant the REST engine is held to.
+    testImplementation(project(":kdrant-testkit"))
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.qdrant)
 }
 
 // Resolved before the protobuf { } block: inside it the extension receiver shadows the catalog accessor.

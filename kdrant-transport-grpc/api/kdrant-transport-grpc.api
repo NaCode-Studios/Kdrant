@@ -1,0 +1,66 @@
+public final class dev/kdrant/transport/grpc/GrpcQdrantTransport : dev/kdrant/transport/QdrantTransport {
+	public fun batchUpdate (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun clearIssues (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun clearPayload (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun close ()V
+	public fun collectionClusterInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createShardKey (Ljava/lang/String;Ldev/kdrant/model/CreateShardKeyRequest;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createShardSnapshot (Ljava/lang/String;IZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createSnapshot (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createStorageSnapshot (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun delete (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deletePayload (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deletePayloadIndex (Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteShardKey (Ljava/lang/String;Ldev/kdrant/model/ShardKey;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteShardSnapshot (Ljava/lang/String;ILjava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteSnapshot (Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteStorageSnapshot (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteVectors (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun downloadShardSnapshot (Ljava/lang/String;ILjava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun downloadSnapshot (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun downloadStorageSnapshot (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun facet (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCollection (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun healthz (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listAliases (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listCollectionAliases (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listCollections (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listIssues (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listShardSnapshots (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listSnapshots (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listStorageSnapshots (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun livez (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun metrics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun overwritePayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun query (Ljava/lang/String;Ldev/kdrant/model/SearchRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun queryBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun queryGroups (Ljava/lang/String;Ldev/kdrant/model/SearchGroupsRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun readyz (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recoverShardSnapshot (Ljava/lang/String;ILjava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recoverSnapshot (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun scroll (Ljava/lang/String;Ldev/kdrant/model/ScrollRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun searchMatrixOffsets (Ljava/lang/String;Ldev/kdrant/model/SearchMatrixRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun searchMatrixPairs (Ljava/lang/String;Ldev/kdrant/model/SearchMatrixRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setPayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun telemetry (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateAliases (Ljava/util/List;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateCollection (Ljava/lang/String;Ldev/kdrant/model/UpdateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateCollectionCluster (Ljava/lang/String;Ldev/kdrant/model/ClusterOperation;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun uploadShardSnapshot (Ljava/lang/String;ILkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun uploadSnapshot (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun upsert (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun upsert (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/kdrant/transport/grpc/KdrantGrpcKt {
+	public static final fun KdrantGrpc (Ljava/lang/String;IILkotlin/jvm/functions/Function1;)Ldev/kdrant/QdrantClient;
+	public static synthetic fun KdrantGrpc$default (Ljava/lang/String;IILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/kdrant/QdrantClient;
+}
+
