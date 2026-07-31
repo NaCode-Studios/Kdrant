@@ -5,8 +5,8 @@ import dev.kdrant.model.PointStruct
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.VectorData
-import qdrant.Points
 import qdrant.Common
+import qdrant.Points
 
 /**
  * Point, id and vector conversion between Kdrant's models and Qdrant's protobuf messages.
@@ -34,7 +34,7 @@ internal object PointMapping {
         Common.PointId.PointIdOptionsCase.NUM -> PointId.num(id.num.toULong())
         Common.PointId.PointIdOptionsCase.UUID -> PointId.uuid(id.uuid)
         Common.PointId.PointIdOptionsCase.POINTIDOPTIONS_NOT_SET, null ->
-            throw IllegalStateException("Qdrant returned a point with no id set")
+            error("Qdrant returned a point with no id set")
     }
 
     fun pointToProto(point: PointStruct): Points.PointStruct = Points.PointStruct.newBuilder()
