@@ -118,12 +118,30 @@ class CommonCoreTest {
     }
 
     @Test
-    fun `a config with an api key over plaintext is refused`() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            kdrantConfig("localhost", 6333) { apiKey = "secret" }
+    fun `a credential sent across a network without TLS is refused`() {
+        val key = assertFailsWith<IllegalArgumentException> {
+            kdrantConfig("qdrant.example.com", 6333) { apiKey = "secret" }
+        }
+        val token = assertFailsWith<IllegalArgumentException> {
+            kdrantConfig("qdrant.example.com", 6333) { bearerToken = "a.jwt.value" }
         }
 
-        assertTrue(error.message!!.contains("useTls"), error.message)
+        assertTrue(key.message!!.contains("useTls"), key.message)
+        assertTrue(token.message!!.contains("useTls"), token.message)
+    }
+
+    @Test
+    fun `a credential to this machine needs no TLS because nothing leaves it`() {
+        assertEquals("secret", kdrantConfig("localhost", 6333) { apiKey = "secret" }.apiKey)
+        assertEquals("secret", kdrantConfig("127.0.0.1", 6333) { apiKey = "secret" }.apiKey)
+        assertEquals("a.jwt.value", kdrantConfig("::1", 6333) { bearerToken = "a.jwt.value" }.bearerToken)
+    }
+
+    @Test
+    fun `an api key and a bearer token cannot both be set`() {
+        assertFailsWith<IllegalArgumentException> {
+            kdrantConfig("localhost", 6333) { apiKey = "secret"; bearerToken = "a.jwt.value" }
+        }
     }
 
     @Test
@@ -133,11 +151,14 @@ class CommonCoreTest {
     }
 
     @Test
-    fun `the config never prints the api key`() {
-        val rendered = kdrantConfig("localhost", 6333) { apiKey = "secret"; useTls = true }.toString()
+    fun `the config never prints either credential`() {
+        val key = kdrantConfig("localhost", 6333) { apiKey = "secret"; useTls = true }.toString()
+        val token = kdrantConfig("localhost", 6333) { bearerToken = "a.jwt.value"; useTls = true }.toString()
 
-        assertTrue(rendered.contains("apiKey=***"), rendered)
-        assertTrue(!rendered.contains("secret"), rendered)
+        assertTrue(key.contains("apiKey=***"), key)
+        assertTrue(!key.contains("secret"), key)
+        assertTrue(token.contains("bearerToken=***"), token)
+        assertTrue(!token.contains("a.jwt.value"), token)
     }
 
     @Test

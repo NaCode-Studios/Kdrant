@@ -3,6 +3,7 @@ package dev.kdrant.transport.grpc
 import dev.kdrant.KdrantConfigBuilder
 import dev.kdrant.QdrantClient
 import dev.kdrant.kdrantConfig
+import dev.kdrant.transport.QdrantTransport
 
 /**
  * Entry point: creates a [QdrantClient] backed by the gRPC engine.
@@ -24,13 +25,16 @@ import dev.kdrant.kdrantConfig
  * @param upsertBatchSize maximum points per upsert request; larger lists and flows are split. gRPC's
  *   default message limit is 4 MiB, well under REST's 32 MiB, so this default is lower than the REST
  *   engine's for the same reason that one exists.
+ * @param decorateTransport wraps the engine before the client is built. The same hook the REST factory
+ *   takes, and the reason `kdrant-otel` needs one implementation rather than one per engine.
  */
 public fun KdrantGrpc(
     host: String,
     port: Int = 6334,
     upsertBatchSize: Int = 256,
+    decorateTransport: (QdrantTransport) -> QdrantTransport = { it },
     configure: KdrantConfigBuilder.() -> Unit = {},
 ): QdrantClient {
     val config = kdrantConfig(host, port, configure)
-    return QdrantClient(GrpcQdrantTransport(config, managedChannel(config), upsertBatchSize))
+    return QdrantClient(decorateTransport(GrpcQdrantTransport(config, managedChannel(config), upsertBatchSize)))
 }

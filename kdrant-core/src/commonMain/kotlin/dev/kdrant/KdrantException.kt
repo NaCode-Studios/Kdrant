@@ -26,10 +26,35 @@ public sealed class KdrantException(
         },
     )
 
-    /** Authentication failed or is required (missing/invalid API key). */
-    public class Unauthorized(
+    /**
+     * Authentication failed or is required: no credential, or one the server does not accept
+     * (HTTP 401). [Forbidden] is the narrower case where the credential is valid.
+     */
+    public open class Unauthorized(
         message: String = "Unauthorized",
     ) : KdrantException(message)
+
+    /**
+     * The credential is valid and does not reach this far (HTTP 403): a read-only JWT asked to write,
+     * or a token scoped to other collections. A subclass of [Unauthorized] so an existing
+     * `catch (e: KdrantException.Unauthorized)` keeps catching it, and a `when` over the sealed
+     * hierarchy stays exhaustive.
+     *
+     * This is the failure worth acting on rather than retrying: the same request will be refused
+     * again with the same token, however long you wait.
+     *
+     * @property collection the collection the refused operation named, when it named one.
+     */
+    public class Forbidden(
+        public val collection: String? = null,
+        serverMessage: String? = null,
+    ) : Unauthorized(
+        buildString {
+            append("Forbidden: the credential in use is not allowed to perform this operation")
+            if (collection != null) append(" on collection '").append(collection).append("'")
+            if (!serverMessage.isNullOrBlank()) append(" (").append(serverMessage).append(")")
+        },
+    )
 
     /** The server rejected the request as malformed (HTTP 4xx other than auth/not-found). */
     public class InvalidRequest(

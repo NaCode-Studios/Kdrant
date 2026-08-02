@@ -1,0 +1,7 @@
+public final class dev/kdrant/otel/KdrantTracingKt {
+	public static final fun kdrantTracing (Lio/opentelemetry/api/OpenTelemetry;Ljava/lang/String;Ljava/lang/Integer;)Lkotlin/jvm/functions/Function1;
+	public static synthetic fun kdrantTracing$default (Lio/opentelemetry/api/OpenTelemetry;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lkotlin/jvm/functions/Function1;
+	public static final fun traced (Ldev/kdrant/transport/QdrantTransport;Lio/opentelemetry/api/OpenTelemetry;Ljava/lang/String;Ljava/lang/Integer;)Ldev/kdrant/transport/QdrantTransport;
+	public static synthetic fun traced$default (Ldev/kdrant/transport/QdrantTransport;Lio/opentelemetry/api/OpenTelemetry;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/kdrant/transport/QdrantTransport;
+}
+

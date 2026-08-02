@@ -81,7 +81,7 @@ mavenPublishing {
         description.set(
             "The opt-in gRPC engine for Kdrant, the coroutine-first Kotlin client for the Qdrant vector " +
                 "database. REST remains the default; reach for this when throughput or streaming is the " +
-                "bottleneck.",
+                "bottleneck. JVM only, because it is built on grpc-java.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

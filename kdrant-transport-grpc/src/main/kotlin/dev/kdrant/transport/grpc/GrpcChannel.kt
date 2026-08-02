@@ -24,6 +24,7 @@ internal fun managedChannel(config: KdrantConfig): ManagedChannel {
     if (config.useTls) builder.useTransportSecurity() else builder.usePlaintext()
     config.connectTimeout?.let { builder.keepAliveTimeout(it.inWholeMilliseconds, TimeUnit.MILLISECONDS) }
     config.apiKey?.let { builder.intercept(ApiKeyInterceptor(it)) }
+    config.bearerToken?.let { builder.intercept(BearerTokenInterceptor(it)) }
     return builder.build()
 }
 
@@ -51,5 +52,33 @@ internal class ApiKeyInterceptor(private val apiKey: String) : ClientInterceptor
 
     internal companion object {
         val API_KEY: Metadata.Key<String> = Metadata.Key.of("api-key", Metadata.ASCII_STRING_MARSHALLER)
+    }
+}
+
+/**
+ * Sends a Qdrant JWT as `authorization: Bearer …` metadata, the same header the REST engine sends it
+ * in. The credential belongs to the config rather than to the wire, so both engines read it from the
+ * same field and a caller can move a scoped token between them unchanged.
+ */
+internal class BearerTokenInterceptor(token: String) : ClientInterceptor {
+
+    private val value = "Bearer $token"
+
+    override fun <Q : Any, S : Any> interceptCall(
+        method: MethodDescriptor<Q, S>,
+        callOptions: CallOptions,
+        next: Channel,
+    ): ClientCall<Q, S> = object : ForwardingClientCall.SimpleForwardingClientCall<Q, S>(
+        next.newCall(method, callOptions),
+    ) {
+        override fun start(responseListener: Listener<S>, headers: Metadata) {
+            headers.put(AUTHORIZATION, value)
+            super.start(responseListener, headers)
+        }
+    }
+
+    internal companion object {
+        val AUTHORIZATION: Metadata.Key<String> =
+            Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
     }
 }

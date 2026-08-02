@@ -75,10 +75,14 @@ mavenPublishing {
     coordinates("io.github.nacode-studios", "kdrant-core", version.toString())
     pom {
         name.set("Kdrant Core")
+        // What a stranger reads first is a catalog card, not the README, and this is the only line on
+        // it. It has to name the platforms the artifact actually publishes, and it has to say which
+        // coordinate to depend on, because this one deliberately carries no engine.
         description.set(
-            "Idiomatic, coroutine-first Kotlin client for the Qdrant vector database — suspend " +
+            "Idiomatic, coroutine-first Kotlin client for the Qdrant vector database: suspend " +
                 "functions, a type-safe filter/query DSL, kotlinx-serialization models, and a pluggable " +
-                "transport seam. Core module for RAG and embedding search on the JVM.",
+                "transport seam. Kotlin Multiplatform, for the JVM, iOS, macOS, Linux and Windows. This " +
+                "module carries no engine; depend on kdrant-transport-rest to send a request.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

@@ -25,6 +25,20 @@ public class ScrollBuilder internal constructor(private val pageSize: Int) {
     /** Scroll only the shards holding this key. `null` (default) reads every shard. */
     public var shardKey: ShardKey? = null
 
+    /**
+     * Start the scroll at this point id, **inclusive**, so a job that was interrupted resumes where it
+     * stopped instead of re-reading from the beginning. `null` (default) starts at the first point.
+     *
+     * Inclusive is Qdrant's own cursor semantics, not a choice made here: resuming from the last id a
+     * previous run handled reads that one point again. For an idempotent consumer — anything keyed by
+     * point id — that is a repeat rather than a duplicate.
+     *
+     * An id-ordered scroll reads in ascending id order, which is what makes an id a valid cursor at
+     * all. Ignored by an ordered scroll, which resumes through [orderBy]'s `startFrom` because Qdrant
+     * returns no id cursor for one.
+     */
+    public var startAt: PointId? = null
+
     /** Restrict the scroll to points matching this filter. */
     public fun filter(configure: FilterBuilder.() -> Unit) {
         filter = FilterBuilder().apply(configure).build()

@@ -39,8 +39,8 @@ mavenPublishing {
         name.set("Kdrant Koog storage")
         description.set(
             "A JetBrains Koog document storage backed by Kdrant, the coroutine-first Kotlin client for " +
-                "the Qdrant vector database — Qdrant runs the similarity search rather than the agent " +
-                "ranking a streamed collection in memory.",
+                "the Qdrant vector database: Qdrant runs the similarity search rather than the agent " +
+                "ranking a streamed collection in memory. JVM.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

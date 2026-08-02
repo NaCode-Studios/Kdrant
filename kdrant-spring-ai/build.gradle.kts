@@ -40,8 +40,8 @@ mavenPublishing {
         name.set("Kdrant Spring AI VectorStore")
         description.set(
             "A Spring AI VectorStore backed by Kdrant, the coroutine-first Kotlin client for the Qdrant " +
-                "vector database — use Qdrant from Spring AI over a small pure-Kotlin REST transport instead " +
-                "of the gRPC stack.",
+                "vector database: use Qdrant from Spring AI over a small pure-Kotlin REST transport " +
+                "instead of the gRPC stack. JVM.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

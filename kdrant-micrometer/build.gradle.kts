@@ -40,7 +40,8 @@ mavenPublishing {
         name.set("Kdrant Micrometer metrics")
         description.set(
             "Micrometer instrumentation for Kdrant, the coroutine-first Kotlin client for the Qdrant " +
-                "vector database — request timings and outcomes per Qdrant operation, on any Micrometer registry.",
+                "vector database: request timings and outcomes per Qdrant operation, on any Micrometer " +
+                "registry. JVM.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

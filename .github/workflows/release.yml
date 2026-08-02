@@ -107,11 +107,13 @@ jobs:
           GH_TOKEN: ${{ secrets.ARTIFACT_METADATA_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          # kdrant-core is multiplatform, so its JVM jar is published as kdrant-core-jvm and the
-          # kdrant-core coordinate carries only Gradle metadata. The record names the artifact that
-          # exists; the digest has to match a file, not a coordinate.
-          for artifact in kdrant-core-jvm kdrant-transport-rest kdrant-transport-grpc \
-                          kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer; do
+          # A multiplatform module publishes its JVM jar under a -jvm coordinate, and the bare one
+          # carries only Gradle metadata. The record names the artifact that exists; the digest has to
+          # match a file, not a coordinate. kdrant-transport-rest and kdrant-migrate joined that list
+          # in 2.1.0.
+          for artifact in kdrant-core-jvm kdrant-transport-rest-jvm kdrant-transport-grpc \
+                          kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j \
+                          kdrant-micrometer kdrant-otel kdrant-koog kdrant-migrate-jvm; do
             module="${artifact%-jvm}"
             jar="$module/build/libs/$artifact-$VERSION.jar"
             [ -f "$jar" ] || { echo "::warning::$jar not found, not recorded"; continue; }

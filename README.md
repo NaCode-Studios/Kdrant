@@ -51,8 +51,14 @@ your own embedding model; Kdrant does not generate embeddings.
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
 > and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, cluster and sharding,
 > service/analytics endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI,
-> LangChain4j, Koog and Micrometer modules. `kdrant-core` builds for the JVM and eight Kotlin/Native
-> targets. The public API is stable under SemVer; see [STABILITY.md](STABILITY.md).
+> LangChain4j, Koog, Micrometer, OpenTelemetry and migration modules. The public API is stable under
+> SemVer; see [STABILITY.md](STABILITY.md).
+
+> **On `main`, not yet published.** Four things below arrive with `2.1.0`: the REST engine runs on every
+> target `kdrant-core` compiles for, `KdrantConfig` takes a scoped JWT beside the master key,
+> `kdrant-otel` traces the transport seam, and `kdrant-migrate` moves a collection to a new embedding
+> without taking reads down. The install snippets still name `2.0.0`, which is what Maven Central
+> currently serves.
 
 ## Why Kdrant
 
@@ -65,8 +71,9 @@ your own embedding model; Kdrant does not generate embeddings.
 - Failures surface as a sealed `KdrantException` you can handle exhaustively, whichever engine raised
   them.
 - The wire protocol sits behind a `QdrantTransport` seam. That is not a claim about layering: it is why
-  a second engine could be added without changing one line of `kdrant-core`, and why the models and the
-  query DSL compile for iOS, macOS, Linux and Windows as well as the JVM.
+  a second engine could be added without changing one line of `kdrant-core`, why tracing is one
+  decorator rather than one per engine, and why a request can be sent from iOS, macOS, Linux and
+  Windows as well as from the JVM.
 
 ### Footprint vs the official client
 
@@ -79,7 +86,18 @@ Dependency stacks verified against `io.qdrant:client:1.18.3`:
 | Approx. added footprint | ~3-5 MB (Ktor + kotlinx-serialization; coroutines/stdlib are usually already present) | ~15-20 MB of transitive jars (shaded Netty ≈ 9 MB alone) |
 | API style | `suspend` functions + `Flow`, type-safe DSL | `ListenableFuture<T>` (Guava), protobuf builders |
 | Models | `kotlinx-serialization` data classes | generated protobuf messages |
-| GraalVM native / cold start | friendly (no Netty/protobuf reflection config) | needs gRPC/Netty/protobuf native config; heavier cold start |
+| GraalVM native / cold start | a native image is built and made to answer a real search in CI; the one piece of metadata it needs is generated and shipped inside the artifact | needs gRPC/Netty/protobuf native config you write and maintain; heavier cold start |
+
+The GraalVM row used to read "friendly", and nobody had ever built an image. It is now a CI job
+([`native-image`](.github/workflows/ci.yml)) that compiles [`example-native-image`](example-native-image/)
+with `--no-fallback` and runs it against a real Qdrant, so the day a dependency starts reflecting the
+build fails instead of the sentence quietly becoming false.
+
+Building it found the one thing that does reflect. Ktor resolves a serializer from the response type at
+run time and kotlinx-serialization answers by looking for the generated `$$serializer`, which a native
+image cannot find unless the class is registered. `kdrant-transport-rest` therefore ships that
+registration in its own jar, generated from the classes on the classpath rather than written by hand, so
+it cannot go stale and a consumer building a native image writes nothing.
 
 For raw throughput and streaming, gRPC/HTTP2 still wins. That case now has an answer inside Kdrant:
 `kdrant-transport-grpc` is an opt-in engine behind the same `QdrantClient`, so the column above stays
@@ -104,14 +122,16 @@ Everything below is optional and additive. Take the engine you want and nothing 
 
 | Artifact | What you get |
 | --- | --- |
-| `kdrant-transport-rest` | **The one to start with.** The REST engine on Ktor CIO and the `Kdrant(...)` factory. Brings `kdrant-core` with it. |
-| `kdrant-transport-grpc` | The opt-in gRPC engine and the `KdrantGrpc(...)` factory. Reach for it when throughput or long-lived streaming is the bottleneck. |
+| `kdrant-transport-rest` | **The one to start with.** The REST engine and the `Kdrant(...)` factory. Multiplatform: CIO on the JVM, Darwin on iOS and macOS, Curl on Linux, WinHttp on Windows. Brings `kdrant-core` with it. |
+| `kdrant-transport-grpc` | The opt-in gRPC engine and the `KdrantGrpc(...)` factory. Reach for it when throughput or long-lived streaming is the bottleneck. JVM only, because it is grpc-java. |
 | `kdrant-core` | The public API, models, DSLs and the `QdrantTransport` seam, with no wire-protocol knowledge. Multiplatform. You rarely depend on it directly. |
 | `kdrant-spring-boot-starter` | Spring Boot auto-configuration: `kdrant.*` properties and a ready `QdrantClient` bean. |
 | `kdrant-spring-ai` | A Spring AI `VectorStore` backed by Kdrant, metadata filters included. |
 | `kdrant-langchain4j` | A LangChain4j `EmbeddingStore` backed by Kdrant, metadata filters included. |
 | `kdrant-koog` | A [Koog](https://github.com/JetBrains/koog) document storage where Qdrant runs the search instead of the agent scoring in memory. |
 | `kdrant-micrometer` | Request timings and outcomes per Qdrant operation, tagged by route template rather than by URL. |
+| `kdrant-otel` | One OpenTelemetry client span per operation, over either engine, carrying no payload or vector data. |
+| `kdrant-migrate` | Re-embed a collection into a new one, resume the copy after an interruption, verify it, and move the alias only once the verification passed. |
 | `kdrant-bom` | A platform that keeps the versions above aligned. Import it and drop the versions. |
 
 ```kotlin
@@ -140,9 +160,32 @@ two issues calls, snapshot recovery, the snapshot and storage-snapshot transfers
 shard-scope snapshot operations. The gRPC engine refuses each of them by name rather than degrading
 quietly.
 
-`kdrant-core` is a Kotlin Multiplatform library and publishes one artifact per target. A Gradle build
-resolves the right one from the `kdrant-core` coordinate and needs no change. A Maven build names the
-artifact directly and wants `kdrant-core-jvm`. The engines and adapters are JVM-only and are unaffected.
+### Platforms
+
+`kdrant-core`, `kdrant-transport-rest` and `kdrant-migrate` are Kotlin Multiplatform and publish one
+artifact per target: the JVM, `iosArm64`, `iosSimulatorArm64`, `iosX64`, `macosArm64`, `macosX64`,
+`linuxArm64`, `linuxX64` and `mingwX64`. An iOS or Linux application depends on the same coordinate a
+JVM one does:
+
+```kotlin
+commonMain.dependencies {
+    implementation("io.github.nacode-studios:kdrant-transport-rest:2.1.0")
+}
+```
+
+The engine is chosen per target and the code above it is the same everywhere. Two consequences belong
+here rather than in a stack trace. On Apple platforms the engine is NSURLSession, so App Transport
+Security applies and a plaintext `http://` Qdrant is refused by the platform before Kdrant sees the
+request: use TLS, or declare the exception yourself. On Linux the engine is Curl, which links against
+the system libcurl — present on every mainstream distribution, and worth checking in a slim container
+image.
+
+A Gradle build resolves the right variant from the plain coordinate and needs no change. A Maven build
+names the artifact directly and wants the `-jvm` one: `kdrant-core-jvm`, `kdrant-transport-rest-jvm`.
+The gRPC engine and the framework adapters are JVM-only and are unaffected.
+
+The same behavioural contract that holds the two engines to one behaviour runs from a `linuxX64` and a
+`macosArm64` binary against a real Qdrant in CI, because a klib that links has not been shown to work.
 
 You also need a running Qdrant. For local development:
 
@@ -308,6 +351,73 @@ val english = qdrant.count("articles") { must { "lang" eq "en" } }
 val points: List<Record> = qdrant.retrieve("articles", ids = listOf(PointId.num(1), PointId.num(2)))
 ```
 
+### Scoped access
+
+`apiKey` is the cluster's master key: full read and write over every collection. A Qdrant JWT is the
+narrower credential — read-only, one collection, or a payload filter deciding which points the caller
+may see at all, which is how one tenant's search is kept from reading another tenant's points.
+
+```kotlin
+val readOnly = Kdrant(host = "qdrant.internal") {
+    bearerToken = tokenFromYourTokenService()
+    useTls = true
+}
+```
+
+The two are mutually exclusive, both engines send whichever one is set, and a credential over plaintext
+HTTP is refused unless the host is a loopback address, where nothing leaves the machine. Minting and
+rotating tokens is Qdrant's job; see its
+[security guide](https://qdrant.tech/documentation/guides/security/).
+
+A refusal comes back as something you can act on:
+
+```kotlin
+try {
+    qdrant.upsert("articles") { /* ... */ }
+} catch (e: KdrantException.Forbidden) {
+    // the token is valid and does not reach this far: retrying will not help
+}
+```
+
+### Tracing
+
+```kotlin
+val qdrant = Kdrant(
+    host = "localhost",
+    decorateTransport = kdrantTracing(openTelemetry, serverAddress = "localhost", serverPort = 6333),
+)
+```
+
+One client span per operation, named `<operation> <collection>`, with OpenTelemetry's database
+attributes. It sits on the transport seam, so the same call over `KdrantGrpc` produces the same span.
+`kdrant-otel` depends on the OpenTelemetry API rather than the SDK, so the exporter stays yours.
+
+No payload value, no vector and no filter ever reaches an attribute: a span is exported to a backend
+many people can read, and the whole point of a filter is often that it names a tenant.
+
+### Migrating a collection to a new embedding
+
+A collection's vector size is fixed at creation, so changing embedding model means a second collection
+and an alias swap. `kdrant-migrate` is that procedure, with the two parts that are easy to get wrong
+already handled:
+
+```kotlin
+val report = qdrant.migrateCollection(
+    from = "docs-768",
+    to = "docs-1536",
+    alias = "docs",
+    createTarget = { vector { size = 1536; distance = Distance.COSINE } },
+    checkpoints = FileMigrationCheckpointStore(Path("/var/lib/kdrant")),
+) { record ->
+    PointStruct(record.id, VectorData.Dense(embed(record.text())), record.payload)
+}
+```
+
+Readers go through the alias throughout and see no gap. The copy resumes from its cursor after an
+interruption rather than starting over, and the alias moves only after the counts match and a sample of
+queries returns the same neighbours from both collections above a stated recall. If the check fails,
+`MigrationVerificationFailed` is thrown with the numbers in it and the alias stays where it was.
+
 ### Error handling
 
 ```kotlin
@@ -315,8 +425,10 @@ try {
     qdrant.upsert("articles") { /* ... */ }
 } catch (e: KdrantException.CollectionNotFound) {
     // the collection does not exist
+} catch (e: KdrantException.Forbidden) {
+    // the credential is valid and this operation is not in its scope
 } catch (e: KdrantException.Unauthorized) {
-    // missing or wrong API key
+    // missing or wrong credential. Forbidden is a subclass, so order these two this way round
 }
 ```
 
@@ -334,8 +446,9 @@ The wire lives behind one interface, `QdrantTransport`, and everything above it 
 ```
 kdrant-core          QdrantClient, models, DSLs, KdrantException, QdrantTransport
    |                 no wire-protocol knowledge · JVM + 8 Kotlin/Native targets
-   +-- kdrant-transport-rest    Ktor CIO      Kdrant(host)        JVM
-   +-- kdrant-transport-grpc    grpc-kotlin   KdrantGrpc(host)    JVM
+   +-- kdrant-transport-rest    Ktor         Kdrant(host)        JVM + 8 native targets
+   +-- kdrant-transport-grpc    grpc-kotlin  KdrantGrpc(host)    JVM
+   +-- kdrant-otel              decorator    kdrantTracing(...)  either engine
 ```
 
 That is the arrangement the second engine tested. Adding gRPC changed no line of `kdrant-core`, and the
@@ -344,10 +457,17 @@ a footprint and throughput decision rather than a feature one. The exception is 
 Qdrant serves over HTTP only, which the gRPC engine names.
 
 It is also why the core compiles for iOS, macOS, Linux and Windows: code that never knew there was a
-wire has nothing platform-specific to port. The engines stay JVM-only, because Ktor CIO and grpc-java
-are, so a multiplatform consumer today shares its models and its query building and supplies its own
-transport. Kotlin/JS is left out for that reason rather than an accident of effort: with no JS engine
-the target would ship a DSL with nothing to send.
+wire has nothing platform-specific to port. For two releases that was where it stopped, and those
+targets got the models and the query DSL with nothing to put them on the wire. The REST engine now
+compiles for all of them, because Ktor's client is one API across engines and only the engine had to be
+chosen per target. The gRPC engine stays on the JVM, because grpc-java is.
+
+Kotlin/JS is left out for a different reason rather than an accident of effort: the target brings the
+only npm dependency graph this repository has, and that is a decision of its own.
+
+The seam is also where anything above the wire goes. `kdrant-otel` is a decorator on `QdrantTransport`,
+so one implementation traces both engines and would trace a third; `decorateTransport` on either
+factory is the same hook for a decorator of your own.
 
 ## Roadmap
 
@@ -369,6 +489,15 @@ service, health and analytics endpoints, a `FloatArray` no-boxing hot path, the 
 engine, and typed-payload DX. The [CHANGELOG](CHANGELOG.md) has the version-by-version detail, and the
 [migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) has
 [measured latency](benchmarks/README.md#measured-latency) behind it.
+
+**On `main`, unreleased (`2.1.0`).** Tier 7 makes three claims true that were previously only
+compiled, only argued or only asserted. The REST engine runs on every target `kdrant-core` does, and
+the shared behavioural contract runs from a Linux and a macOS native binary against a real Qdrant.
+`KdrantConfig` takes a scoped JWT beside the master key, and a refusal arrives as
+`KdrantException.Forbidden` rather than as a generic failure. `kdrant-otel` traces the transport seam,
+`kdrant-migrate` moves a collection to a new embedding without taking reads down, a GraalVM native image
+is built and made to search in CI, and every published POM description now names the platforms that
+module actually has, checked on every build.
 
 **Next.** Nothing is claimed yet; the board is where it gets decided.
 
