@@ -131,7 +131,7 @@ class CommonCoreTest {
     }
 
     @Test
-    fun `a credential to this machine needs no TLS, because nothing leaves it`() {
+    fun `a credential to this machine needs no TLS because nothing leaves it`() {
         assertEquals("secret", kdrantConfig("localhost", 6333) { apiKey = "secret" }.apiKey)
         assertEquals("secret", kdrantConfig("127.0.0.1", 6333) { apiKey = "secret" }.apiKey)
         assertEquals("a.jwt.value", kdrantConfig("::1", 6333) { bearerToken = "a.jwt.value" }.bearerToken)

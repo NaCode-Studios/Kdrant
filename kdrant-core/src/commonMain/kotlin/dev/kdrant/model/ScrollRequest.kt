@@ -13,7 +13,10 @@ public data class ScrollRequest(
     @SerialName("limit")
     public val limit: Int,
 
-    /** Page cursor: the point id to start after. `null` for the first page. */
+    /**
+     * Page cursor: the point id to start at, **inclusive** — Qdrant returns it as
+     * [ScrollPage.nextPageOffset], the first id of the next page. `null` for the first page.
+     */
     @SerialName("offset")
     public val offset: PointId? = null,
 

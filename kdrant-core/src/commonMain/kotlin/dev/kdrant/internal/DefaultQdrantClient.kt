@@ -197,7 +197,7 @@ internal class DefaultQdrantClient(
     }
 
     private suspend fun FlowCollector<Record>.scrollById(name: String, builder: ScrollBuilder) {
-        var offset: PointId? = null
+        var offset: PointId? = builder.startAt
         while (true) {
             val page = transport.scroll(name, builder.build(offset))
             page.points.forEach { emit(it) }

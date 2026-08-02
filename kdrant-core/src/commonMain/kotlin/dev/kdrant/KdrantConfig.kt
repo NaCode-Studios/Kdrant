@@ -39,6 +39,10 @@ public annotation class KdrantDsl
  * @property dispatcher dispatcher the client runs on; injectable for tests. The default is
  *   platform-dependent, see [ioDispatcher].
  */
+// A settings bag is the one shape where a long parameter list is the API rather than a smell: every
+// entry is an independent, defaulted knob, and grouping them into sub-objects would make the DSL that
+// callers actually use worse to read. The DSL is the front door; this constructor is what it builds.
+@Suppress("LongParameterList")
 public class KdrantConfig(
     public val host: String,
     public val port: Int,

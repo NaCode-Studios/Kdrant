@@ -1,0 +1,65 @@
+public final class dev/kdrant/migrate/CollectionMigrationKt {
+	public static final fun copyUnchanged (Ldev/kdrant/model/Record;)Ldev/kdrant/model/PointStruct;
+	public static final fun migrateCollection (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILdev/kdrant/migrate/MigrationCheckpointStore;Ljava/lang/String;Ldev/kdrant/migrate/MigrationVerification;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun migrateCollection$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILdev/kdrant/migrate/MigrationCheckpointStore;Ljava/lang/String;Ldev/kdrant/migrate/MigrationVerification;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/kdrant/migrate/FileMigrationCheckpointStore : dev/kdrant/migrate/MigrationCheckpointStore {
+	public static final field NUM Ljava/lang/String;
+	public static final field SEPARATOR Ljava/lang/String;
+	public static final field SUFFIX Ljava/lang/String;
+	public static final field TEMPORARY_SUFFIX Ljava/lang/String;
+	public static final field UUID Ljava/lang/String;
+	public fun <init> (Ljava/nio/file/Path;)V
+	public fun clear (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun load (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun save (Ljava/lang/String;Ldev/kdrant/migrate/MigrationCheckpoint;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/kdrant/migrate/MigrationCheckpoint {
+	public fun <init> (Ldev/kdrant/model/PointId;J)V
+	public final fun getCopied ()J
+	public final fun getResumeAt ()Ldev/kdrant/model/PointId;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/kdrant/migrate/MigrationCheckpointStore {
+	public static final field Companion Ldev/kdrant/migrate/MigrationCheckpointStore$Companion;
+	public abstract fun clear (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun load (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun save (Ljava/lang/String;Ldev/kdrant/migrate/MigrationCheckpoint;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/kdrant/migrate/MigrationCheckpointStore$Companion {
+	public final fun inMemory ()Ldev/kdrant/migrate/MigrationCheckpointStore;
+}
+
+public final class dev/kdrant/migrate/MigrationReport {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;JZJJILjava/lang/Double;Z)V
+	public final fun getAliasMoved ()Z
+	public final fun getCopied ()J
+	public final fun getRecall ()Ljava/lang/Double;
+	public final fun getResumed ()Z
+	public final fun getSampledPairs ()I
+	public final fun getSource ()Ljava/lang/String;
+	public final fun getSourceCount ()J
+	public final fun getTarget ()Ljava/lang/String;
+	public final fun getTargetCount ()J
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/migrate/MigrationVerification {
+	public fun <init> ()V
+	public fun <init> (IIDLjava/lang/String;)V
+	public synthetic fun <init> (IIDLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMinRecall ()D
+	public final fun getSampleSize ()I
+	public final fun getTopK ()I
+	public final fun getUsing ()Ljava/lang/String;
+}
+
+public final class dev/kdrant/migrate/MigrationVerificationFailed : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;Ldev/kdrant/migrate/MigrationReport;)V
+	public final fun getReport ()Ldev/kdrant/migrate/MigrationReport;
+}
+

@@ -446,6 +446,7 @@ public final class dev/kdrant/dsl/ScrollBuilder {
 	public final fun filter (Ldev/kdrant/model/Filter;)V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getShardKey ()Ldev/kdrant/model/ShardKey;
+	public final fun getStartAt ()Ldev/kdrant/model/PointId;
 	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
 	public final fun getWithVector ()Ljava/lang/Boolean;
 	public final fun orderBy (Ljava/lang/String;Ldev/kdrant/model/Direction;Ljava/lang/Number;)V
@@ -453,6 +454,7 @@ public final class dev/kdrant/dsl/ScrollBuilder {
 	public final fun orderByDatetime (Ljava/lang/String;Ldev/kdrant/model/Direction;Ljava/lang/String;)V
 	public static synthetic fun orderByDatetime$default (Ldev/kdrant/dsl/ScrollBuilder;Ljava/lang/String;Ldev/kdrant/model/Direction;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun setShardKey (Ldev/kdrant/model/ShardKey;)V
+	public final fun setStartAt (Ldev/kdrant/model/PointId;)V
 	public final fun setWithPayload (Ldev/kdrant/model/WithPayload;)V
 	public final fun setWithVector (Ljava/lang/Boolean;)V
 }

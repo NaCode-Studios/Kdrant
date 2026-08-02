@@ -3,6 +3,7 @@ package dev.kdrant.transport.rest
 import dev.kdrant.KdrantConfigBuilder
 import dev.kdrant.QdrantClient
 import dev.kdrant.kdrantConfig
+import dev.kdrant.transport.QdrantTransport
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.logging.LogLevel
 import kotlin.time.Duration
@@ -38,6 +39,9 @@ import kotlin.time.Duration
  * @param configureClient an escape hatch applied last to the underlying Ktor [HttpClientConfig] — install
  *   your own plugins (metrics, tracing) or override any default Kdrant set. Runs after Kdrant's own
  *   setup, so it wins.
+ * @param decorateTransport wraps the engine before the client is built, for anything that belongs above
+ *   the wire rather than inside it. `kdrant-otel`'s `kdrantTracing(...)` is one; a caching or
+ *   rate-limiting decorator of your own is another. The default returns the engine untouched.
  */
 public fun Kdrant(
     host: String,
@@ -49,17 +53,20 @@ public fun Kdrant(
     keepAliveTime: Duration? = null,
     requestId: (() -> String)? = null,
     configureClient: (HttpClientConfig<*>.() -> Unit)? = null,
+    decorateTransport: (QdrantTransport) -> QdrantTransport = { it },
     configure: KdrantConfigBuilder.() -> Unit = {},
 ): QdrantClient =
     QdrantClient(
-        RestQdrantTransport(
-            kdrantConfig(host, port, configure),
-            upsertBatchSize = upsertBatchSize,
-            maxUpsertBytes = maxUpsertBytes,
-            logLevel = logLevel,
-            maxConnectionsPerRoute = maxConnectionsPerRoute,
-            keepAliveTime = keepAliveTime,
-            requestId = requestId,
-            configureClient = configureClient,
+        decorateTransport(
+            RestQdrantTransport(
+                kdrantConfig(host, port, configure),
+                upsertBatchSize = upsertBatchSize,
+                maxUpsertBytes = maxUpsertBytes,
+                logLevel = logLevel,
+                maxConnectionsPerRoute = maxConnectionsPerRoute,
+                keepAliveTime = keepAliveTime,
+                requestId = requestId,
+                configureClient = configureClient,
+            ),
         ),
     )

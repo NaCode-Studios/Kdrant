@@ -16,10 +16,82 @@ subprojects {
     version = "2.0.0"
 }
 
+// The POM description is the sentence a catalog puts on the card, and it is the one surface a stranger
+// meets before the README. It is also the one with no owner: at 2.0.0 the README, the repository
+// description, the CHANGELOG and the board all moved to multiplatform and kdrant-core's POM still ended
+// with "on the JVM", because nothing reads it. klibs.io was about to put that sentence next to badges
+// reading iOS, macOS, Linux and Windows, generated from the same artifact's own tooling metadata.
+//
+// So the claim gets a check, the way every other claim in this repository does. A module that publishes
+// native targets may not describe itself as JVM, and a JVM-only module may not claim otherwise.
+subprojects {
+    plugins.withId("com.vanniktech.maven.publish") {
+        val descriptions = provider {
+            extensions.findByType(org.gradle.api.publish.PublishingExtension::class.java)
+                ?.publications
+                ?.withType(org.gradle.api.publish.maven.MavenPublication::class.java)
+                ?.mapNotNull { it.pom.description.orNull }
+                ?.distinct()
+                .orEmpty()
+        }
+        val publishesNative = provider {
+            val kotlin = extensions.findByName("kotlin")
+            kotlin is org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension &&
+                kotlin.targets.any {
+                    it.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native
+                }
+        }
+        val module = path
+
+        val verifyPublishedDescription = tasks.register("verifyPublishedDescription") {
+            description = "Fails if this module's POM description misstates the platforms it publishes."
+            group = "verification"
+            val texts = descriptions
+            val native = publishesNative
+            doLast {
+                val found = texts.get()
+                require(found.isNotEmpty()) { "$module publishes without a POM description" }
+                found.forEach { text -> checkPublishedDescription(module, text, native.get()) }
+            }
+        }
+        tasks.named("check") { dependsOn(verifyPublishedDescription) }
+    }
+}
+
+/**
+ * The rule, stated once: the description names the platforms the artifact actually has, and it is
+ * written in the register everything else published from here is written in.
+ */
+fun checkPublishedDescription(module: String, text: String, publishesNative: Boolean) {
+    require(!text.contains('—')) {
+        "$module's POM description carries an em dash, which is not the register anything published " +
+            "from this repository is written in:\n  $text"
+    }
+    // Naming a native platform is the whole test. The sentence that went stale — "Core module for RAG
+    // and embedding search on the JVM." — fails it by naming none, and no substring rule is needed to
+    // catch it: a description that says "Runs on the JVM, iOS, macOS, Linux and Windows" is correct and
+    // contains the same words.
+    val nativePlatforms = listOf("iOS", "macOS", "Linux", "Windows", "Multiplatform")
+    if (publishesNative) {
+        require(nativePlatforms.any { text.contains(it, ignoreCase = true) }) {
+            "$module publishes native targets and its POM description names none of them. That sentence " +
+                "is what a catalog puts on the card, next to the iOS badge it generates from the same " +
+                "artifact's own tooling metadata:\n  $text"
+        }
+    } else {
+        // Linux is left out: a JVM artifact does run on Linux, so saying so is not a false claim.
+        val claimed = listOf("iOS", "macOS", "Multiplatform").filter { text.contains(it, ignoreCase = true) }
+        require(claimed.isEmpty()) {
+            "$module publishes for the JVM only and its POM description claims $claimed:\n  $text"
+        }
+    }
+}
+
 // The runnable example, the benchmark harness and the shared test suite are not published libraries —
 // exclude them from public-API tracking.
 apiValidation {
     ignoredProjects.add("example-rag")
+    ignoredProjects.add("example-native-image")
     ignoredProjects.add("benchmarks")
     ignoredProjects.add("kdrant-testkit")
     // The gRPC engine's protobuf and stub classes are generated from Qdrant's own .proto files, so
@@ -40,10 +112,13 @@ configure(
         project(":kdrant-spring-ai"),
         project(":kdrant-langchain4j"),
         project(":kdrant-micrometer"),
+        project(":kdrant-otel"),
         project(":kdrant-koog"),
         project(":kdrant-transport-grpc"),
+        project(":kdrant-migrate"),
         project(":kdrant-testkit"),
         project(":example-rag"),
+        project(":example-native-image"),
     ),
 ) {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
@@ -91,7 +166,8 @@ configure(
                 "src/main/kotlin", "src/test/kotlin",
                 "src/commonMain/kotlin", "src/commonTest/kotlin",
                 "src/jvmMain/kotlin", "src/jvmTest/kotlin",
-                "src/jsMain/kotlin", "src/nativeMain/kotlin",
+                "src/jsMain/kotlin", "src/nativeMain/kotlin", "src/nativeTest/kotlin",
+                "src/appleMain/kotlin", "src/linuxMain/kotlin", "src/mingwMain/kotlin",
             ).filter { it.exists() },
         )
     }
@@ -102,6 +178,8 @@ configure(
 dependencies {
     dokka(project(":kdrant-core"))
     dokka(project(":kdrant-transport-rest"))
+    dokka(project(":kdrant-otel"))
+    dokka(project(":kdrant-migrate"))
 }
 
 // Coverage over the published library modules. The example and the benchmark harness are excluded:
@@ -114,7 +192,9 @@ dependencies {
     kover(project(":kdrant-spring-ai"))
     kover(project(":kdrant-langchain4j"))
     kover(project(":kdrant-micrometer"))
+    kover(project(":kdrant-otel"))
     kover(project(":kdrant-koog"))
+    kover(project(":kdrant-migrate"))
 }
 
 kover {

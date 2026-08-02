@@ -12,13 +12,18 @@ dependencies {
         // kdrant-core coordinate, but a Maven consumer names the JVM artifact directly and would
         // otherwise get no constraint from this platform.
         api("io.github.nacode-studios:kdrant-core-jvm:${project.version}")
+        // kdrant-transport-rest is multiplatform from 2.1.0, for the same reason kdrant-core is:
+        // a Maven consumer names the JVM artifact directly and gets no constraint from the root one.
         api("io.github.nacode-studios:kdrant-transport-rest:${project.version}")
+        api("io.github.nacode-studios:kdrant-transport-rest-jvm:${project.version}")
         api("io.github.nacode-studios:kdrant-transport-grpc:${project.version}")
         api("io.github.nacode-studios:kdrant-spring-boot-starter:${project.version}")
         api("io.github.nacode-studios:kdrant-spring-ai:${project.version}")
         api("io.github.nacode-studios:kdrant-langchain4j:${project.version}")
         api("io.github.nacode-studios:kdrant-micrometer:${project.version}")
+        api("io.github.nacode-studios:kdrant-otel:${project.version}")
         api("io.github.nacode-studios:kdrant-koog:${project.version}")
+        api("io.github.nacode-studios:kdrant-migrate:${project.version}")
     }
 }
 
@@ -29,8 +34,8 @@ mavenPublishing {
     pom {
         name.set("Kdrant BOM")
         description.set(
-            "Bill of Materials for Kdrant — import it to keep kdrant-core and kdrant-transport-rest " +
-                "on a single, aligned version.",
+            "Bill of Materials for Kdrant, the coroutine-first Kotlin client for the Qdrant vector " +
+                "database: import it to keep every Kdrant module on a single, aligned version.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

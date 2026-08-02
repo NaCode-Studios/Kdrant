@@ -21,9 +21,12 @@ include(
     "kdrant-spring-ai",
     "kdrant-langchain4j",
     "kdrant-micrometer",
+    "kdrant-otel",
     "kdrant-koog",
     "kdrant-transport-grpc",
+    "kdrant-migrate",
     "kdrant-testkit",
     "example-rag",
+    "example-native-image",
     "benchmarks",
 )

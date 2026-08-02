@@ -88,6 +88,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 # sampler and resource for them, which is theirs to configure.
 opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }
 opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
+opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin" }
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
 opentelemetry-sdk-testing = { module = "io.opentelemetry:opentelemetry-sdk-testing" }
 

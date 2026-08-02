@@ -1,5 +1,5 @@
 public final class dev/kdrant/transport/rest/KdrantKt {
-	public static final fun Kdrant-cMDqwZA (Ljava/lang/String;IIILio/ktor/client/plugins/logging/LogLevel;Ljava/lang/Integer;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/kdrant/QdrantClient;
-	public static synthetic fun Kdrant-cMDqwZA$default (Ljava/lang/String;IIILio/ktor/client/plugins/logging/LogLevel;Ljava/lang/Integer;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/kdrant/QdrantClient;
+	public static final fun Kdrant-tL6_L-A (Ljava/lang/String;IIILio/ktor/client/plugins/logging/LogLevel;Ljava/lang/Integer;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/kdrant/QdrantClient;
+	public static synthetic fun Kdrant-tL6_L-A$default (Ljava/lang/String;IIILio/ktor/client/plugins/logging/LogLevel;Ljava/lang/Integer;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/kdrant/QdrantClient;
 }
 

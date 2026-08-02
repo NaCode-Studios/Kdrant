@@ -40,7 +40,7 @@ mavenPublishing {
         description.set(
             "Spring Boot auto-configuration for Kdrant, the coroutine-first Kotlin client for the Qdrant " +
                 "vector database. Adds `kdrant.*` configuration properties and exposes a ready-to-inject " +
-                "QdrantClient bean.",
+                "QdrantClient bean. JVM.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")

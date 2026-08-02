@@ -39,7 +39,8 @@ mavenPublishing {
         name.set("Kdrant LangChain4j EmbeddingStore")
         description.set(
             "A LangChain4j EmbeddingStore backed by Kdrant, the coroutine-first Kotlin client for the " +
-                "Qdrant vector database — use Qdrant from LangChain4j over a small pure-Kotlin REST transport.",
+                "Qdrant vector database: use Qdrant from LangChain4j over a small pure-Kotlin REST " +
+                "transport. JVM.",
         )
         inceptionYear.set("2026")
         url.set("https://github.com/NaCode-Studios/Kdrant")
