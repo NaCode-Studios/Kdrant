@@ -13,7 +13,7 @@ plugins {
 
 subprojects {
     group = "io.github.nacode-studios"
-    version = "2.0.0"
+    version = "2.1.0"
 }
 
 // The POM description is the sentence a catalog puts on the card, and it is the one surface a stranger

@@ -87,8 +87,13 @@ only the version number, and a Maven build naming `kdrant-transport-rest` gets n
 name `kdrant-transport-rest-jvm`. The gRPC engine and the framework adapters are JVM-only and are
 unaffected.
 
-`KdrantConfig` gained a defaulted `bearerToken` parameter, which is the constructor case
-[above](#what-may-still-change-in-a-minor) arriving for real. The DSL is unchanged.
+Three signatures changed shape. `Kdrant(...)` and `KdrantGrpc(...)` gained `decorateTransport`, and
+`KdrantConfig` gained `bearerToken`. All three parameters are optional and every `2.0.0` call site
+compiles unchanged, but a default parameter changes the signature Kotlin emits, so an application
+compiled against `2.0.0` that swaps in the `2.1.0` jar without rebuilding will not find them. That is
+the case [above](#what-may-still-change-in-a-minor), and it now reaches the entry point rather than a
+data class, which is worth stating plainly: `2.1.0` is a rebuild, not a jar swap. Running
+`git diff v2.0.0 v2.1.0 -- '*/api/*.api'` shows the seven removed lines and nothing else removed.
 
 Two behaviours changed without any API changing. HTTP 403 and gRPC `PERMISSION_DENIED` now raise
 `KdrantException.Forbidden` rather than `Unauthorized`; `Forbidden` is a subclass, so an existing
