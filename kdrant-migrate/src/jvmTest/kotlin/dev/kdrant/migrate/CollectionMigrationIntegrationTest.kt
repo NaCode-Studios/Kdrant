@@ -224,7 +224,6 @@ class CollectionMigrationIntegrationTest {
             return listOf(angle, 1f - angle, angle * angle, 1f)
         }
 
-
         /**
          * The stand-in for a re-embedding: the same vector in a wider space. Cosine similarity is
          * unchanged by duplicating every component, so the neighbour check should come back exact —
