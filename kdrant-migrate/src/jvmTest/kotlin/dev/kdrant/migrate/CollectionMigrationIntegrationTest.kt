@@ -170,7 +170,16 @@ class CollectionMigrationIntegrationTest {
         assertEquals(listOf(alias), client.listCollectionAliases(source).map { it.aliasName })
     }
 
-    /** Queries through the alias for as long as the migration runs, recording anything that goes wrong. */
+    /**
+     * Queries through the alias for as long as the migration runs, recording anything that goes wrong.
+     *
+     * By point id rather than by vector, and that is not a convenience. The whole reason for migrating
+     * is that the vector size changes, so a reader holding a 4-dimension query vector is refused by the
+     * new collection the moment the alias moves — correctly, and by Qdrant, and it is the caller's job
+     * to deploy the new embedding model alongside. What the migration is responsible for is that the
+     * alias resolves to a collection holding the data at every instant, which is what a query by id
+     * asks and what a query by vector cannot separate from the dimension change.
+     */
     private suspend fun CoroutineScope.readThroughout(
         alias: String,
         migrating: AtomicBoolean,
@@ -178,7 +187,7 @@ class CollectionMigrationIntegrationTest {
     ) = withContext(Dispatchers.IO) {
         var reads = 0
         while (migrating.get() && isActive) {
-            val hits = runCatching { client.search(alias) { query(probeVector); limit = 5 } }
+            val hits = runCatching { client.search(alias) { query(PointId.num(1)); limit = 5 } }
             hits.fold(
                 onSuccess = { if (it.isEmpty()) failures += "empty result on read $reads" },
                 onFailure = { failures += "${it::class.simpleName}: ${it.message}" },
@@ -215,7 +224,6 @@ class CollectionMigrationIntegrationTest {
             return listOf(angle, 1f - angle, angle * angle, 1f)
         }
 
-        val probeVector: List<Float> = narrow(7)
 
         /**
          * The stand-in for a re-embedding: the same vector in a wider space. Cosine similarity is

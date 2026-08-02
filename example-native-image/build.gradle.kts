@@ -40,5 +40,18 @@ graalvmNative {
         // measurement of nothing. With it, a missing piece of reachability metadata fails the build.
         buildArgs.add("--no-fallback")
         buildArgs.add("-H:+ReportExceptionStackTraces")
+
+        // GraalVM for JDK 21 initializes everything at run time unless told otherwise, and these four
+        // enums are read while the analysis reads annotations, which is build time. They are a
+        // Kotlin/GraalVM interaction rather than anything about Kdrant, and they are class
+        // initialization rather than reachability metadata: no reflection, no resource and no proxy
+        // configuration is committed here, which is the claim the README's comparison table makes.
+        buildArgs.add(
+            "--initialize-at-build-time=" +
+                "kotlin.DeprecationLevel," +
+                "kotlin.annotation.AnnotationRetention," +
+                "kotlin.annotation.AnnotationTarget," +
+                "kotlin.coroutines.intrinsics.CoroutineSingletons",
+        )
     }
 }

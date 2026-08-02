@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.DockerClientFactory
@@ -67,6 +68,12 @@ class TracingAcrossEnginesIntegrationTest {
         spans.reset()
     }
 
+    /** JUnit does not promise an order, and the exporter is shared, so each case starts from empty. */
+    @BeforeEach
+    fun clearSpans() {
+        spans.reset()
+    }
+
     @AfterAll
     fun stopQdrant() {
         if (::grpc.isInitialized) grpc.close()
@@ -92,8 +99,6 @@ class TracingAcrossEnginesIntegrationTest {
 
     @Test
     fun `a filter naming a tenant does not reach the span, over either engine`() = runBlocking {
-        spans.reset()
-
         rest.count(COLLECTION) { must { "tenant" eq "acme" } }
         grpc.count(COLLECTION) { must { "tenant" eq "acme" } }
 
@@ -104,8 +109,6 @@ class TracingAcrossEnginesIntegrationTest {
 
     @Test
     fun `an operation gRPC cannot serve fails without inventing a different span`() = runBlocking {
-        spans.reset()
-
         runCatching { grpc.telemetry() }
 
         val span = spans.finishedSpanItems.single()
