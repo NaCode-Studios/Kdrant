@@ -1,6 +1,7 @@
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -83,6 +84,68 @@ kotlin {
 java {
     toolchain { languageVersion.set(JavaLanguageVersion.of(17)) }
 }
+
+// GraalVM reachability metadata, generated from the classes rather than written down.
+//
+// Ktor resolves a serializer from the response's type at runtime, and kotlinx-serialization answers
+// that by looking for the compiler-generated `$$serializer` through reflection. Under `native-image`
+// that lookup finds nothing unless the class is registered, and the failure is a
+// `SerializationException: Serializer for class 'X' is not found` on the first response Kdrant parses
+// — at run time, in the consumer's application, not in this build.
+//
+// So the artifact carries the registration. It is derived from the `$$serializer` classes actually on
+// the classpath, which means it cannot go stale the way a hand-written list would: a model added
+// tomorrow is in the file the same day, and one removed leaves it. Nothing about this is reflection
+// Kdrant asks for; it is what serializing by type costs, and paying it here means a consumer building
+// a native image pays nothing.
+val nativeImageConfigDir: Provider<Directory> = layout.buildDirectory.dir("generated/native-image")
+
+val generateNativeImageConfig by tasks.registering {
+    description = "Writes the GraalVM reflection registration for Kdrant's generated serializers."
+    group = "build"
+    val classpath = configurations.named("jvmRuntimeClasspath")
+    val ownClasses = tasks.named("compileKotlinJvm").map { it.outputs.files }
+    val outputDir = nativeImageConfigDir
+    inputs.files(classpath, ownClasses)
+    outputs.dir(outputDir)
+    doLast {
+        val serializers = sortedSetOf<String>()
+        fun record(entry: String) {
+            if (!entry.endsWith("\$\$serializer.class")) return
+            val binaryName = entry.removeSuffix(".class").replace('/', '.')
+            if (!binaryName.startsWith("dev.kdrant.")) return
+            val owner = binaryName.removeSuffix("\$\$serializer")
+            // The generated serializer, the class it serializes, and the companion the lookup goes
+            // through. Registering the three together is what makes the reflective path resolve.
+            serializers += binaryName
+            serializers += owner
+            serializers += "$owner\$Companion"
+        }
+        classpath.get().files.filter { it.name.endsWith(".jar") }.forEach { jar ->
+            ZipFile(jar).use { zip ->
+                val names = zip.entries()
+                while (names.hasMoreElements()) record(names.nextElement().name)
+            }
+        }
+        ownClasses.get().files.filter { it.isDirectory }.forEach { root ->
+            root.walkTopDown().filter { file -> file.isFile }.forEach { file ->
+                record(file.relativeTo(root).invariantSeparatorsPath)
+            }
+        }
+
+        val json = serializers.joinToString(",\n", prefix = "[\n", postfix = "\n]\n") { name ->
+            """  { "name": "$name", "allDeclaredFields": true, "allDeclaredMethods": true, """ +
+                """"allDeclaredConstructors": true }"""
+        }
+        val target = outputDir.get()
+            .dir("META-INF/native-image/io.github.nacode-studios/kdrant-transport-rest").asFile
+        target.mkdirs()
+        target.resolve("reflect-config.json").writeText(json)
+        logger.lifecycle("registered ${serializers.size} classes for GraalVM reflection")
+    }
+}
+
+kotlin.sourceSets.named("jvmMain") { resources.srcDir(generateNativeImageConfig) }
 
 // The other half of the opt-in argument: the gRPC engine costs a REST user nothing only if a build
 // that depends on this module resolves none of it. Checked on every `check` rather than argued in the

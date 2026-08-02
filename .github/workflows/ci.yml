@@ -240,7 +240,7 @@ jobs:
             echo "| --- | --- |"
             echo "| Binary size | ${SIZE_MB} MB |"
             echo "| Time to first search, cold | ${FIRST_SEARCH_MS} ms |"
-            echo "| Reachability metadata committed | none |"
+            echo "| Reflection metadata | generated from the classpath, shipped in kdrant-transport-rest |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   qdrant-compat:

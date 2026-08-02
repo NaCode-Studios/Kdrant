@@ -86,12 +86,18 @@ Dependency stacks verified against `io.qdrant:client:1.18.3`:
 | Approx. added footprint | ~3-5 MB (Ktor + kotlinx-serialization; coroutines/stdlib are usually already present) | ~15-20 MB of transitive jars (shaded Netty ≈ 9 MB alone) |
 | API style | `suspend` functions + `Flow`, type-safe DSL | `ListenableFuture<T>` (Guava), protobuf builders |
 | Models | `kotlinx-serialization` data classes | generated protobuf messages |
-| GraalVM native / cold start | a native image is built and made to answer a real search in CI, with no reachability metadata committed | needs gRPC/Netty/protobuf native config; heavier cold start |
+| GraalVM native / cold start | a native image is built and made to answer a real search in CI; the one piece of metadata it needs is generated and shipped inside the artifact | needs gRPC/Netty/protobuf native config you write and maintain; heavier cold start |
 
 The GraalVM row used to read "friendly", and nobody had ever built an image. It is now a CI job
 ([`native-image`](.github/workflows/ci.yml)) that compiles [`example-native-image`](example-native-image/)
 with `--no-fallback` and runs it against a real Qdrant, so the day a dependency starts reflecting the
 build fails instead of the sentence quietly becoming false.
+
+Building it found the one thing that does reflect. Ktor resolves a serializer from the response type at
+run time and kotlinx-serialization answers by looking for the generated `$$serializer`, which a native
+image cannot find unless the class is registered. `kdrant-transport-rest` therefore ships that
+registration in its own jar, generated from the classes on the classpath rather than written by hand, so
+it cannot go stale and a consumer building a native image writes nothing.
 
 For raw throughput and streaming, gRPC/HTTP2 still wins. That case now has an answer inside Kdrant:
 `kdrant-transport-grpc` is an opt-in engine behind the same `QdrantClient`, so the column above stays

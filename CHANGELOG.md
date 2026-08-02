@@ -56,8 +56,14 @@ proves.
 - `ScrollBuilder.startAt`, the id cursor a resumable job over a collection needs. It came out of M42
   and is worth more than the migration.
 - A GraalVM native image (M40). `example-native-image` is compiled with `--no-fallback` in CI and made
-  to answer a real search against a real Qdrant, so "no reflection configuration" is a job that fails
-  the day a dependency starts reflecting rather than a sentence in a table.
+  to answer a real search against a real Qdrant, so the README's claim is a job that fails the day a
+  dependency starts reflecting rather than a sentence in a table.
+  Building it settled the claim in the second of the two ways it could go. One thing does reflect: Ktor
+  resolves a serializer from the response type at run time, and kotlinx-serialization answers by looking
+  for the compiler-generated `$$serializer`, which a native image cannot find unless the class is
+  registered. `kdrant-transport-rest` now ships that registration in its own jar, generated from the
+  classes on the classpath rather than written by hand, so a model added tomorrow is in the file the
+  same day and a consumer building a native image writes nothing.
 
 ### Changed
 
