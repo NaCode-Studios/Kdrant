@@ -47,18 +47,13 @@ your own embedding model; Kdrant does not generate embeddings.
 > **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `2.0`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
+> **Status — `2.1`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
 > and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, cluster and sharding,
 > service/analytics endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI,
-> LangChain4j, Koog, Micrometer, OpenTelemetry and migration modules. The public API is stable under
-> SemVer; see [STABILITY.md](STABILITY.md).
-
-> **On `main`, not yet published.** Four things below arrive with `2.1.0`: the REST engine runs on every
-> target `kdrant-core` compiles for, `KdrantConfig` takes a scoped JWT beside the master key,
-> `kdrant-otel` traces the transport seam, and `kdrant-migrate` moves a collection to a new embedding
-> without taking reads down. The install snippets still name `2.0.0`, which is what Maven Central
-> currently serves.
+> LangChain4j, Koog, Micrometer, OpenTelemetry and migration modules. `kdrant-core`,
+> `kdrant-transport-rest` and `kdrant-migrate` run on the JVM and eight Kotlin/Native targets. The
+> public API is stable under SemVer; see [STABILITY.md](STABILITY.md).
 
 ## Why Kdrant
 
@@ -113,7 +108,7 @@ Requires JDK 17+. Artifacts are published to Maven Central under `io.github.naco
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:2.0.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:2.1.0")
 }
 ```
 
@@ -139,7 +134,7 @@ Everything below is optional and additive. Take the engine you want and nothing 
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.nacode-studios:kdrant-bom:2.0.0"))
+    implementation(platform("io.github.nacode-studios:kdrant-bom:2.1.0"))
     implementation("io.github.nacode-studios:kdrant-transport-rest")
     implementation("io.github.nacode-studios:kdrant-spring-ai")
 }
@@ -474,7 +469,7 @@ factory is the same hook for a decorator of your own.
 
 ## Roadmap
 
-**Shipped (`2.0.0`).** Tier 5 closes the two things the transport seam existed to make possible.
+**Shipped (`2.0.0`).** Tier 5 closed the two things the transport seam existed to make possible.
 `kdrant-transport-grpc` is an opt-in gRPC engine behind the same `QdrantClient`, generated from Qdrant's
 own `.proto` files rather than wrapping the official client, so a REST build still resolves no gRPC, no
 protobuf and no Netty, checked on every build rather than asserted. And `kdrant-core` moved to Kotlin
@@ -493,8 +488,8 @@ engine, and typed-payload DX. The [CHANGELOG](CHANGELOG.md) has the version-by-v
 [migration guide from `io.qdrant:client`](docs/migrating-from-qdrant-client.md) has
 [measured latency](benchmarks/README.md#measured-latency) behind it.
 
-**On `main`, unreleased (`2.1.0`).** Tier 7 makes three claims true that were previously only
-compiled, only argued or only asserted. The REST engine runs on every target `kdrant-core` does, and
+**Shipped (`2.1.0`).** Tier 7 makes three claims true that were previously only compiled, only argued
+or only asserted. The REST engine runs on every target `kdrant-core` does, and
 the shared behavioural contract runs from a Linux and a macOS native binary against a real Qdrant.
 `KdrantConfig` takes a scoped JWT beside the master key, and a refusal arrives as
 `KdrantException.Forbidden` rather than as a generic failure. `kdrant-otel` traces the transport seam,

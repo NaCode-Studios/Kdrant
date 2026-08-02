@@ -6,8 +6,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-02
+
 Tier 7, complete. Four claims that were previously compiled, argued or asserted are now things a build
-proves.
+proves: the REST engine runs on every target `kdrant-core` does and the shared contract runs from a
+native binary, a scoped token is a credential the client knows about, a native image is built and made
+to search, and every published POM names the platforms that module actually has.
 
 ### Added
 
@@ -79,10 +83,16 @@ proves.
   across a network is a key someone else has; a request to `127.0.0.1` never reaches a network. This
   only accepts configurations that were previously rejected, and it is what makes a local Qdrant with
   an API key work without a certificate.
-- `KdrantConfig` gained a twelfth constructor parameter. Source stays compatible and the DSL is
-  unaffected, but code that called the constructor positionally against a `2.0.0` jar needs
-  recompiling — the case [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor) already
-  describes for data classes, now stated for constructors too.
+- **Three signatures changed shape, and all three need a recompile rather than a jar swap.**
+  `Kdrant(...)` and `KdrantGrpc(...)` gained `decorateTransport`, and `KdrantConfig` gained
+  `bearerToken`. Every parameter is optional and every `2.0.0` call site compiles unchanged, but a
+  default parameter changes the signature Kotlin emits, so an application compiled against `2.0.0`
+  that swaps in the `2.1.0` jar without rebuilding will not find them. This is the case
+  [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor) already describes for data classes,
+  now stated for functions and constructors too. `git diff v2.0.0 v2.1.0 -- '*/api/*.api'` shows the
+  seven removed lines, and nothing else was removed.
+- `KdrantException.Unauthorized` is `open`, so `Forbidden` can extend it. Opening a class removes
+  nothing a caller could use.
 - `kdrant-transport-rest`'s JVM classes are published as `kdrant-transport-rest-jvm`, the same move
   `kdrant-core` made at `2.0.0`. A Gradle build resolves the variant from the plain coordinate and
   changes nothing; a Maven build naming `kdrant-transport-rest` has to move to the `-jvm` one.
@@ -91,6 +101,27 @@ proves.
 
 - `ScrollRequest.offset` was documented as the id to start **after**. It is inclusive, which is what
   the paging code has always relied on and what Qdrant returns as `next_page_offset`.
+- The count of operations Qdrant serves over HTTP only was eleven in five places and is fourteen.
+  It was written into a KDoc once and never counted, and from there it reached the README, this
+  changelog, the stability policy and the migration guide. `grep -o 'restOnly("[a-zA-Z]*")' | sort -u |
+  wc -l` settles it, and the number now comes from that rather than from memory.
+- `STABILITY.md` said `2.0.0` broke nothing but the artifact layout. It broke two things: that, and
+  `ScrollRequest`/`SearchRequest` gaining a `shardKey` parameter, which changed their generated `copy`
+  and `componentN`. The upgrade section names both.
+
+### Internal
+
+- The release workflow's linked-artifacts step can no longer fail a release. On the `v2.0.0` tag it
+  returned 404 for a digest that does have an attestation and took down a job whose jars were already
+  published and attested. A metadata step that can undo a successful publish is worth less than the
+  metadata, so it is `continue-on-error` with a per-artifact fallback; the run's log still says which
+  records were not written.
+- The same step's artifact list now names `kdrant-transport-rest-jvm`, and gains `kdrant-otel`,
+  `kdrant-migrate-jvm` and `kdrant-koog`, which had been missing since the step shipped.
+- CI gained three jobs: the client contract from a `linuxX64` and a `macosArm64` binary, and the
+  GraalVM native image. The two native jobs set `KDRANT_QDRANT_REQUIRED`, which turns the contract's
+  skip into a failure, because a job that was meant to run it and silently skipped would report green
+  for having proven nothing.
 
 ## [2.0.0] - 2026-07-31
 
@@ -444,7 +475,8 @@ helper).
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.0.0...v1.1.0
