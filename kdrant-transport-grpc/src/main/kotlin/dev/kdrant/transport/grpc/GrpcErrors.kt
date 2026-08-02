@@ -42,8 +42,10 @@ internal object GrpcErrors {
         val message = description.orEmpty()
         return when (status.code) {
             Status.Code.NOT_FOUND -> notFound(collection, message)
-            Status.Code.UNAUTHENTICATED, Status.Code.PERMISSION_DENIED ->
-                KdrantException.Unauthorized(message.ifBlank { "Unauthorized" })
+            Status.Code.UNAUTHENTICATED -> KdrantException.Unauthorized(message.ifBlank { "Unauthorized" })
+            // The gRPC counterpart of HTTP 403: the credential is understood and does not reach this
+            // far. A scoped token refused on a write raises the same type over either engine.
+            Status.Code.PERMISSION_DENIED -> KdrantException.Forbidden(collection, message)
             Status.Code.INVALID_ARGUMENT ->
                 if (collection != null && looksLikeMissingCollection(message)) {
                     notFound(collection, message)

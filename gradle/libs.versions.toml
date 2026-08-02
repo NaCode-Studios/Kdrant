@@ -21,6 +21,7 @@ koog = "1.1.1"
 grpc = "1.83.1"
 grpcKotlin = "1.5.0"
 protobuf = "4.35.1"
+opentelemetry = "1.64.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -29,6 +30,11 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+# One engine per target family. Ktor's client API is the same across all four, which is what lets
+# RestQdrantTransport live in commonMain and pick an engine per target instead of per code path.
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
@@ -48,6 +54,10 @@ testcontainers-qdrant = { module = "org.testcontainers:testcontainers-qdrant", v
 
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+# Named explicitly on the JVM. `kotlin-test` alone resolves to its JUnit 4 variant in a main source
+# set, where there is no test task for Gradle to infer the framework from, and would put JUnit 4 on
+# the classpath of a repository that runs JUnit 5 everywhere.
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "springBoot" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
@@ -74,6 +84,13 @@ protoc-gen-grpc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = 
 protoc-gen-grpc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpcKotlin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
+# The API artifact only. A library that pulled in the SDK would decide the consumer's exporter,
+# sampler and resource for them, which is theirs to configure.
+opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
+opentelemetry-sdk-testing = { module = "io.opentelemetry:opentelemetry-sdk-testing" }
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -87,3 +104,4 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 jmh = { id = "me.champeau.jmh", version = "0.7.3" }
 protobuf = { id = "com.google.protobuf", version = "0.10.0" }
+graalvm-native = { id = "org.graalvm.buildtools.native", version = "1.1.6" }
