@@ -6,6 +6,84 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+Tier 7, complete. Four claims that were previously compiled, argued or asserted are now things a build
+proves.
+
+### Added
+
+- **`kdrant-transport-rest` is multiplatform** (M38). `kdrant-core` had compiled for eight
+  Kotlin/Native targets since `2.0.0`, and not one of them could send a request: the engine lived in
+  `src/main` and was Ktor CIO on the JVM, so an iOS build got the models, the query DSL and the filter
+  builders with nothing to put them on the wire. `RestQdrantTransport` is in `commonMain` now and the
+  engine is chosen per target — CIO on the JVM, unchanged; Darwin on iOS and macOS; Curl on Linux;
+  WinHttp on Windows. An iOS or Linux consumer depends on the same `kdrant-transport-rest` coordinate a
+  JVM one does.
+  Two engine choices have consequences worth knowing before a stack trace tells you: Darwin is
+  NSURLSession and inherits App Transport Security, so a plaintext `http://` Qdrant is refused by the
+  platform before Kdrant sees the request, and Curl links against the system libcurl, which a slim
+  container image may not have. Kotlin/JS stays out for the reason already written in `kdrant-core`.
+- **`kdrant-testkit` is multiplatform**, which is what makes the above more than a compilation
+  exercise. The behavioural contract both engines are held to moved to `commonMain` as
+  `QdrantClientContractSuite`, which knows no test framework; the JUnit and Testcontainers wrapper
+  stays on the JVM and still declares one test per behaviour. CI runs the same suite from a `linuxX64`
+  and a `macosArm64` binary against a real Qdrant.
+- **Scoped access** (M39). `KdrantConfig` takes a `bearerToken` beside `apiKey`, mutually exclusive
+  with it: a Qdrant JWT narrowed to read-only, to named collections, or to a payload filter deciding
+  which points a caller may see at all. Both engines send it — `Authorization: Bearer` over REST, the
+  same header as gRPC metadata — because the credential belongs to the config rather than to the wire.
+  `kdrant-testkit` signs one for tests through `QdrantJwt`; minting tokens for a running system stays
+  Qdrant's job.
+- **`KdrantException.Forbidden`**, a subclass of `Unauthorized`, for HTTP 403 and gRPC
+  `PERMISSION_DENIED`. A read-only token refused on a write is a different fact from a missing key, and
+  only one of them is worth retrying. Being a subclass keeps an existing
+  `catch (e: KdrantException.Unauthorized)` catching it and keeps a `when` over the sealed hierarchy
+  exhaustive.
+- **`kdrant-otel`** (M41), a new module: one OpenTelemetry client span per operation, on the transport
+  seam, so one implementation covers both engines and a third would inherit it. Attributes follow
+  OpenTelemetry's database conventions rather than an invented vocabulary. No payload value, vector or
+  filter reaches an attribute, and a failed span carries the exception type rather than the server's
+  message, because Qdrant quotes the request back in its errors. It depends on the OpenTelemetry API,
+  never the SDK, so the exporter stays the consumer's.
+- **`kdrant-migrate`** (M42), a new module: `migrateCollection(from, to, alias)` copies a collection
+  into one with a different vector size, verifies the result, and moves an alias so readers cross in one
+  step. It resumes from a cursor after an interruption rather than starting over, and the alias moves
+  only after the counts match and a sample of queries returns the same neighbours from both collections
+  above a stated recall. A failed check throws `MigrationVerificationFailed` with the numbers in it and
+  leaves the alias where it was: a tool that swaps because the copy finished without throwing is a tool
+  that will one day point production at an empty collection.
+- `decorateTransport` on `Kdrant(...)` and `KdrantGrpc(...)`, the hook `kdrant-otel` needs and the
+  place a caching or rate-limiting decorator of your own goes.
+- `ScrollBuilder.startAt`, the id cursor a resumable job over a collection needs. It came out of M42
+  and is worth more than the migration.
+- A GraalVM native image (M40). `example-native-image` is compiled with `--no-fallback` in CI and made
+  to answer a real search against a real Qdrant, so "no reflection configuration" is a job that fails
+  the day a dependency starts reflecting rather than a sentence in a table.
+
+### Changed
+
+- **Every published module's POM description now names the platforms that module actually has**, and
+  `verifyPublishedDescription` fails the build when one stops being true. The description Maven Central
+  serves for `kdrant-core:2.0.0` ends with "Core module for RAG and embedding search on the JVM",
+  which klibs.io was about to put next to badges reading iOS, macOS, Linux and Windows generated from
+  the same artifact's own tooling metadata. It did not go stale by accident: everything else moved at
+  `2.0.0` and the POM did not, because nothing reads it. The em dashes went with the correction.
+- **A credential no longer requires TLS when the host is a loopback address.** A key sent in the clear
+  across a network is a key someone else has; a request to `127.0.0.1` never reaches a network. This
+  only accepts configurations that were previously rejected, and it is what makes a local Qdrant with
+  an API key work without a certificate.
+- `KdrantConfig` gained a twelfth constructor parameter. Source stays compatible and the DSL is
+  unaffected, but code that called the constructor positionally against a `2.0.0` jar needs
+  recompiling — the case [STABILITY.md](STABILITY.md#what-may-still-change-in-a-minor) already
+  describes for data classes, now stated for constructors too.
+- `kdrant-transport-rest`'s JVM classes are published as `kdrant-transport-rest-jvm`, the same move
+  `kdrant-core` made at `2.0.0`. A Gradle build resolves the variant from the plain coordinate and
+  changes nothing; a Maven build naming `kdrant-transport-rest` has to move to the `-jvm` one.
+
+### Fixed
+
+- `ScrollRequest.offset` was documented as the id to start **after**. It is inclusive, which is what
+  the paging code has always relied on and what Qdrant returns as `next_page_offset`.
+
 ## [2.0.0] - 2026-07-31
 
 Tier 5, complete, and the release the transport seam was built for. `kdrant-transport-grpc` is an

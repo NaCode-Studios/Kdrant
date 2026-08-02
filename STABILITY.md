@@ -27,7 +27,9 @@ the contract: a change that alters what goes on the wire for an existing operati
 breaking change unless it is a bug fix bringing Kdrant in line with Qdrant's documented API. Contract
 tests validate every request body the REST engine builds against Qdrant's own OpenAPI document, pinned
 to the version the CI matrix runs against, and a shared behavioural suite runs both engines against a
-real Qdrant, so a wire change is a failing build rather than a silent difference.
+real Qdrant, so a wire change is a failing build rather than a silent difference. From `2.1.0` that
+suite also runs from a Linux and a macOS native binary, because an engine that has only ever been
+exercised from a JVM has been shown to link rather than to work.
 
 The two engines are held to the same behaviour, with one stated exception. Qdrant serves fourteen
 operations over HTTP only: telemetry, Prometheus metrics, the two issues calls, `recoverSnapshot`, the
@@ -54,6 +56,12 @@ compiling, code that called `copy()` against an older jar needs recompiling. Kdr
 gratuitously and each one is listed in the [CHANGELOG](CHANGELOG.md), but a minor upgrade is a
 recompile, not a jar swap.
 
+The same holds for a new optional parameter on a public constructor, and `KdrantConfig` is the one it
+happens to: a defaulted parameter appended to it is source-additive and changes the constructor
+signature Kotlin emits, so code that called the constructor positionally against an older jar needs
+recompiling. The configuration DSL — `Kdrant(host, port) { ... }`, which is the documented way in — is
+unaffected, and that is why the parameter goes on the end rather than beside the one it belongs with.
+
 ## The guarantee
 
 Within a major version:
@@ -66,6 +74,28 @@ Within a major version:
   and `CancellationException` is always propagated.
 - **Wire compatibility.** Kdrant tracks Qdrant's stable API; new Qdrant features arrive as additive
   minor releases.
+
+## Upgrading from `2.0`
+
+`2.1.0` is a minor and every `2.0.0` call site compiles unchanged. Two things are worth knowing before
+the jar is swapped rather than the build re-run.
+
+`kdrant-transport-rest` is Kotlin Multiplatform now, so its JVM classes are published as
+`kdrant-transport-rest-jvm` and the plain coordinate carries Gradle module metadata. This is the move
+`kdrant-core` made at `2.0.0`, with the same consequence: a Gradle build reads the metadata and changes
+only the version number, and a Maven build naming `kdrant-transport-rest` gets no classes and has to
+name `kdrant-transport-rest-jvm`. The gRPC engine and the framework adapters are JVM-only and are
+unaffected.
+
+`KdrantConfig` gained a defaulted `bearerToken` parameter, which is the constructor case
+[above](#what-may-still-change-in-a-minor) arriving for real. The DSL is unchanged.
+
+Two behaviours changed without any API changing. HTTP 403 and gRPC `PERMISSION_DENIED` now raise
+`KdrantException.Forbidden` rather than `Unauthorized`; `Forbidden` is a subclass, so an existing
+`catch` still catches it and a `when` over the hierarchy stays exhaustive, but a `when` that branched
+on `Unauthorized` to mean "check the API key" now also sees a scoped token being refused. And a
+credential is no longer rejected over plaintext HTTP when the host is a loopback address, which only
+accepts configurations that were previously refused.
 
 ## Upgrading from `1.x`
 

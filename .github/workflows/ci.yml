@@ -36,6 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # `build` links the linuxX64 test binary, and the Linux engine is Ktor's Curl. Without the
+      # headers the link fails, which is a confusing way to learn that the transport went native.
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
@@ -70,11 +75,11 @@ jobs:
             **/build/test-results/
           retention-days: 7
 
-  # The Linux build above compiles kdrant-core for the JVM, JS, Linux and Windows, and skips the Apple
-  # targets because no Linux host can build them. Without this job an iOS or macOS break would first be
-  # seen at release time, on the one runner that does compile them.
+  # The Linux build above compiles the multiplatform modules for the JVM, Linux and Windows, and skips
+  # the Apple targets because no Linux host can build them. Without this job an iOS or macOS break would
+  # first be seen at release time, on the one runner that does compile them.
   apple-targets:
-    name: Apple targets (kdrant-core)
+    name: Apple targets
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -88,6 +93,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # The transport is here as well as the core from 2.1.0. Before that an iOS consumer got the
+      # models and no engine, so compiling the core alone was the whole claim.
       - name: Compile and test the Apple targets
         run: >
           ./gradlew
@@ -95,7 +102,146 @@ jobs:
           :kdrant-core:compileKotlinIosX64
           :kdrant-core:iosSimulatorArm64Test
           :kdrant-core:macosArm64Test
+          :kdrant-transport-rest:compileKotlinIosArm64
+          :kdrant-transport-rest:compileKotlinIosX64
+          :kdrant-transport-rest:compileKotlinIosSimulatorArm64
+          :kdrant-migrate:compileKotlinIosArm64
           --no-daemon --stacktrace
+
+  # M38's exit criterion. A klib that links has not been shown to work, so the same behavioural contract
+  # the JVM runs is run from a native binary against a real Qdrant — once on Linux, once on macOS.
+  native-contract-linux:
+    name: Client contract (Linux native)
+    runs-on: ubuntu-latest
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.18.2
+        ports:
+          - 6333:6333
+    steps:
+      - uses: actions/checkout@v7
+
+      # The Linux engine is Curl, which links against the system libcurl. Saying so here is the same
+      # statement the module's KDoc makes to a consumer building for a slim image.
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run the client contract from a linuxX64 binary
+        env:
+          KDRANT_QDRANT_HOST: 127.0.0.1
+          KDRANT_QDRANT_PORT: "6333"
+          KDRANT_QDRANT_REQUIRED: "1"
+        run: ./gradlew :kdrant-transport-rest:linuxX64Test --no-daemon --stacktrace
+
+  native-contract-macos:
+    name: Client contract (macOS native)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # No Docker on a macOS runner, so Qdrant is the released binary rather than the image. It is the
+      # same server; Testcontainers is a JVM convenience, and this job has no JVM in the process under
+      # test.
+      - name: Start Qdrant
+        run: |
+          curl -fsSL -o qdrant.tar.gz \
+            "https://github.com/qdrant/qdrant/releases/download/v${QDRANT_VERSION}/qdrant-aarch64-apple-darwin.tar.gz"
+          tar -xzf qdrant.tar.gz
+          ./qdrant &
+          for _ in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "::error::Qdrant did not become ready"; exit 1
+        env:
+          QDRANT_VERSION: "1.18.2"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run the client contract from a macosArm64 binary
+        env:
+          KDRANT_QDRANT_HOST: 127.0.0.1
+          KDRANT_QDRANT_PORT: "6333"
+          KDRANT_QDRANT_REQUIRED: "1"
+        run: ./gradlew :kdrant-transport-rest:macosArm64Test --no-daemon --stacktrace
+
+  # M40's exit criterion. The README's comparison table claimed Kdrant was GraalVM native-image friendly
+  # and needed no reflection configuration, and nobody had ever built an image. This job is the claim:
+  # --no-fallback fails the build the day a dependency starts reflecting, and the binary then has to
+  # answer a real search against a real Qdrant.
+  native-image:
+    name: GraalVM native image
+    runs-on: ubuntu-latest
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.18.2
+        ports:
+          - 6333:6333
+    steps:
+      - uses: actions/checkout@v7
+
+      # Two JDKs on purpose: the library modules compile against a 17 toolchain, and native-image comes
+      # from the GraalVM distribution, which is a 21.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: "21"
+          distribution: graalvm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build the native image
+        run: >
+          ./gradlew :example-native-image:nativeCompile
+          -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,GRAALVM_HOME
+          --no-daemon --stacktrace
+
+      - name: Search from the native image, and measure what it cost
+        env:
+          QDRANT_HOST: 127.0.0.1
+          QDRANT_PORT: "6333"
+        run: |
+          BINARY=example-native-image/build/native/nativeCompile/kdrant-native-smoke
+          SIZE_MB=$(du -m "$BINARY" | cut -f1)
+          OUTPUT=$("$BINARY")
+          echo "$OUTPUT"
+          FIRST_SEARCH_MS=$(printf '%s\n' "$OUTPUT" | sed -n 's/^KDRANT_TIME_TO_FIRST_SEARCH_MS=//p')
+          if [ -z "$FIRST_SEARCH_MS" ]; then
+            echo "::error::the native image did not report a time to first search"; exit 1
+          fi
+          {
+            echo "### GraalVM native image"
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Binary size | ${SIZE_MB} MB |"
+            echo "| Time to first search, cold | ${FIRST_SEARCH_MS} ms |"
+            echo "| Reachability metadata committed | none |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   qdrant-compat:
     name: Integration (${{ matrix.qdrant }})
@@ -118,12 +264,15 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      # Both engines run the same client contract from kdrant-testkit, against the same image.
+      # Both engines run the same client contract from kdrant-testkit, against the same image. The otel
+      # and migrate modules join them: neither can be proven against a mock — one compares the spans two
+      # real engines produce, the other kills a copy halfway and restarts it.
       - name: Integration tests against ${{ matrix.qdrant }}
         env:
           QDRANT_IMAGE: ${{ matrix.qdrant }}
         run: >
-          ./gradlew :kdrant-transport-rest:test :kdrant-transport-grpc:test
+          ./gradlew :kdrant-transport-rest:jvmTest :kdrant-transport-grpc:test
+          :kdrant-otel:test :kdrant-migrate:jvmTest
           --tests "*IntegrationTest*" --no-daemon --stacktrace
 
   dependency-review:

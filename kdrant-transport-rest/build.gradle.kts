@@ -118,6 +118,18 @@ tasks.named<Test>("jvmTest") {
     }
 }
 
+// A Kotlin/Native test binary is launched by Gradle rather than inheriting a shell, so the two
+// variables that point the native client contract at a running Qdrant have to be handed over
+// explicitly. Blank means "not set", and the contract skips itself rather than failing, which is what
+// keeps `./gradlew build` green on a laptop with no Qdrant on it.
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
+    environment("KDRANT_QDRANT_HOST", providers.environmentVariable("KDRANT_QDRANT_HOST").getOrElse(""))
+    environment("KDRANT_QDRANT_PORT", providers.environmentVariable("KDRANT_QDRANT_PORT").getOrElse(""))
+    // Set by the CI jobs that start a Qdrant. It turns the skip into a failure, so a broken hand-over
+    // reports red instead of reporting green for having proven nothing.
+    environment("KDRANT_QDRANT_REQUIRED", providers.environmentVariable("KDRANT_QDRANT_REQUIRED").getOrElse(""))
+}
+
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()

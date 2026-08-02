@@ -29,6 +29,11 @@ class NativeClientContractTest {
     fun theClientContractPassesFromANativeBinary() {
         val host = env("KDRANT_QDRANT_HOST")
         if (host == null) {
+            // A job that was supposed to run this and silently skipped it would report green for
+            // having proven nothing, which is the failure mode the whole test exists to close.
+            if (env("KDRANT_QDRANT_REQUIRED") != null) {
+                fail("KDRANT_QDRANT_REQUIRED is set and KDRANT_QDRANT_HOST did not reach the test binary")
+            }
             println("KDRANT_QDRANT_HOST is not set; skipping the native client contract")
             return
         }
