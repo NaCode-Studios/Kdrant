@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: gradle/actions/wrapper-validation@v6
+      - uses: gradle/actions/wrapper-validation@v6.2.0
 
   build:
     name: Build (JDK ${{ matrix.java }})
@@ -48,7 +48,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Build, test, lint (ktlint + detekt) and verify public API
         run: ./gradlew build --no-daemon --stacktrace
@@ -91,7 +91,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       # The transport is here as well as the core from 2.1.0. Before that an iOS consumer got the
       # models and no engine, so compiling the core alone was the whole claim.
@@ -133,7 +133,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Run the client contract from a linuxX64 binary
         env:
@@ -172,7 +172,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Run the client contract from a macosArm64 binary
         env:
@@ -212,7 +212,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Build the native image
         run: >
@@ -262,7 +262,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       # Both engines run the same client contract from kdrant-testkit, against the same image. The otel
       # and migrate modules join them: neither can be proven against a mock — one compares the spans two

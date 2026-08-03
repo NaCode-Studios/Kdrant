@@ -26,7 +26,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       # Build the jars first so the provenance is attested for the exact artifacts the publish steps
       # upload: those tasks find them up to date and republish these files rather than rebuilding.
@@ -51,7 +51,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance (SLSA)
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: ${{ steps.artifacts.outputs.paths }}
 

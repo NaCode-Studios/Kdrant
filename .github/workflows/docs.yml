@@ -32,7 +32,7 @@ jobs:
           distribution: temurin
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Generate API docs (Dokka, multi-module HTML)
         run: ./gradlew dokkaGenerate --no-daemon --stacktrace
