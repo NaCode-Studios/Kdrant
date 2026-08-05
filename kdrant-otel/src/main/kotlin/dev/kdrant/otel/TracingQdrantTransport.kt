@@ -12,6 +12,7 @@ import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
 import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
@@ -133,6 +134,13 @@ internal class TracingQdrantTransport(
         schema: PayloadSchemaType,
         wait: Boolean,
     ): Unit = span("create_payload_index", name) { delegate.createPayloadIndex(name, field, schema, wait) }
+
+    override suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        params: PayloadIndexParams,
+        wait: Boolean,
+    ): Unit = span("create_payload_index", name) { delegate.createPayloadIndex(name, field, params, wait) }
 
     override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean): Unit =
         span("delete_payload_index", name) { delegate.deletePayloadIndex(name, field, wait) }

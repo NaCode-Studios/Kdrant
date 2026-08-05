@@ -6,6 +6,7 @@ import dev.kdrant.dsl.BatchSearchBuilder
 import dev.kdrant.dsl.BatchUpdateBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
+import dev.kdrant.dsl.PayloadIndexBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.SearchMatrixBuilder
@@ -286,6 +287,13 @@ internal class DefaultQdrantClient(
         schema: PayloadSchemaType,
         wait: Boolean,
     ): Unit = transport.createPayloadIndex(name, field, schema, wait)
+
+    override suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        wait: Boolean,
+        configure: PayloadIndexBuilder.() -> Unit,
+    ): Unit = transport.createPayloadIndex(name, field, PayloadIndexBuilder().apply(configure).build(), wait)
 
     override suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean): Unit =
         transport.deletePayloadIndex(name, field, wait)

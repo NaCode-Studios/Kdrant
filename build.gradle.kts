@@ -13,7 +13,7 @@ plugins {
 
 subprojects {
     group = "io.github.nacode-studios"
-    version = "2.1.0"
+    version = "2.2.0"
 }
 
 // The POM description is the sentence a catalog puts on the card, and it is the one surface a stranger
@@ -90,10 +90,27 @@ fun checkPublishedDescription(module: String, text: String, publishesNative: Boo
 // The runnable example, the benchmark harness and the shared test suite are not published libraries —
 // exclude them from public-API tracking.
 apiValidation {
+    // The JVM dump alone was a statement about one target. A change only Kotlin/Native can see — an
+    // `expect` gaining a parameter, a declaration sliding from commonMain into jvmMain — produced no
+    // diff at all, while STABILITY.md told an iOS consumer that the committed `.api` files describe
+    // what they get. The klib dump is the file that makes that sentence true for them.
+    //
+    // It is one merged, target-annotated file per module rather than one per target, so a declaration
+    // present on some targets and missing on others shows up as a diff rather than as silence. It can
+    // only be regenerated on a host that builds the Apple targets: see CONTRIBUTING.md, and the macOS
+    // job in ci.yml that checks it.
+    @OptIn(kotlinx.validation.ExperimentalBCVApi::class)
+    klib {
+        enabled = true
+    }
+
     ignoredProjects.add("example-rag")
     ignoredProjects.add("example-native-image")
     ignoredProjects.add("benchmarks")
     ignoredProjects.add("kdrant-testkit")
+    // A command-line tool has users, not callers: its artifacts are binaries attached to the release
+    // rather than a jar anyone compiles against, so there is no public API to promise.
+    ignoredProjects.add("kdrant-cli")
     // The gRPC engine's protobuf and stub classes are generated from Qdrant's own .proto files, so
     // their surface is Qdrant's to change, not ours to promise. Tracking them would bury the module's
     // real API — the transport factory — under thousands of generated lines. Everything hand-written
@@ -116,6 +133,7 @@ configure(
         project(":kdrant-koog"),
         project(":kdrant-transport-grpc"),
         project(":kdrant-migrate"),
+        project(":kdrant-cli"),
         project(":kdrant-testkit"),
         project(":example-rag"),
         project(":example-native-image"),
@@ -168,6 +186,7 @@ configure(
                 "src/jvmMain/kotlin", "src/jvmTest/kotlin",
                 "src/jsMain/kotlin", "src/nativeMain/kotlin", "src/nativeTest/kotlin",
                 "src/appleMain/kotlin", "src/linuxMain/kotlin", "src/mingwMain/kotlin",
+                "src/nativeMain/kotlin",
             ).filter { it.exists() },
         )
     }

@@ -10,6 +10,7 @@ import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
 import dev.kdrant.model.FacetValue
 import dev.kdrant.model.OrderBy
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
@@ -20,6 +21,7 @@ import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.VectorData
 import dev.kdrant.model.VectorParams
 import dev.kdrant.model.VectorsConfig
@@ -373,6 +375,41 @@ class GrpcQdrantTransportTest {
 
         assertEquals(Points.FieldType.FieldTypeKeyword, points.indexes.single().fieldType)
         assertEquals("lang", points.indexes.single().fieldName)
+    }
+
+    @Test
+    fun `an index built with parameters sends them on the message beside the type`() = runTest {
+        transport.createPayloadIndex(
+            "docs",
+            "body",
+            PayloadIndexParams.Text(
+                tokenizer = Tokenizer.MULTILINGUAL,
+                minTokenLen = 2,
+                maxTokenLen = 20,
+                lowercase = true,
+                phraseMatching = true,
+                onDisk = true,
+            ),
+            wait = true,
+        )
+
+        val text = points.indexes.single().fieldIndexParams.textIndexParams
+        assertEquals(Points.FieldType.FieldTypeText, points.indexes.single().fieldType)
+        assertEquals(Collections.TokenizerType.Multilingual, text.tokenizer)
+        assertEquals(2L, text.minTokenLen)
+        assertEquals(20L, text.maxTokenLen)
+        assertTrue(text.lowercase)
+        assertTrue(text.phraseMatching)
+        assertTrue(text.onDisk)
+    }
+
+    @Test
+    fun `a parameter the caller left unset is not sent, so the server's default stands`() = runTest {
+        transport.createPayloadIndex("docs", "tenant", PayloadIndexParams.Keyword(isTenant = true), wait = true)
+
+        val keyword = points.indexes.single().fieldIndexParams.keywordIndexParams
+        assertTrue(keyword.isTenant)
+        assertFalse(keyword.hasOnDisk(), "on_disk was never asked for and must not be sent")
     }
 
     // --- Analytics and service ---------------------------------------------------------------

@@ -41,19 +41,24 @@ qdrant.use { client ->
 }
 ```
 
-Kdrant stores and searches vectors you already have. `embedding` above is a `List<Float>` from
-your own embedding model; Kdrant does not generate embeddings.
+Kdrant stores and searches vectors. `embedding` above is a `List<Float>` from your own embedding
+model, because **Kdrant computes no embeddings**: it bundles no model and depends on no inference
+library. That is a statement about this client, not about what you can ask for. Where your Qdrant has
+an inference provider configured, Kdrant can send the text and the model name and let the server
+produce the vector, which is [server-side inference](#server-side-inference) below.
 
 > **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `2.1`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
+> **Status — `2.2`, stable.** Both engines are feature-complete: collections, `upsert`, the modern
 > `/points/query` search (nearest, hybrid fusion, recommend/discover/context, batch, groups), sparse
-> and multi-vectors, `scroll`, payload and vector management, aliases, snapshots, cluster and sharding,
-> service/analytics endpoints, resilient retries, and the full filter DSL, plus Spring Boot, Spring AI,
-> LangChain4j, Koog, Micrometer, OpenTelemetry and migration modules. `kdrant-core`,
-> `kdrant-transport-rest` and `kdrant-migrate` run on the JVM and eight Kotlin/Native targets. The
-> public API is stable under SemVer; see [STABILITY.md](STABILITY.md).
+> and multi-vectors, `scroll`, payload and vector management with the index parameters Qdrant takes,
+> aliases, snapshots, cluster and sharding, service/analytics endpoints, server-side inference,
+> resilient retries, a resumable ingest, and the full filter DSL, plus Spring Boot, Spring AI,
+> LangChain4j, Koog, Micrometer, OpenTelemetry, migration and CLI modules. `kdrant-core`,
+> `kdrant-transport-rest` and `kdrant-migrate` run on the JVM and eight Kotlin/Native targets, and
+> their public API is tracked per target. The public API is stable under SemVer; see
+> [STABILITY.md](STABILITY.md).
 
 ## Why Kdrant
 
@@ -108,7 +113,7 @@ Requires JDK 17+. Artifacts are published to Maven Central under `io.github.naco
 
 ```kotlin
 dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:2.1.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:2.2.0")
 }
 ```
 
@@ -127,14 +132,15 @@ Everything below is optional and additive. Take the engine you want and nothing 
 | `kdrant-spring-ai` | A Spring AI `VectorStore` backed by Kdrant, metadata filters included. |
 | `kdrant-langchain4j` | A LangChain4j `EmbeddingStore` backed by Kdrant, metadata filters included. |
 | `kdrant-koog` | A [Koog](https://github.com/JetBrains/koog) document storage where Qdrant runs the search instead of the agent scoring in memory. |
-| `kdrant-micrometer` | Request timings and outcomes per Qdrant operation, tagged by route template rather than by URL. |
+| `kdrant-micrometer` | A timer per Qdrant operation, over either engine, tagged by the operation the caller asked for rather than by a URL. |
 | `kdrant-otel` | One OpenTelemetry client span per operation, over either engine, carrying no payload or vector data. |
 | `kdrant-migrate` | Re-embed a collection into a new one, resume the copy after an interruption, verify it, and move the alias only once the verification passed. |
+| `kdrant-cli` | A single static binary for the operations that are not requests: migrate, snapshot, collections, scroll. Not on Maven Central; the binaries are attached to each [release](https://github.com/NaCode-Studios/Kdrant/releases). |
 | `kdrant-bom` | A platform that keeps the versions above aligned. Import it and drop the versions. |
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.nacode-studios:kdrant-bom:2.1.0"))
+    implementation(platform("io.github.nacode-studios:kdrant-bom:2.2.0"))
     implementation("io.github.nacode-studios:kdrant-transport-rest")
     implementation("io.github.nacode-studios:kdrant-spring-ai")
 }
@@ -167,7 +173,7 @@ JVM one does:
 
 ```kotlin
 commonMain.dependencies {
-    implementation("io.github.nacode-studios:kdrant-transport-rest:2.1.0")
+    implementation("io.github.nacode-studios:kdrant-transport-rest:2.2.0")
 }
 ```
 
@@ -175,8 +181,16 @@ The engine is chosen per target and the code above it is the same everywhere. Tw
 here rather than in a stack trace. On Apple platforms the engine is NSURLSession, so App Transport
 Security applies and a plaintext `http://` Qdrant is refused by the platform before Kdrant sees the
 request: use TLS, or declare the exception yourself. On Linux the engine is Curl, which links against
-the system libcurl — present on every mainstream distribution, and worth checking in a slim container
-image.
+the system libcurl, which is present on every mainstream distribution and worth checking in a slim
+container image.
+
+**There is no Kotlin/JS target, and that is a decision rather than a gap.** A browser cannot reach a
+Qdrant without CORS configured on the server, a Qdrant reachable from a browser is a Qdrant reachable
+from anyone who opens the developer tools, and an API key shipped to a browser is a published API key.
+Those are facts about the deployment, not about the effort: adding the target is one line, and the line
+would invite an architecture nobody should ship. The answer changes if Qdrant grows a browser-facing
+authorisation model that does not put a usable credential in the page, or if someone wants Kdrant on
+Node, where the key stays on the server and CORS does not apply. Neither has been asked for.
 
 A Gradle build resolves the right variant from the plain coordinate and needs no change. A Maven build
 names the artifact directly and wants the `-jvm` one: `kdrant-core-jvm`, `kdrant-transport-rest-jvm`.
@@ -184,6 +198,24 @@ The gRPC engine and the framework adapters are JVM-only and are unaffected.
 
 The same behavioural contract that holds the two engines to one behaviour runs from a `linuxX64` and a
 `macosArm64` binary against a real Qdrant in CI, because a klib that links has not been shown to work.
+
+### Qdrant versions
+
+The contract every engine is held to runs against the four most recent Qdrant minors, and the result
+is published whichever way it goes. A cell that fails on an older server is what a reader on that
+server needs to know, and a range like "1.16 and later" cannot say which part is affected.
+
+<!-- qdrant-matrix:start -->
+Not yet generated for this release. Run:
+
+```bash
+KDRANT_UPDATE_COMPAT=1 ./gradlew :kdrant-transport-rest:jvmTest --tests '*QdrantVersionMatrix*'
+```
+<!-- qdrant-matrix:end -->
+
+The table is written by that command rather than by hand, and the `Qdrant version matrix` job in CI
+runs the same suite on every push. The blocking check is separate: the integration job holds both
+engines to the pinned version and to `latest`, and that one is red when it should be.
 
 You also need a running Qdrant. For local development:
 
@@ -206,6 +238,25 @@ val qdrant: QdrantClient = Kdrant(host = "localhost", port = 6333) {
 ```
 
 `QdrantClient` is `AutoCloseable`; use it with `use { }` or close it explicitly.
+
+**TLS trust.** `useTls` decides whether to speak HTTPS; `trustAnchors` decides which certificate to
+accept. The default is the platform's own store, which is right for Qdrant Cloud and for anything with
+a publicly issued certificate. A private CA, a staging node with a self-signed certificate, or
+certificate pinning are named instead:
+
+```kotlin
+val qdrant = Kdrant(host = "qdrant.internal", port = 6333) {
+    useTls = true
+    trustAnchors = TrustAnchors.Pem(File("company-ca.pem").readText())
+}
+```
+
+Trust is the one setting where the platforms differ, so the support is stated rather than assumed. Every
+target honours `TrustAnchors.System`; the JVM honours all three; Linux honours a PEM bundle through
+libcurl and cannot pin, because Ktor's Curl engine exposes no option for it. On iOS, macOS and Windows
+the store belongs to the platform, so a private CA goes into the keychain or the machine store, and
+Kdrant refuses the configuration rather than falling back to system trust and looking like it complied.
+`TrustAnchors` names which store each engine reads.
 
 ### Collections
 
@@ -236,6 +287,21 @@ qdrant.createCollection("quickstart", size = 1_536)      // single vector, COSIN
 val info = qdrant.getCollectionOrNull("articles")        // null instead of throwing if absent
 ```
 
+### Payload indexes
+
+Filtering on an unindexed payload field is a full scan. An index is one call, and the parameters that
+index type accepts are part of it:
+
+```kotlin
+qdrant.createPayloadIndex("articles", "lang") { keyword { isTenant = true; onDisk = true } }
+qdrant.createPayloadIndex("articles", "body") { text { tokenizer = Tokenizer.WORD; phraseMatching = true } }
+```
+
+Two of those decide whether a query works rather than how fast it is. A `matchPhrase` filter matches
+nothing unless the text index was built with `phraseMatching = true`, and a multi-tenant collection is
+only laid out per tenant if its tenant field says `isTenant = true`. The rest are cost, `onDisk` above
+all: it is the difference between an index that has to fit in RAM and one that does not.
+
 ### Upserting points
 
 Point ids are unsigned integers or UUID strings. Payloads accept heterogeneous JSON values.
@@ -258,6 +324,48 @@ qdrant.upsert("articles", wait = true) {
 
 Large batches are split automatically to stay under Qdrant's request-size limit; tune it with
 `Kdrant(host, port, upsertBatchSize = 500)`.
+
+### Server-side inference
+
+Kdrant computes no embeddings. Qdrant can, where the deployment has an inference provider configured,
+and from `2.2.0` Kdrant can ask it to: a point carries the text and the name of a model instead of a
+vector, and a query does the same.
+
+```kotlin
+qdrant.upsert("articles", wait = true) {
+    point(1) { document("the text to embed", model = "jinaai/jina-embeddings-v2-base-en") }
+}
+
+val hits = qdrant.search("articles") {
+    queryDocument("what to look for", model = "jinaai/jina-embeddings-v2-base-en")
+    limit = 5
+}
+```
+
+The models, the providers and the cost of running them are Qdrant's side of the line and stay there. A
+plain Qdrant container has no provider and refuses these requests, which is why the round trip is
+tested only where one exists, while the request shapes are validated against Qdrant's own schema on
+every build.
+
+### Ingesting more than fits in memory
+
+`upsert` sends what it is given. `ingest` owns the parts a caller should not have to write again:
+batching by count and by size, a bound on requests in flight, retry of a batch rather than of the
+stream, and a token that says where to carry on from.
+
+```kotlin
+var token = loadCheckpoint()                       // null on a first run
+
+val report = qdrant.ingest("articles", pointsFromDisk, concurrency = 4, resumeFrom = token) {
+    saveCheckpoint(it)                             // called as the acknowledged prefix grows
+}
+```
+
+The measurement that decides whether it worked is not throughput. It is what happens when the process
+is killed at point four hundred thousand and started again, which without a token is start over. The
+token counts only an unbroken prefix, so a batch acknowledged while an earlier one is still being
+retried never moves it, and resuming cannot skip a point the server did not write. Storing the token
+is the caller's business, because where it goes is a question about their deployment.
 
 ### Filters
 
@@ -352,7 +460,7 @@ val points: List<Record> = qdrant.retrieve("articles", ids = listOf(PointId.num(
 ### Scoped access
 
 `apiKey` is the cluster's master key: full read and write over every collection. A Qdrant JWT is the
-narrower credential — read-only, one collection, or a payload filter deciding which points the caller
+narrower credential: read-only, one collection, or a payload filter deciding which points the caller
 may see at all, which is how one tenant's search is kept from reading another tenant's points.
 
 ```kotlin
@@ -416,6 +524,33 @@ interruption rather than starting over, and the alias moves only after the count
 queries returns the same neighbours from both collections above a stated recall. If the check fails,
 `MigrationVerificationFailed` is thrown with the numbers in it and the alias stays where it was.
 
+### The command line
+
+Some operations are not requests. Moving a collection between clusters, taking a backup, or looking at
+what is on a node that is misbehaving are things somebody does with a terminal open, and writing a
+Kotlin program with a dependency and a jar to do them is the wrong shape.
+
+`kdrant` is one static binary per platform, attached to each
+[release](https://github.com/NaCode-Studios/Kdrant/releases). No JVM, no classpath, no install step:
+
+```bash
+curl -fsSL -o kdrant https://github.com/NaCode-Studios/Kdrant/releases/latest/download/kdrant-linux-x64
+chmod +x kdrant
+
+export QDRANT_API_KEY=...          # a key on a command line is a key in the shell history
+./kdrant migrate articles articles-v2 --alias articles --checkpoint /var/tmp/articles.checkpoint
+```
+
+That is the whole command to move a collection: it copies in id order, remembers where it got to, checks
+the counts and the recall, and moves the alias only once the check passes. It also cannot embed, so it
+moves what does not need new vectors: a re-shard, a config change, a copy between clusters. Re-embedding
+stays in [`kdrant-migrate`](#migrating-a-collection-to-a-new-embedding), where a program can supply the
+model.
+
+`kdrant collections`, `kdrant scroll`, and `kdrant snapshot create|list|download|restore|delete` are the
+rest of it. `kdrant --help` prints the flags. It is not a query tool: Qdrant's own dashboard is better at
+that and is already running next to the server.
+
 ### Error handling
 
 ```kotlin
@@ -429,6 +564,24 @@ try {
     // missing or wrong credential. Forbidden is a subclass, so order these two this way round
 }
 ```
+
+**Retryable or terminal.** Every `KdrantException` says which it is, so a caller does not have to keep
+its own list of which failures are worth waiting out:
+
+```kotlin
+catching { qdrant.search("articles") { query(queryVector) } }
+    .onFailure { if (it is KdrantException && it.retryable) scheduleRetry() else alert(it) }
+```
+
+`retryable` is a statement about the server, not about your data: retrying a read is always safe, and
+retrying a write is safe where the write is idempotent, which an upsert keyed by point id is.
+
+Three failures exist because a degraded cluster used to be indistinguishable from a broken request.
+`ReadOnly` is a node refusing writes while still serving reads, which is not the same event as a
+credential being refused and is not fixed the same way. `ShardUnavailable` is a shard with no live
+replica, where the collection exists and part of it is unreachable. And `PartiallyApplied` reports how
+many points a large upsert wrote before it failed, so the choice between re-sending everything and
+losing the rest is made with a number rather than a guess.
 
 Prefer a `Result`? `catching { }` is a coroutine-safe `runCatching`: it wraps the outcome but always
 re-throws `CancellationException`:
@@ -496,6 +649,19 @@ the shared behavioural contract runs from a Linux and a macOS native binary agai
 `kdrant-migrate` moves a collection to a new embedding without taking reads down, a GraalVM native image
 is built and made to search in CI, and every published POM description now names the platforms that
 module actually has, checked on every build.
+
+**Shipped (`2.2.0`).** Tiers 8 and 9 close the gap between a request Kdrant can build and one that has
+been shown to work, and put the client's behaviour on record where a cluster is not healthy.
+`createPayloadIndex` takes the parameters Qdrant takes, so `matchPhrase` matches and a multi-tenant
+collection can be laid out per tenant. Sparse, multi-vector and reciprocal-rank-fusion hybrid search
+are in the shared contract against a real server rather than asserted as request bodies. Metrics moved
+to the transport seam, so a client built with `KdrantGrpc` reports for the first time. The public API
+is tracked per native target, not only for the JVM, and `STABILITY.md` states what a `2.x` promise
+means for a klib. TLS trust is configurable from every target that can honour it, points and queries
+can name a document for the server to embed, an `ingest` owns batching, concurrency and resume, and a
+degraded cluster reports itself as `ReadOnly`, `ShardUnavailable` or `PartiallyApplied` instead of as a
+generic failure. `kdrant-cli` is a single static binary per platform for the operations that are not
+requests, and the Kotlin/JS exclusion is argued [above](#platforms) rather than in a build file.
 
 **Next.** Nothing is claimed yet; the board is where it gets decided.
 

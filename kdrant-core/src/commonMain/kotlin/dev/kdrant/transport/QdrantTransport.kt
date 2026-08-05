@@ -12,6 +12,7 @@ import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
 import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
@@ -77,6 +78,12 @@ public interface QdrantTransport : AutoCloseable {
 
     /** Create a payload field index (`PUT /collections/{name}/index`). */
     public suspend fun createPayloadIndex(name: String, field: String, schema: PayloadSchemaType, wait: Boolean)
+
+    /**
+     * Create a payload field index with the parameters that index type accepts
+     * (`PUT /collections/{name}/index`). The type is carried by [params].
+     */
+    public suspend fun createPayloadIndex(name: String, field: String, params: PayloadIndexParams, wait: Boolean)
 
     /** Delete a payload field index (`DELETE /collections/{name}/index/{field}`). */
     public suspend fun deletePayloadIndex(name: String, field: String, wait: Boolean)

@@ -117,6 +117,28 @@ public abstract class QdrantClientContract {
     public fun `searchGroups groups the hits by a payload field`(): Unit =
         runBlocking { suite.searchGroupsByPayloadField() }
 
+    // --- Sparse, multi-vector and hybrid ------------------------------------------------------
+
+    @Test
+    public fun `a sparse vector round-trips and answers a sparse query`(): Unit =
+        runBlocking { suite.sparseVectors() }
+
+    @Test
+    public fun `an IDF sparse collection scores by rarity, not by the value that was sent`(): Unit =
+        runBlocking { suite.sparseIdfIsAppliedByTheServer() }
+
+    @Test
+    public fun `hybrid search fuses a dense and a sparse ranking`(): Unit =
+        runBlocking { suite.hybridSearchFusesBothRankings() }
+
+    @Test
+    public fun `a multi-vector collection stores and scores late interaction`(): Unit =
+        runBlocking { suite.multiVectors() }
+
+    @Test
+    public fun `a query naming a vector the collection does not have is refused`(): Unit =
+        runBlocking { suite.unknownVectorNameIsRefused() }
+
     // --- Scroll ------------------------------------------------------------------------------
 
     @Test
@@ -146,8 +168,16 @@ public abstract class QdrantClientContract {
         runBlocking { suite.payloadIndexLifecycle() }
 
     @Test
+    public fun `a payload index takes the parameters its type accepts`(): Unit =
+        runBlocking { suite.payloadIndexParameters() }
+
+    @Test
     public fun `batchUpdate applies its operations in order`(): Unit =
         runBlocking { suite.batchUpdateIsOrdered() }
+
+    @Test
+    public fun `an ingest killed partway resumes from its token without re-sending`(): Unit =
+        runBlocking { suite.ingestResumesFromItsToken() }
 
     // --- Filters against a real server -------------------------------------------------------
 
@@ -194,6 +224,23 @@ public abstract class QdrantClientContract {
     @Test
     public fun `a whole-storage snapshot can be created, listed and deleted`(): Unit =
         runBlocking { suite.storageSnapshotLifecycle() }
+
+    // --- Server-side inference -----------------------------------------------------------------
+
+    /**
+     * Skipped unless the Qdrant under test has an inference provider. A container does not, and faking
+     * one would assert that Kdrant can talk to a fake.
+     */
+    @Test
+    public fun `a document upserted and queried is embedded by the server`() {
+        val model = System.getenv("KDRANT_INFERENCE_MODEL")
+        val size = System.getenv("KDRANT_INFERENCE_SIZE")?.toLongOrNull()
+        assumeTrue(
+            model != null && size != null,
+            "no inference provider configured; set KDRANT_INFERENCE_MODEL and KDRANT_INFERENCE_SIZE to run this",
+        )
+        runBlocking { suite.inferenceRoundTrip(model!!, size!!) }
+    }
 
     // --- Failures ----------------------------------------------------------------------------
 

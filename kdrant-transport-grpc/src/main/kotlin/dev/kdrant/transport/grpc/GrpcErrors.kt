@@ -44,22 +44,35 @@ internal object GrpcErrors {
             Status.Code.NOT_FOUND -> notFound(collection, message)
             Status.Code.UNAUTHENTICATED -> KdrantException.Unauthorized(message.ifBlank { "Unauthorized" })
             // The gRPC counterpart of HTTP 403: the credential is understood and does not reach this
-            // far. A scoped token refused on a write raises the same type over either engine.
-            Status.Code.PERMISSION_DENIED -> KdrantException.Forbidden(collection, message)
-            Status.Code.INVALID_ARGUMENT ->
-                if (collection != null && looksLikeMissingCollection(message)) {
-                    notFound(collection, message)
-                } else {
-                    KdrantException.InvalidRequest(message.ifBlank { "Qdrant rejected the request" })
-                }
+            // far. A scoped token refused on a write raises the same type over either engine — and so
+            // does a node refusing writes, which is a different failure wearing the same code.
+            Status.Code.PERMISSION_DENIED -> if (namesReadOnly(message)) {
+                KdrantException.ReadOnly(collection, message)
+            } else {
+                KdrantException.Forbidden(collection, message)
+            }
+            Status.Code.INVALID_ARGUMENT -> when {
+                collection != null && looksLikeMissingCollection(message) -> notFound(collection, message)
+                namesUnavailableShard(message) -> KdrantException.ShardUnavailable(collection, message)
+                namesReadOnly(message) -> KdrantException.ReadOnly(collection, message)
+                else -> KdrantException.InvalidRequest(message.ifBlank { "Qdrant rejected the request" })
+            }
             Status.Code.ALREADY_EXISTS -> KdrantException.AlreadyExists(message.ifBlank { "Already exists" })
             Status.Code.DEADLINE_EXCEEDED -> KdrantException.Timeout(message.ifBlank { "Deadline exceeded" }, cause)
             Status.Code.RESOURCE_EXHAUSTED -> KdrantException.RateLimited(message = message.ifBlank { RATE_LIMITED })
-            Status.Code.UNAVAILABLE -> KdrantException.ServiceUnavailable(message.ifBlank { UNAVAILABLE })
+            Status.Code.UNAVAILABLE -> if (namesUnavailableShard(message)) {
+                KdrantException.ShardUnavailable(collection, message)
+            } else {
+                KdrantException.ServiceUnavailable(message.ifBlank { UNAVAILABLE })
+            }
             Status.Code.UNIMPLEMENTED -> KdrantException.InvalidRequest(
                 "Qdrant does not implement this call over gRPC${if (message.isBlank()) "" else ": $message"}",
             )
-            else -> KdrantException.ServerError(message.ifBlank { "Qdrant returned ${status.code}" })
+            else -> if (namesUnavailableShard(message)) {
+                KdrantException.ShardUnavailable(collection, message)
+            } else {
+                KdrantException.ServerError(message.ifBlank { "Qdrant returned ${status.code}" })
+            }
         }
     }
 
@@ -80,6 +93,25 @@ internal object GrpcErrors {
         message.contains("doesn't exist", ignoreCase = true) ||
             message.contains("does not exist", ignoreCase = true) ||
             message.contains("not found", ignoreCase = true)
+
+    /**
+     * The same two message tests the REST engine applies, for the same reason: a degraded cluster
+     * answers with a generic code and says what really happened in the text. Stated here rather than
+     * shared from `kdrant-transport-rest`, because a gRPC engine that depended on the REST one to read
+     * an error would be a dependency in the wrong direction.
+     */
+    private fun namesReadOnly(message: String): Boolean {
+        val text = message.lowercase()
+        if ("read-only" in text || "read only" in text || "readonly" in text) return true
+        val pressure = "disk usage" in text || "resident memory" in text || "memory usage" in text
+        return pressure && ("exceed" in text || "limit" in text || "above" in text || "too high" in text)
+    }
+
+    private fun namesUnavailableShard(message: String): Boolean {
+        val text = message.lowercase()
+        return ("shard" in text || "replica" in text) &&
+            ("not available" in text || "unavailable" in text || "no active" in text || "not enough" in text)
+    }
 
     private const val RATE_LIMITED = "Rate limited by Qdrant"
     private const val UNAVAILABLE = "Qdrant is temporarily unavailable"

@@ -5,6 +5,7 @@ import dev.kdrant.model.DecayParams
 import dev.kdrant.model.Expression
 import dev.kdrant.model.Filter
 import dev.kdrant.model.FusionAlgorithm
+import dev.kdrant.model.InferenceInput
 import dev.kdrant.model.LookupLocation
 import dev.kdrant.model.Mmr
 import dev.kdrant.model.Prefetch
@@ -198,6 +199,11 @@ internal object QueryMapping {
                 is QueryInterface.MultiVector -> multiDense = Points.MultiDenseVector.newBuilder()
                     .addAllVectors(input.vectors.map(::denseOf))
                     .build()
+                is QueryInterface.Inference -> when (val request = input.input) {
+                    is InferenceInput.Document -> document = PointMapping.documentOf(request)
+                    is InferenceInput.Image -> image = PointMapping.imageOf(request)
+                    is InferenceInput.Custom -> `object` = PointMapping.inferenceObjectOf(request)
+                }
             }
         }.build()
 

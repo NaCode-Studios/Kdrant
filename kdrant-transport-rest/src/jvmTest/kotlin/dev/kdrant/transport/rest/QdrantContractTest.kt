@@ -12,6 +12,7 @@ import dev.kdrant.model.GeoPoint
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.ShardKey
+import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.VectorData
 import dev.kdrant.model.WithPayload
 import io.ktor.client.engine.mock.MockEngine
@@ -151,6 +152,32 @@ class QdrantContractTest {
                     delete(byFilter { must { "lang" eq "xx" } })
                 }
             }
+            // Server-side inference. The round trip needs a Qdrant with a provider configured, which CI
+            // does not have; what CI can hold is the request shape, against Qdrant's own schema.
+            call("upsertDocument") { c ->
+                c.upsert("docs", wait = true) {
+                    point(3) { document("the text the server embeds", model = "jinaai/jina-embeddings-v2-base-en") }
+                    point(4) { image("https://example.com/a.jpg", model = "Qdrant/clip-ViT-B-32-vision") }
+                }
+            }
+            call("queryDocument") { c ->
+                c.search("docs") {
+                    queryDocument("what to look for", model = "jinaai/jina-embeddings-v2-base-en")
+                    limit = 5
+                }
+            }
+            call("createPayloadIndex") { c ->
+                c.createPayloadIndex("docs", "body") {
+                    text {
+                        tokenizer = Tokenizer.MULTILINGUAL
+                        minTokenLen = 2
+                        maxTokenLen = 20
+                        lowercase = true
+                        phraseMatching = true
+                        onDisk = true
+                    }
+                }
+            }
             call("facet") { c -> c.facet("docs", key = "lang", limit = 10, exact = true) { must { "year" gte 2020 } } }
             call("updateAliases") { c ->
                 c.updateAliases(timeout = 5) { deleteAlias("docs"); createAlias(collection = "docs-v2", alias = "docs") }
@@ -211,7 +238,7 @@ class QdrantContractTest {
     fun `the operations covered here are the ones the engine can send a body for`() {
         // A guard on the guard: if someone adds an operation with a request body and no case above,
         // the contract coverage silently stops growing with the engine.
-        assertEquals(23, sent.size, "operations captured: ${sent.map { it.name }}")
+        assertEquals(26, sent.size, "operations captured: ${sent.map { it.name }}")
     }
 
     @Test
@@ -237,6 +264,7 @@ class QdrantContractTest {
             "payload" to """{"result":true,"status":"ok"}""",
             "clear" to """{"result":true,"status":"ok"}""",
             "vectors" to """{"result":true,"status":"ok"}""",
+            "index" to """{"result":{"operation_id":0,"status":"completed"},"status":"ok"}""",
             "facet" to """{"result":{"hits":[]},"status":"ok"}""",
             "aliases" to """{"result":true,"status":"ok"}""",
             "recover" to """{"result":true,"status":"ok"}""",

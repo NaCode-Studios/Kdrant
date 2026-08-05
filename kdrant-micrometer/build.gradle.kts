@@ -22,6 +22,14 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.client.mock)
+    // A stub for a 56-method transport seam. Writing one by hand would be a file nobody reads and a
+    // compile error every time an operation is added.
+    testImplementation(libs.mockk)
+
+    // The gRPC engine, so "one decorator, both engines" can be asserted rather than argued.
+    testImplementation(project(":kdrant-transport-grpc"))
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.qdrant)
 }
 
 tasks.test {

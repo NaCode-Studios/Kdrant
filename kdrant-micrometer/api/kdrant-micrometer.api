@@ -1,3 +1,10 @@
+public final class dev/kdrant/micrometer/KdrantMeteringKt {
+	public static final fun kdrantMetrics (Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;Ljava/lang/Iterable;)Lkotlin/jvm/functions/Function1;
+	public static synthetic fun kdrantMetrics$default (Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;Ljava/lang/Iterable;ILjava/lang/Object;)Lkotlin/jvm/functions/Function1;
+	public static final fun metered (Ldev/kdrant/transport/QdrantTransport;Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;Ljava/lang/Iterable;)Ldev/kdrant/transport/QdrantTransport;
+	public static synthetic fun metered$default (Ldev/kdrant/transport/QdrantTransport;Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;Ljava/lang/Iterable;ILjava/lang/Object;)Ldev/kdrant/transport/QdrantTransport;
+}
+
 public final class dev/kdrant/micrometer/KdrantMetricsConfig {
 	public fun <init> ()V
 	public final fun getPrefix ()Ljava/lang/String;

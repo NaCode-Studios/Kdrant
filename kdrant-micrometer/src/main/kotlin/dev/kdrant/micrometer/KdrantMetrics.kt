@@ -23,7 +23,11 @@ public class KdrantMetricsConfig {
 /**
  * Ktor client plugin recording one timer per Qdrant request.
  *
- * Prefer [kdrantMetrics], which installs it. Published meters:
+ * Superseded by the transport decorator in [kdrantMetrics], which measures the same calls one layer up
+ * and therefore covers the gRPC engine as well. A plugin installed on a Ktor client can only see
+ * requests a Ktor client makes, which is why a client built with `KdrantGrpc` published nothing here.
+ *
+ * Published meters:
  *
  * - `kdrant.requests` — a [Timer] tagged `operation`, `method`, `status` and `outcome`.
  *
@@ -32,6 +36,10 @@ public class KdrantMetricsConfig {
  * time series. `outcome` is `SUCCESS`, `CLIENT_ERROR`, `SERVER_ERROR` or `FAILURE`, the last one for a
  * request that never produced a response.
  */
+@Deprecated(
+    "Superseded by the transport decorator, which covers both engines. Pass " +
+        "decorateTransport = kdrantMetrics(registry) to the factory instead.",
+)
 public val KdrantMetrics: ClientPlugin<KdrantMetricsConfig> =
     createClientPlugin("KdrantMetrics", ::KdrantMetricsConfig) {
         val registry = requireNotNull(pluginConfig.registry) {

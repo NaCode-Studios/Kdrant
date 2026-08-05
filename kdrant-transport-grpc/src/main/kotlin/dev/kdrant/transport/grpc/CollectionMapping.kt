@@ -19,6 +19,7 @@ import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.ReplicaState
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SparseVectorParams
+import dev.kdrant.model.StrictModeConfig
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.VectorParams
@@ -52,6 +53,7 @@ internal object CollectionMapping {
             request.replicationFactor?.let { replicationFactor = it }
             request.optimizersConfig?.let { optimizersConfig = optimizersConfig(it) }
             request.quantizationConfig?.let { quantizationConfig = quantizationConfig(it) }
+            request.strictModeConfig?.let { strictModeConfig = strictModeConfig(it) }
         }.build()
 
     fun updateCollection(name: String, request: UpdateCollectionRequest): Collections.UpdateCollection =
@@ -60,6 +62,7 @@ internal object CollectionMapping {
             request.optimizersConfig?.let { optimizersConfig = optimizersConfig(it) }
             request.hnswConfig?.let { hnswConfig = hnswConfig(it) }
             request.quantizationConfig?.let { quantizationConfig = quantizationConfigDiff(it) }
+            request.strictModeConfig?.let { strictModeConfig = strictModeConfig(it) }
         }.build()
 
     fun collectionInfo(info: Collections.CollectionInfo): CollectionInfo = CollectionInfo(
@@ -325,6 +328,29 @@ internal object CollectionMapping {
             config.maxOptimizationThreads?.let {
                 maxOptimizationThreads = Collections.MaxOptimizationThreads.newBuilder().setValue(it.toLong()).build()
             }
+        }.build()
+
+    /**
+     * Every field is optional on both sides, so a limit the caller did not set stays unset here rather
+     * than being sent as a zero — which for a rate limit would mean "no requests per minute".
+     */
+    private fun strictModeConfig(config: StrictModeConfig): Collections.StrictModeConfig =
+        Collections.StrictModeConfig.newBuilder().apply {
+            config.enabled?.let { enabled = it }
+            config.maxQueryLimit?.let { maxQueryLimit = it }
+            config.maxTimeout?.let { maxTimeout = it }
+            config.unindexedFilteringRetrieve?.let { unindexedFilteringRetrieve = it }
+            config.unindexedFilteringUpdate?.let { unindexedFilteringUpdate = it }
+            config.searchMaxHnswEf?.let { searchMaxHnswEf = it }
+            config.searchAllowExact?.let { searchAllowExact = it }
+            config.upsertMaxBatchSize?.let { upsertMaxBatchsize = it.toLong() }
+            config.searchMaxBatchSize?.let { searchMaxBatchsize = it.toLong() }
+            config.readRateLimit?.let { readRateLimit = it }
+            config.writeRateLimit?.let { writeRateLimit = it }
+            config.maxPointsCount?.let { maxPointsCount = it }
+            config.filterMaxConditions?.let { filterMaxConditions = it.toLong() }
+            config.maxDiskUsagePercent?.let { maxDiskUsagePercent = it }
+            config.maxResidentMemoryPercent?.let { maxResidentMemoryPercent = it }
         }.build()
 
     private fun quantizationConfig(config: QuantizationConfig): Collections.QuantizationConfig =

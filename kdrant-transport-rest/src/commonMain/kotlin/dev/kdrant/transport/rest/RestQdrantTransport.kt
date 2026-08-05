@@ -18,6 +18,7 @@ import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
 import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
@@ -119,6 +120,10 @@ import kotlin.time.Duration.Companion.seconds
  *   engine default.
  * @param requestId called to produce the `X-Request-Id` value of each request; `null` sends no header.
  */
+// One class on purpose: it is the whole wire mapping for one protocol, and every method is the same
+// three lines around a different endpoint. Splitting it by topic would hide that uniformity behind an
+// index of files without removing a line.
+@Suppress("LargeClass", "TooManyFunctions")
 internal class RestQdrantTransport(
     private val config: KdrantConfig,
     engine: HttpClientEngine? = null,
@@ -145,7 +150,7 @@ internal class RestQdrantTransport(
         if (engine != null) {
             HttpClient(engine) { applyCommonConfig() }
         } else {
-            platformHttpClient(maxConnectionsPerRoute, keepAliveTime) { applyCommonConfig() }
+            platformHttpClient(maxConnectionsPerRoute, keepAliveTime, config.trustAnchors) { applyCommonConfig() }
         }
 
     private fun HttpClientConfig<*>.applyCommonConfig() {
@@ -239,28 +244,50 @@ internal class RestQdrantTransport(
     private suspend fun upsertStreaming(name: String, points: Flow<PointStruct>, wait: Boolean) {
         val batch = ArrayList<String>()
         var bytes = 0
+        // What the server acknowledged, and what it was given. A caller who is only told that the call
+        // failed cannot tell "nothing was written" from "the first four hundred thousand were", and the
+        // two call for opposite recoveries.
+        var applied = 0
         points.collect { point ->
             val json = KdrantJson.encodeToString(PointStruct.serializer(), point)
             // A single point over the cap can't be split; flush what we have, then send it alone.
             if (batch.isNotEmpty() && (batch.size >= upsertBatchSize || bytes + json.length > maxUpsertBytes)) {
-                flushUpsert(name, batch, wait)
+                flushUpsert(name, batch, wait, applied)
+                applied += batch.size
                 batch.clear()
                 bytes = 0
             }
             batch.add(json)
             bytes += json.length
         }
-        if (batch.isNotEmpty()) flushUpsert(name, batch, wait)
+        if (batch.isNotEmpty()) flushUpsert(name, batch, wait, applied)
     }
 
-    /** Sends one upsert batch of pre-serialized point fragments (`PUT /collections/{name}/points`). */
-    private suspend fun flushUpsert(name: String, pointsJson: List<String>, wait: Boolean) {
+    /**
+     * Sends one upsert batch of pre-serialized point fragments (`PUT /collections/{name}/points`).
+     *
+     * A failure after an earlier batch landed is reported as [KdrantException.PartiallyApplied] naming
+     * how many points were written, rather than as the underlying failure alone. [alreadyApplied] is
+     * the count the server acknowledged before this batch; the first batch of a call has nothing behind
+     * it and its failure is reported unchanged, because nothing was partially applied.
+     */
+    private suspend fun flushUpsert(
+        name: String,
+        pointsJson: List<String>,
+        wait: Boolean,
+        alreadyApplied: Int,
+    ) {
         val body = pointsJson.joinToString(separator = ",", prefix = """{"points":[""", postfix = "]}")
-        execute(name) {
-            client.put("/collections/${encode(name)}/points") {
-                parameter("wait", wait)
-                setBody(TextContent(body, ContentType.Application.Json))
+        try {
+            execute(name) {
+                client.put("/collections/${encode(name)}/points") {
+                    parameter("wait", wait)
+                    setBody(TextContent(body, ContentType.Application.Json))
+                }
             }
+        } catch (e: KdrantException) {
+            if (alreadyApplied == 0) throw e
+            throw KdrantException.PartiallyApplied(alreadyApplied, e)
         }
     }
 
@@ -290,6 +317,15 @@ internal class RestQdrantTransport(
             client.put("/collections/${encode(name)}/index") {
                 parameter("wait", wait)
                 setBody(CreateFieldIndexRequest(field, schema))
+            }
+        }
+    }
+
+    override suspend fun createPayloadIndex(name: String, field: String, params: PayloadIndexParams, wait: Boolean) {
+        execute(name) {
+            client.put("/collections/${encode(name)}/index") {
+                parameter("wait", wait)
+                setBody(CreateFieldIndexParamsRequest(field, params))
             }
         }
     }
@@ -745,6 +781,18 @@ internal class RestQdrantTransport(
                 throw KdrantException.Timeout("Request to Qdrant timed out", e)
             } catch (e: IOException) {
                 throw KdrantException.Transport("Failed to reach Qdrant at ${config.host}:${config.port}", e)
+            } catch (e: KdrantException) {
+                throw e
+            } catch (e: Throwable) {
+                // A refused certificate is not an IOException on every platform: the JVM raises
+                // CertPathValidatorException and CertificateException, which used to escape this seam
+                // and reach a caller who was told every failure here is a KdrantException. Widening the
+                // catch is what makes that sentence true; the cause is kept, so the certificate problem
+                // is still readable underneath.
+                throw KdrantException.Transport(
+                    "Failed to reach Qdrant at ${config.host}:${config.port}: ${e.message ?: e::class.simpleName}",
+                    e,
+                )
             }
             ensureSuccess(response, collection)
             response
@@ -785,25 +833,56 @@ internal class RestQdrantTransport(
         val message = errorMessage(response)
         throw when (response.status.value) {
             401 -> KdrantException.Unauthorized(message ?: "Unauthorized")
-            // 401 is "who are you"; 403 is "you, specifically, may not". A scoped token refused on a
-            // write has to be told apart from a missing key, because only one of them is a bug in the
-            // token rather than in the deployment.
-            403 -> KdrantException.Forbidden(collection, message)
-            404 ->
-                if (collection != null) {
-                    KdrantException.CollectionNotFound(collection, message)
-                } else {
-                    KdrantException.InvalidRequest(message ?: "Not found (HTTP 404)")
-                }
+            403 -> refused(collection, message)
+            404 -> notFound(collection, message)
             408 -> KdrantException.Timeout(message ?: "Qdrant reported a request timeout (HTTP 408)")
             409 -> KdrantException.AlreadyExists(message ?: "Resource already exists (HTTP 409)")
             429 -> KdrantException.RateLimited(retryAfter(response), message ?: "Rate limited by Qdrant (HTTP 429)")
             503 -> KdrantException.ServiceUnavailable(message ?: "Qdrant is temporarily unavailable (HTTP 503)")
-            in 400..499 -> KdrantException.InvalidRequest(message ?: "Bad request: ${response.status}")
-            in 500..599 -> KdrantException.ServerError(message ?: "Qdrant server error: ${response.status}")
+            in 400..499 -> clientError(collection, message, response)
+            in 500..599 -> serverError(collection, message, response)
             else -> KdrantException.Transport(message ?: "Unexpected response: ${response.status}")
         }
     }
+
+    /**
+     * 401 is "who are you"; 403 is "you, specifically, may not". A scoped token refused on a write has
+     * to be told apart from a missing key, because only one of them is a bug in the token rather than
+     * in the deployment. Qdrant also answers 403 when the *node* may not write, which is a third thing
+     * again: nothing is wrong with the credential and waiting is the fix.
+     */
+    private fun refused(collection: String?, message: String?): KdrantException =
+        if (namesReadOnly(message)) {
+            KdrantException.ReadOnly(collection, message)
+        } else {
+            KdrantException.Forbidden(collection, message)
+        }
+
+    private fun notFound(collection: String?, message: String?): KdrantException =
+        if (collection != null) {
+            KdrantException.CollectionNotFound(collection, message)
+        } else {
+            KdrantException.InvalidRequest(message ?: "Not found (HTTP 404)")
+        }
+
+    /**
+     * A degraded cluster answers on both sides of the 4xx/5xx line depending on which check refused
+     * first, so the status cannot decide which failure it is and the message has to.
+     */
+    private fun clientError(collection: String?, message: String?, response: HttpResponse): KdrantException = when {
+        namesUnavailableShard(message) -> KdrantException.ShardUnavailable(collection, message)
+        // Strict mode refuses a write over its disk or memory ceiling with a 4xx rather than a 403, so
+        // the same state arrives on both sides of the auth line.
+        namesReadOnly(message) -> KdrantException.ReadOnly(collection, message)
+        else -> KdrantException.InvalidRequest(message ?: "Bad request: ${response.status}")
+    }
+
+    private fun serverError(collection: String?, message: String?, response: HttpResponse): KdrantException =
+        if (namesUnavailableShard(message)) {
+            KdrantException.ShardUnavailable(collection, message)
+        } else {
+            KdrantException.ServerError(message ?: "Qdrant server error: ${response.status}")
+        }
 
     /** Parses the `Retry-After` header (delta-seconds form) into a [Duration], if present and numeric. */
     private fun retryAfter(response: HttpResponse): Duration? =
@@ -829,6 +908,40 @@ internal class RestQdrantTransport(
     }
 
     private fun encode(name: String): String = encodePathSegment(name)
+}
+
+/**
+ * Whether a refusal is the node declining to write rather than the credential being declined.
+ *
+ * Matched on the message because the status does not separate them — Qdrant answers 403 both when a
+ * token may not write and when the node may not — and there is no machine-readable error code to key
+ * on. Two wordings mean the same thing to a caller: the explicit read-only state, and a strict-mode
+ * limit on disk or memory, which is the same event with the cause named.
+ *
+ * Deliberately substrings rather than exact strings, so the wording may change without turning a
+ * read-only node back into an auth failure. When nothing matches, the mapping falls back to
+ * [KdrantException.Forbidden] or [KdrantException.InvalidRequest], which is where these failures
+ * landed before: an unrecognised message costs the caller nothing they had.
+ */
+internal fun namesReadOnly(message: String?): Boolean {
+    val text = message?.lowercase() ?: return false
+    if ("read-only" in text || "read only" in text || "readonly" in text) return true
+    // Strict mode's disk and memory ceilings: writes refused, reads still served.
+    val pressure = "disk usage" in text || "resident memory" in text || "memory usage" in text
+    return pressure && ("exceed" in text || "limit" in text || "above" in text || "too high" in text)
+}
+
+/**
+ * Whether a failure is a shard with no live replica rather than a bad request or a broken server.
+ *
+ * Qdrant answers this on both sides of the 4xx/5xx line depending on which check refused first — a
+ * write rejected for not reaching the write consistency factor is a client error, a read that found no
+ * replica is a server one — so the status cannot decide it either.
+ */
+internal fun namesUnavailableShard(message: String?): Boolean {
+    val text = message?.lowercase() ?: return false
+    return ("shard" in text || "replica" in text) &&
+        ("not available" in text || "unavailable" in text || "no active" in text || "not enough" in text)
 }
 
 /**

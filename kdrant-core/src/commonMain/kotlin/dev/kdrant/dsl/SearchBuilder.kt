@@ -5,6 +5,7 @@ import dev.kdrant.model.ContextPair
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Expression
 import dev.kdrant.model.Filter
+import dev.kdrant.model.InferenceInput
 import dev.kdrant.model.LookupLocation
 import dev.kdrant.model.Mmr
 import dev.kdrant.model.PointId
@@ -16,6 +17,7 @@ import dev.kdrant.model.SearchRequest
 import dev.kdrant.model.ShardKey
 import dev.kdrant.model.VectorInput
 import dev.kdrant.model.WithPayload
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
@@ -71,6 +73,14 @@ public class SearchBuilder {
 
     /** Set the query directly (e.g. a prebuilt [QueryInterface]). */
     public fun query(query: QueryInterface) { this.query = query }
+
+    /**
+     * Search by [text] the **server** embeds with [model], instead of by a vector the caller computed.
+     * Needs a Qdrant with an inference provider configured. See [InferenceInput].
+     */
+    public fun queryDocument(text: String, model: String, options: Map<String, JsonElement>? = null) {
+        query = QueryInterface.Inference(InferenceInput.Document(text, model, options))
+    }
 
     /** Reciprocal Rank Fusion over the [prefetch] sources — hybrid search. */
     public fun rrf(k: Int? = null, weights: List<Float>? = null) {
@@ -244,6 +254,14 @@ public class PrefetchBuilder {
 
     /** Set the query directly (e.g. a prebuilt [QueryInterface]). */
     public fun query(query: QueryInterface) { this.query = query }
+
+    /**
+     * Search by [text] the **server** embeds with [model], instead of by a vector the caller computed.
+     * Needs a Qdrant with an inference provider configured. See [InferenceInput].
+     */
+    public fun queryDocument(text: String, model: String, options: Map<String, JsonElement>? = null) {
+        query = QueryInterface.Inference(InferenceInput.Document(text, model, options))
+    }
 
     /** Restrict this prefetch to points matching the filter. */
     public fun filter(configure: FilterBuilder.() -> Unit) {

@@ -24,11 +24,8 @@ kotlin {
     // watchOS and tvOS are left out: they cost one line each and neither has a use case that would
     // justify carrying the klibs, so they wait for someone to ask.
     //
-    // Kotlin/JS is left out for a stronger reason. There is no JS engine — Ktor CIO and grpc-java are
-    // both JVM-only — so kdrant-core on JS would be models and a DSL with nothing to send them over.
-    // The target is not free: its Karma and webpack test tooling is the only npm dependency graph this
-    // repository has, and it arrived carrying a high-severity advisory in a package no published
-    // artifact contains. One line brings it back the day someone writes a JS engine.
+    // Kotlin/JS is left out, and the argument for that lives in the README rather than here: a
+    // decision a reader has to find in a build file is a decision they will keep re-opening.
     iosArm64()
     iosSimulatorArm64()
     iosX64()
@@ -53,6 +50,9 @@ kotlin {
             runtimeOnly(libs.junit.platform.launcher)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotest.property)
+            // A stub for the client interface, used by the ingest tests. Hand-writing one would be a
+            // file nobody reads and a compile error every time an operation is added.
+            implementation(libs.mockk)
         }
     }
 }

@@ -14,9 +14,11 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 
 /**
- * The plugin is exercised on a bare Ktor client with a `MockEngine`, which is what a Kdrant client
- * installs it on through its `configureClient` seam.
+ * The deprecated plugin, still exercised on a bare Ktor client with a `MockEngine`. It keeps working
+ * for one minor, so it keeps being tested for one minor: a deprecation that stops being covered is a
+ * removal with a longer notice period.
  */
+@Suppress("DEPRECATION")
 class KdrantMetricsTest {
 
     private val registry = SimpleMeterRegistry()
