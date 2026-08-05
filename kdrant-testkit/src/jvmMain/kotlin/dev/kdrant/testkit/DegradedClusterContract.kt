@@ -96,15 +96,18 @@ public abstract class DegradedClusterContract {
         )
         assertTrue(
             (failure as KdrantException).retryable,
-            "a shard that is down comes back, so the failure is retryable: ${failure::class.simpleName}",
+            "a shard that is down comes back, so the failure is retryable. Got " +
+                "${failure::class.simpleName}: ${failure.message}",
         )
     }
 
     // --- A node that refuses writes ------------------------------------------------------------
 
     /**
-     * Strict mode's disk ceiling set to zero: every write is over it, every read is unaffected. That is
-     * the read-only state, reached deterministically instead of by filling a disk.
+     * Strict mode's disk ceiling set to one percent: a container's disk is always over it, so every
+     * write is refused and every read is unaffected. That is the read-only state, reached
+     * deterministically instead of by filling a disk. One rather than zero because Qdrant validates the
+     * field as 1..100, which is also why [StrictModeConfig] refuses a zero before the request goes out.
      *
      * The assertion that matters is not the class name but the pair of facts a caller acts on: reads
      * still work, and the write failure says "later", not "not with that credential".
@@ -116,7 +119,7 @@ public abstract class DegradedClusterContract {
             client.createCollection(name) { vector { size = 4; distance = Distance.DOT } }
             client.upsert(name, wait = true) { point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f) } }
             client.updateCollection(name) {
-                strictMode = StrictModeConfig(enabled = true, maxDiskUsagePercent = 0)
+                strictMode = StrictModeConfig(enabled = true, maxDiskUsagePercent = 1)
             }
         }
 

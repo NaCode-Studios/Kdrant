@@ -91,4 +91,20 @@ public data class StrictModeConfig(
     /** Resident memory, as a percentage, past which memory-consuming writes are refused. */
     @SerialName("max_resident_memory_percent")
     public val maxResidentMemoryPercent: Int? = null,
-)
+) {
+    init {
+        // Qdrant validates both as 1..100 and rejects 0, which reads as "no disk allowed" rather than
+        // as the disabled state a caller writing zero has in mind. Catching it here says so where the
+        // caller can still fix it, instead of as a validation error from the server.
+        maxDiskUsagePercent?.let {
+            require(it in 1..100) { "maxDiskUsagePercent must be in 1..100, was $it. Use null to leave it unset." }
+        }
+        maxResidentMemoryPercent?.let {
+            require(it in 1..100) {
+                "maxResidentMemoryPercent must be in 1..100, was $it. Use null to leave it unset."
+            }
+        }
+        readRateLimit?.let { require(it > 0) { "readRateLimit must be > 0, was $it" } }
+        writeRateLimit?.let { require(it > 0) { "writeRateLimit must be > 0, was $it" } }
+    }
+}

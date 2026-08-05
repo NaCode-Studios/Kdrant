@@ -744,22 +744,31 @@ public class QdrantClientContractSuite(
             // What the token claims has to be what the collection holds, or resuming would skip points.
             assertEquals(checkpoint.acknowledgedPoints, client.count(name))
 
-            var resent = 0L
+            var produced = 0L
             val report = client.ingest(
                 name,
-                generatedPoints(total, onEmit = { resent++ }),
+                generatedPoints(total, onEmit = { produced++ }),
                 batchSize = 50,
                 concurrency = 2,
                 resumeFrom = checkpoint,
             )
 
             assertEquals(total, client.count(name), "the resumed run should have completed the collection")
-            assertEquals(total, report.checkpoint.acknowledgedPoints)
-            assertEquals(
-                total - checkpoint.acknowledgedPoints,
-                resent,
-                "the resumed run re-sent points the server had already acknowledged",
+            assertEquals(total, report.checkpoint.acknowledgedPoints, "the token has to be absolute, not per run")
+
+            // Batches, not emissions, is what "without re-sending" means. Resuming skips the acknowledged
+            // points on the way out, so the resumed run makes fewer requests than a full one would: 500
+            // points in batches of 50 is ten requests from cold, and fewer from a token.
+            val batchesFromCold = (total / 50).toInt()
+            assertTrue(
+                report.batches < batchesFromCold,
+                "a resumed run sent ${report.batches} batches, the same as starting over ($batchesFromCold)",
             )
+
+            // And the source is still asked for all of them, which is the part that surprises people:
+            // `resumeFrom` drops the acknowledged points as they arrive rather than telling the source
+            // to skip them. Nothing goes over the network twice; the source is still read twice.
+            assertEquals(total, produced, "the source is replayed in full and the prefix is dropped on the way out")
         }
     }
 

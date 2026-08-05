@@ -95,7 +95,10 @@ public data class IngestReport(
  * @param concurrency requests in flight at once. `1` makes the whole ingest sequential.
  * @param maxRetriesPerBatch attempts after the first, for a retryable failure.
  * @param retryDelay delay before the first retry; it doubles per attempt.
- * @param resumeFrom a token from an earlier run; its points are skipped.
+ * @param resumeFrom a token from an earlier run. Its points are dropped as they arrive rather than
+ *   never produced: the source is replayed in full and the acknowledged prefix does not go over the
+ *   network again. Where reading the source is itself the expensive part, have the source start after
+ *   the checkpoint and pass no token.
  * @param onCheckpoint called as the acknowledged prefix grows, on the ingest's own coroutine. Keep it
  *   quick: it runs between batches, and a slow write here is throughput the ingest does not have.
  * @throws IllegalArgumentException if a bound is not positive.

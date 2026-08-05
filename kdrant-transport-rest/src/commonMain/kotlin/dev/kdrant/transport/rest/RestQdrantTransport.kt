@@ -934,14 +934,22 @@ internal fun namesReadOnly(message: String?): Boolean {
 /**
  * Whether a failure is a shard with no live replica rather than a bad request or a broken server.
  *
- * Qdrant answers this on both sides of the 4xx/5xx line depending on which check refused first — a
- * write rejected for not reaching the write consistency factor is a client error, a read that found no
- * replica is a server one — so the status cannot decide it either.
+ * Qdrant answers this on both sides of the 4xx/5xx line depending on which check refused first: a write
+ * rejected for not reaching the write consistency factor is a client error, a read that found no replica
+ * is a server one. The status cannot decide it, so the text does.
+ *
+ * Both halves have to match. A message naming a shard or a replica *and* saying it could not be reached
+ * is a degraded cluster; a message naming a shard alone might be a malformed shard key, and a message
+ * saying "failed" alone is every other server error there is.
  */
 internal fun namesUnavailableShard(message: String?): Boolean {
     val text = message?.lowercase() ?: return false
-    return ("shard" in text || "replica" in text) &&
-        ("not available" in text || "unavailable" in text || "no active" in text || "not enough" in text)
+    val subject = "shard" in text || "replica" in text
+    val unreachable = listOf(
+        "not available", "unavailable", "no active", "not enough", "no replica",
+        "dead", "is down", "failed to", "cannot",
+    ).any { it in text }
+    return subject && unreachable
 }
 
 /**

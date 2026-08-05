@@ -94,7 +94,9 @@ class MetricsAcrossEnginesIntegrationTest {
 
     @Test
     fun `a collection name never becomes a tag, over either engine`() = runBlocking {
-        rest.count("tenant-acme-0001").let { }
+        // Both collections are missing on purpose: what is under test is the meter id, and a failed
+        // call produces one just as a successful call does.
+        runCatching { rest.count("tenant-acme-0001") }
         runCatching { grpc.count("tenant-acme-0002") }
 
         val rendered = registry.meters.joinToString("\n") { it.id.toString() }

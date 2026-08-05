@@ -77,6 +77,36 @@ class DegradedStateMappingTest {
     }
 
     @Test
+    fun `the phrasings a degraded cluster actually uses all reach ShardUnavailable`() {
+        // Both halves are required, so a plain server error that happens to say "failed" does not become
+        // a cluster diagnosis, and a shard key that is malformed does not either.
+        listOf(
+            "Not enough replicas of shard 1 are available",
+            "No replica available for shard 1",
+            "Shard 1 has no active replicas",
+            "Service internal error: shard 1 is dead",
+            "Failed to read from shard 1",
+            "Cannot resolve replica for shard 0",
+        ).forEach { error ->
+            assertInstanceOf(
+                KdrantException.ShardUnavailable::class.java,
+                failureOf(HttpStatusCode.InternalServerError, error),
+                "'$error' should have been read as an unavailable shard",
+            )
+        }
+
+        listOf(
+            "Service internal error: failed to flush",
+            "Wrong input: shard key 'eu-west' is not a valid key",
+        ).forEach { error ->
+            assertFalse(
+                failureOf(HttpStatusCode.InternalServerError, error) is KdrantException.ShardUnavailable,
+                "'$error' is not a degraded cluster and must not be read as one",
+            )
+        }
+    }
+
+    @Test
     fun `an unrecognised message keeps the mapping it had before these states existed`() {
         assertInstanceOf(
             KdrantException.Forbidden::class.java,

@@ -109,8 +109,12 @@ internal object GrpcErrors {
 
     private fun namesUnavailableShard(message: String): Boolean {
         val text = message.lowercase()
-        return ("shard" in text || "replica" in text) &&
-            ("not available" in text || "unavailable" in text || "no active" in text || "not enough" in text)
+        val subject = "shard" in text || "replica" in text
+        val unreachable = listOf(
+            "not available", "unavailable", "no active", "not enough", "no replica",
+            "dead", "is down", "failed to", "cannot",
+        ).any { it in text }
+        return subject && unreachable
     }
 
     private const val RATE_LIMITED = "Rate limited by Qdrant"
