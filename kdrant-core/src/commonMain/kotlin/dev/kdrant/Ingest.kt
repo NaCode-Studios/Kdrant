@@ -32,6 +32,18 @@ import kotlin.time.Duration.Companion.seconds
  * The count only advances over an unbroken prefix. With batches in flight at once, a later batch can be
  * acknowledged while an earlier one is still being retried, and counting that as progress would mean
  * resuming past points the server never wrote.
+ *
+ * ### It is a lower bound, and that is the safe direction
+ *
+ * The collection may hold **more** than this token claims. When a run is killed, the batches that were
+ * in flight are cancelled where they stand, and the server may already have applied one of them: the
+ * request was sent, the acknowledgement never came back, and an acknowledgement that never arrived
+ * cannot move a checkpoint.
+ *
+ * So resuming from a token re-sends a few points that are already there. Upsert is keyed by point id,
+ * so writing the same point twice leaves the same collection, which is what makes the overlap free.
+ * The opposite arrangement, a token that could claim more than the server has, would skip points and
+ * lose them silently, and there is no cheap way to notice.
  */
 public data class IngestCheckpoint(
     /** Points the server acknowledged, counted from the start of the source, with no gap before them. */

@@ -741,8 +741,18 @@ public class QdrantClientContractSuite(
             assertTrue(checkpoint.acknowledgedPoints > 0, "nothing was acknowledged before the crash")
             assertTrue(checkpoint.acknowledgedPoints < total, "the crash happened after everything was written")
 
-            // What the token claims has to be what the collection holds, or resuming would skip points.
-            assertEquals(checkpoint.acknowledgedPoints, client.count(name))
+            // The token is a lower bound on what the collection holds, never an upper one. A batch that
+            // was in flight when the run died may already have been applied, and an acknowledgement
+            // that never came back cannot move a checkpoint. Resuming therefore re-sends a few points
+            // that are already there, which upsert makes free; the opposite would skip points and lose
+            // them without a trace.
+            val stored = client.count(name)
+            assertTrue(
+                stored >= checkpoint.acknowledgedPoints,
+                "the token claimed ${checkpoint.acknowledgedPoints} points and the collection holds " +
+                    "$stored: a token that over-claims skips points on resume",
+            )
+            assertTrue(stored < total, "the run was supposed to die before writing everything")
 
             var produced = 0L
             val report = client.ingest(

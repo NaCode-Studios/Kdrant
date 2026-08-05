@@ -932,24 +932,31 @@ internal fun namesReadOnly(message: String?): Boolean {
 }
 
 /**
- * Whether a failure is a shard with no live replica rather than a bad request or a broken server.
+ * Whether a failure is part of the cluster being unreachable rather than a bad request or a broken
+ * server.
  *
- * Qdrant answers this on both sides of the 4xx/5xx line depending on which check refused first: a write
- * rejected for not reaching the write consistency factor is a client error, a read that found no replica
- * is a server one. The status cannot decide it, so the text does.
+ * Two shapes, because Qdrant reports it two ways. Sometimes it names the shard or the replica. More
+ * often, when a peer is simply gone, it reports the fan-out: "1 of 1 read operations failed", with the
+ * transport error underneath saying the peer's address no longer resolves. Nothing in that second
+ * message contains the word shard, which is why a matcher keyed only on it read a dead node as a
+ * generic server error.
  *
- * Both halves have to match. A message naming a shard or a replica *and* saying it could not be reached
- * is a degraded cluster; a message naming a shard alone might be a malformed shard key, and a message
- * saying "failed" alone is every other server error there is.
+ * Both shapes require two halves, so an ordinary failure that happens to say "failed" is not read as a
+ * cluster diagnosis.
  */
 internal fun namesUnavailableShard(message: String?): Boolean {
     val text = message?.lowercase() ?: return false
-    val subject = "shard" in text || "replica" in text
     val unreachable = listOf(
         "not available", "unavailable", "no active", "not enough", "no replica",
         "dead", "is down", "failed to", "cannot",
     ).any { it in text }
-    return subject && unreachable
+    if (("shard" in text || "replica" in text) && unreachable) return true
+
+    // The fan-out form: some of the peers a request had to reach did not answer.
+    val fanOut = "operations failed" in text || "operation failed" in text
+    val transport = listOf("unavailable", "dns", "name resolution", "connect", "transport", "timed out")
+        .any { it in text }
+    return fanOut && transport
 }
 
 /**

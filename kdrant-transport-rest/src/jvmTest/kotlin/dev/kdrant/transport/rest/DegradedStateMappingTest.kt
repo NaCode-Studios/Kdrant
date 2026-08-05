@@ -87,6 +87,10 @@ class DegradedStateMappingTest {
             "Service internal error: shard 1 is dead",
             "Failed to read from shard 1",
             "Cannot resolve replica for shard 0",
+            // The one a stopped peer actually produces, which names no shard at all. Taken verbatim
+            // from a CI run against a two-node cluster with the second node stopped.
+            "Service internal error: 1 of 1 read operations failed: Service internal error: Tonic " +
+                "status error: code: 'The service is currently unavailable', message: 'dns error'",
         ).forEach { error ->
             assertInstanceOf(
                 KdrantException.ShardUnavailable::class.java,
@@ -98,6 +102,7 @@ class DegradedStateMappingTest {
         listOf(
             "Service internal error: failed to flush",
             "Wrong input: shard key 'eu-west' is not a valid key",
+            "Service internal error: 1 of 1 read operations failed: index out of bounds",
         ).forEach { error ->
             assertFalse(
                 failureOf(HttpStatusCode.InternalServerError, error) is KdrantException.ShardUnavailable,

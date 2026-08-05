@@ -47,7 +47,13 @@ it means for a klib. A degraded cluster reports itself. And there is a binary.
   requests in flight, retry of a batch rather than of the stream, and an `IngestCheckpoint` naming the
   points the server acknowledged. The count advances only over an unbroken prefix, so a batch
   acknowledged while an earlier one is still being retried never moves it and a resumed run cannot skip
-  a point that was never written. `batchUpdate` and `upsert` are unchanged and still there.
+  a point that was never written.
+  The token is a lower bound rather than an equality, and the difference is the whole safety argument. A
+  batch that was in flight when a run died may already have been applied, and an acknowledgement that
+  never came back cannot move a checkpoint, so the collection can hold more than the token claims.
+  Resuming therefore re-sends a few points that are already there, which upsert makes free; a token that
+  could over-claim would skip points and lose them without a trace. `batchUpdate` and `upsert` are
+  unchanged and still there.
 - **TLS a native consumer can configure** (M47). `useTls` decided whether to speak HTTPS and nothing
   decided which certificate to accept, and the documented escape hatch, `configureClient`, hands back a
   star-projected Ktor config that cannot open an engine-specific block. `KdrantConfig.trustAnchors`

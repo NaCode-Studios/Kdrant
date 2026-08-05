@@ -109,12 +109,18 @@ internal object GrpcErrors {
 
     private fun namesUnavailableShard(message: String): Boolean {
         val text = message.lowercase()
-        val subject = "shard" in text || "replica" in text
         val unreachable = listOf(
             "not available", "unavailable", "no active", "not enough", "no replica",
             "dead", "is down", "failed to", "cannot",
         ).any { it in text }
-        return subject && unreachable
+        if (("shard" in text || "replica" in text) && unreachable) return true
+
+        // The fan-out form: some of the peers a request had to reach did not answer, and the message
+        // names the transport failure rather than the shard.
+        val fanOut = "operations failed" in text || "operation failed" in text
+        val transport = listOf("unavailable", "dns", "name resolution", "connect", "transport", "timed out")
+            .any { it in text }
+        return fanOut && transport
     }
 
     private const val RATE_LIMITED = "Rate limited by Qdrant"
