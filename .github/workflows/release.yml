@@ -52,19 +52,34 @@ jobs:
           ./gradlew :kdrant-cli:linkKdrantReleaseExecutable${{ matrix.target }}
           --no-daemon --no-configuration-cache --stacktrace
 
+      # Qdrant, however this runner can start one. A macOS runner has no Docker, which is the same
+      # constraint ci.yml's native-contract-macos job already works around: the released binary is the
+      # same server, and Testcontainers is a JVM convenience this job has no JVM for.
+      - name: Start Qdrant
+        env:
+          QDRANT_VERSION: "1.18.2"
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            docker run -d --name qdrant -p 6333:6333 "qdrant/qdrant:v$QDRANT_VERSION"
+          else
+            curl -fsSL -o qdrant.tar.gz \
+              "https://github.com/qdrant/qdrant/releases/download/v${QDRANT_VERSION}/qdrant-aarch64-apple-darwin.tar.gz"
+            tar -xzf qdrant.tar.gz
+            ./qdrant &
+          fi
+          for _ in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "::error::Qdrant did not become ready"; exit 1
+
       # A binary that has never been run is a binary nobody knows works. It runs a real migration and a
-      # real snapshot round trip against a real Qdrant before it is allowed near a release.
+      # real snapshot round trip against that Qdrant before it is allowed near a release.
       - name: Prove it against a real Qdrant
         env:
-          ASSET: ${{ matrix.asset }}
           TARGET: ${{ matrix.target }}
         run: |
           BINARY="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe"
-          docker run -d --name qdrant -p 6333:6333 qdrant/qdrant:v1.18.2
-          for _ in $(seq 1 60); do
-            curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && break
-            sleep 1
-          done
           curl -fsS -X PUT http://127.0.0.1:6333/collections/cli-source \
             -H 'content-type: application/json' \
             -d '{"vectors":{"size":4,"distance":"Dot"}}'
