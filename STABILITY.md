@@ -112,6 +112,33 @@ Within a major version:
 - **Wire compatibility.** Kdrant tracks Qdrant's stable API; new Qdrant features arrive as additive
   minor releases.
 
+## Upgrading from `2.1`
+
+`2.2.0` is a minor and every `2.1.0` call site compiles unchanged. Two things are worth knowing before
+swapping the jar rather than rebuilding.
+
+**Twelve lines were removed from the API dumps**, and none of them is a capability going away. Running
+`git diff v2.1.0 v2.2.0 -- '*/api/*.api' | grep '^-' | grep -v '^---'` prints all of them, and they fall
+into three groups:
+
+| What | Why | Lines |
+| --- | --- | --- |
+| `KdrantConfig`'s synthetic constructors | it gained `trustAnchors`, a defaulted parameter on the end | 2 |
+| `CreateCollectionRequest` and `UpdateCollectionRequest`, their constructors and generated `copy` | both gained `strictModeConfig`, a defaulted property | 8 |
+| `KdrantException.Forbidden` | it became `open`, so `ReadOnly` can extend it, and its no-argument constructor is now a secondary one | 2 |
+
+The first two are the cases [above](#what-may-still-change-in-a-minor) rather than new ones: appending a
+defaulted parameter is source-compatible and changes the signature Kotlin emits, so code compiled
+against `2.1.0` needs recompiling rather than a jar swap. The third is a widening: a class that could
+not be extended now can be, which breaks nothing and is what lets a read-only node arrive as its own
+exception while an existing `catch (e: KdrantException.Forbidden)` keeps catching it.
+
+**One behavioural change is not in any dump.** `kdrant-micrometer`'s `operation` tag stops being a route
+template such as `/collections/{collection}/points/query` and becomes the operation, `query`, and the
+`method` and `status` tags are gone because neither exists on a gRPC call. Dashboards built on the old
+values need editing. The Ktor plugin that produced them still works and is deprecated, with the
+replacement in the message; it goes in `3.0`.
+
 ## Upgrading from `2.0`
 
 `2.1.0` is a minor and every `2.0.0` call site compiles unchanged. Two things are worth knowing before
