@@ -23,6 +23,11 @@ import kotlinx.serialization.Serializable
  * [dev.kdrant.KdrantException.ReadOnly] for it, which is retryable, rather than the credential failure
  * a bare 403 would otherwise look like.
  *
+ * Which server versions enforce those two is worth knowing before relying on them. Qdrant 1.18 refuses
+ * writes over the ceiling. Qdrant 1.19 deprecated the family in favour of a global quota API and does
+ * not, so a collection configured this way on 1.19 accepts the setting and keeps accepting writes. The
+ * rate limits below are enforced by both.
+ *
  * Qdrant takes further limits this does not model — the per-vector multivector and sparse sub-configs,
  * and the payload-index count. They are additions to this class rather than a different shape, which is
  * why it is a data class with every field defaulted to the server's own choice.

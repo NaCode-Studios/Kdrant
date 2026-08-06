@@ -104,13 +104,18 @@ public abstract class DegradedClusterContract {
     // --- A node that refuses writes ------------------------------------------------------------
 
     /**
-     * Strict mode's disk ceiling set to one percent: a container's disk is always over it, so every
-     * write is refused and every read is unaffected. That is the read-only state, reached
-     * deterministically instead of by filling a disk. One rather than zero because Qdrant validates the
-     * field as 1..100, which is also why [StrictModeConfig] refuses a zero before the request goes out.
+     * A node refusing writes while still serving reads, provoked with whichever lever the server under
+     * test honours.
      *
-     * The assertion that matters is not the class name but the pair of facts a caller acts on: reads
-     * still work, and the write failure says "later", not "not with that credential".
+     * Two are set at once on purpose. Qdrant 1.18 enforces strict mode's disk ceiling, so a ceiling of
+     * one percent refuses every write on a container whose disk is not empty. Qdrant 1.19 deprecated
+     * that family in favour of a global quota API and stopped refusing on it, which this test found by
+     * failing against `latest` after passing against the pinned version. The write rate limit is
+     * enforced by both.
+     *
+     * What is under test is the client, not the knob: the pair of facts a caller acts on is that reads
+     * keep working and that the write failure says "later" rather than "not with that credential".
+     * Which server-side mechanism produced it is the server's business and changes between minors.
      */
     @Test
     public fun `a node refusing writes still serves reads, and says so as a retryable failure`() {
@@ -119,21 +124,36 @@ public abstract class DegradedClusterContract {
             client.createCollection(name) { vector { size = 4; distance = Distance.DOT } }
             client.upsert(name, wait = true) { point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f) } }
             client.updateCollection(name) {
-                strictMode = StrictModeConfig(enabled = true, maxDiskUsagePercent = 1)
+                strictMode = StrictModeConfig(
+                    enabled = true,
+                    maxDiskUsagePercent = 1,
+                    writeRateLimit = 1,
+                )
             }
         }
 
-        val read = runCatching { runBlocking { client.count(name, exact = true) } }
-        val write = runCatching {
-            runBlocking { client.upsert(name, wait = true) { point(2) { vector(0.0f, 1.0f, 0.0f, 0.0f) } } }
-        }.exceptionOrNull()
+        // The rate limit allows the first write of the minute, so more than one attempt is needed
+        // before it refuses. The disk ceiling, where it is enforced, refuses the first.
+        var write: Throwable? = null
+        for (attempt in 2..5) {
+            write = runCatching {
+                runBlocking {
+                    client.upsert(name, wait = true) {
+                        point(attempt.toLong()) { vector(0.0f, 1.0f, 0.0f, 0.0f) }
+                    }
+                }
+            }.exceptionOrNull()
+            if (write != null) break
+        }
 
-        assertEquals(1L, read.getOrNull(), "reads must keep working: ${read.exceptionOrNull()?.message}")
+        val read = runCatching { runBlocking { client.count(name, exact = true) } }
+
+        assertTrue(read.isSuccess, "reads must keep working: ${read.exceptionOrNull()?.message}")
         assertInstanceOf(KdrantException::class.java, write, "the write should have been refused")
         assertTrue(
             (write as KdrantException).retryable,
-            "a node over its disk ceiling recovers, so the failure is retryable: " +
-                "${write::class.simpleName} — ${write.message}",
+            "a node refusing writes recovers, so the failure is retryable. Got " +
+                "${write::class.simpleName}: ${write.message}",
         )
     }
 

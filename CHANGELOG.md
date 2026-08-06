@@ -75,6 +75,10 @@ it means for a klib. A degraded cluster reports itself. And there is a binary.
   enforces on the requests it accepts, including the disk and memory ceilings past which a node refuses
   writes and keeps serving reads. Added as part of M52, because it is what makes that state reachable
   from a test rather than from an incident.
+  Its KDoc names which server versions enforce which limit, which is not decoration. Qdrant 1.18 refuses
+  writes over the disk ceiling and Qdrant 1.19 does not, having deprecated that family in favour of a
+  global quota API. The degraded-cluster contract found that by passing against the pinned version and
+  failing against `latest`, which is the version matrix earning its place on its first run.
 - **`kdrant-cli`** (M49). One static binary per platform for the operations that are not requests:
   `migrate`, `snapshot create|list|download|restore|delete`, `collections` and `scroll`. No JVM, no
   classpath, no install step. It is not published to Maven Central; the binaries are built on two
