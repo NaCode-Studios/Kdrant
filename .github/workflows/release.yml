@@ -93,7 +93,7 @@ jobs:
       # less trustworthy one, and a downloaded executable is the artifact where provenance matters most.
       - name: Attest build provenance (SLSA)
         if: github.event_name == 'push'
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: cli-artifacts/${{ matrix.asset }}
 
@@ -145,7 +145,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance (SLSA)
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: ${{ steps.artifacts.outputs.paths }}
 
@@ -179,7 +179,7 @@ jobs:
 
       - name: Fetch the CLI binaries
         if: github.event_name == 'push'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: cli-*
           merge-multiple: true
