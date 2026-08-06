@@ -491,9 +491,11 @@ export QDRANT_API_KEY=...          # a key on a command line is a key in the she
 ./kdrant migrate articles articles-v2 --alias articles --checkpoint /var/tmp/articles.checkpoint
 ```
 
-That is the whole command to move a collection. It copies in id order, remembers where it got to,
-checks the counts and the recall, and moves the alias only once the check passes. It cannot embed, so
-it moves what does not need new vectors: a re-shard, a config change, a copy between clusters.
+That is the whole command to move a collection. It creates the target from the source's own vectors,
+copies in id order, remembers where it got to, checks the counts and the recall, and moves the alias
+only once the check passes. `--shards` and `--replicas` override the source's layout, which is what
+makes it a re-shard. It cannot embed, so it moves what does not need new vectors: a re-shard, a config
+change, a copy between clusters.
 
 `kdrant collections`, `kdrant scroll` and `kdrant snapshot create|list|download|restore|delete` are the
 rest of it; `kdrant --help` prints the flags. It is not a query tool, because Qdrant's own dashboard is
