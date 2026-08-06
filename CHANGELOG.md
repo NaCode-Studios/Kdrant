@@ -85,6 +85,11 @@ it means for a klib. A degraded cluster reports itself. And there is a binary.
   runners, run against a real Qdrant before they are allowed near a release, attested with SLSA
   provenance and attached to the GitHub Release with their checksums. It cannot embed, so it migrates
   what does not need re-embedding, and the help text says so.
+  `kdrant migrate` creates the target from the source's own vectors rather than asking for a size and a
+  distance the person at the terminal did not choose, and `--shards` and `--replicas` override, which is
+  what makes `kdrant migrate a b --shards 4` a re-shard. The first release build found that it did not:
+  the migration refused because the target did not exist, which is true of every collection nobody has
+  made yet and therefore of the whole command.
 - **The client contract against four Qdrant versions** (M50). `QdrantVersionMatrixIntegrationTest` runs
   the shared contract against the four most recent minors and writes the result into the README between
   generated markers. It does not fail the build: a cell that is red against an older server is the
