@@ -4,6 +4,7 @@ import dev.kdrant.dsl.BatchSearchBuilder
 import dev.kdrant.dsl.BatchUpdateBuilder
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.FilterBuilder
+import dev.kdrant.dsl.PayloadIndexBuilder
 import dev.kdrant.dsl.ScrollBuilder
 import dev.kdrant.dsl.SearchBuilder
 import dev.kdrant.dsl.SearchMatrixBuilder
@@ -310,6 +311,29 @@ public interface QdrantClient : AutoCloseable {
         field: String,
         schema: PayloadSchemaType,
         wait: Boolean = false,
+    )
+
+    /**
+     * Create a payload field index, choosing the parameters that index type accepts.
+     *
+     * ```kotlin
+     * qdrant.createPayloadIndex("docs", "body") {
+     *     text { tokenizer = Tokenizer.WORD; phraseMatching = true }
+     * }
+     * ```
+     *
+     * Two of those parameters decide whether a query works rather than how fast it is. A `matchPhrase`
+     * filter matches nothing unless the text index was built with `phraseMatching = true`, and a
+     * multi-tenant collection is only laid out per tenant if its tenant field's index says
+     * `isTenant = true`. The rest are cost, `onDisk` above all.
+     *
+     * @throws IllegalArgumentException if [configure] names no index type, or more than one.
+     */
+    public suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        wait: Boolean = false,
+        configure: PayloadIndexBuilder.() -> Unit,
     )
 
     /** Delete a payload field index. */

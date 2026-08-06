@@ -15,12 +15,18 @@ Kdrant follows [Semantic Versioning 2.0.0](https://semver.org). Given `MAJOR.MIN
 ### What counts as "public API"
 
 The public API is exactly what the [binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator)
-tracks in the committed `*.api` files (`kdrant-core/api`, both transport engines, and the ecosystem
-modules; the gRPC module's generated protobuf and stub classes are excluded, because their surface is
-Qdrant's to change and not ours to promise). Every public/protected symbol is in those dumps; `./gradlew apiCheck` fails the build on any
-untracked change, so API breakage is never silent. Anything not in the `*.api` files, meaning
-`internal` declarations and symbols annotated `@InternalKdrantApi`, is not public API and may change at
-any time.
+tracks in the committed dump files: a `*.api` file per module for the JVM, and from `2.2.0` a
+`*.klib.api` beside it for every module that publishes native targets. The gRPC module's generated
+protobuf and stub classes are excluded, because their surface is Qdrant's to change and not ours to
+promise. Every public and protected symbol is in those dumps; `./gradlew apiCheck` fails the build on
+any untracked change, so API breakage is never silent. Anything not in them, meaning `internal`
+declarations and symbols annotated `@InternalKdrantApi`, is not public API and may change at any time.
+
+The klib dump exists because the JVM one was a statement about a single target. A change to a
+`commonMain` declaration that only Kotlin/Native can see used to produce no diff at all: an `expect`
+gaining a parameter, an `actual` narrowing something, a declaration moving from `commonMain` into
+`jvmMain` and quietly disappearing from every other artifact. For a consumer on `iosArm64` this
+sentence was, until `2.2.0`, a promise about a file that did not describe their artifact.
 
 The **wire behaviour** of an engine (the requests it sends and the responses it parses) is also part of
 the contract: a change that alters what goes on the wire for an existing operation is treated as a
@@ -59,15 +65,46 @@ recompile, not a jar swap.
 The same holds for a new optional parameter on a public constructor, and `KdrantConfig` is the one it
 happens to: a defaulted parameter appended to it is source-additive and changes the constructor
 signature Kotlin emits, so code that called the constructor positionally against an older jar needs
-recompiling. The configuration DSL — `Kdrant(host, port) { ... }`, which is the documented way in — is
+recompiling. The configuration DSL, `Kdrant(host, port) { ... }`, which is the documented way in, is
 unaffected, and that is why the parameter goes on the end rather than beside the one it belongs with.
+
+### What the `2.x` promise means per artifact type
+
+A klib is not a jar, and a promise that does not say so is a promise a consumer on `linuxX64` cannot
+check. The rules below are what a minor may do to each kind of artifact this repository publishes.
+
+| Artifact | A minor may | A minor may not |
+| --- | --- | --- |
+| JVM jars (`kdrant-core-jvm`, both engines, the adapters) | add declarations; add a defaulted parameter to a public constructor or function, which is source-compatible and needs a recompile; add a field to a public `data class`, with the same caveat | remove or rename a declaration; change a return type or a parameter type; move a declaration between packages |
+| klibs (`kdrant-core`, `kdrant-transport-rest`, `kdrant-migrate`, per native target) | add declarations to every target at once; add a target | remove a declaration from any target it already had, including where the JVM keeps it; narrow a declaration to fewer targets; drop a target |
+| The BOM | add a module; move a version forward | remove a module already listed |
+| The CLI binaries | change flags additively; add a subcommand | remove a subcommand or a flag without a deprecation in a prior minor |
+
+Three things about the klib row are worth stating rather than leaving to be discovered.
+
+**Narrowing counts as a removal.** A declaration that exists on eight targets and is changed to exist
+on seven has been removed for whoever was on the eighth, and the merged dump shows exactly that: the
+target annotation on the line changes. `apiCheck` fails on it, which is the point of the file being
+merged rather than one dump per target.
+
+**The Kotlin compiler participates.** Kotlin/Native's binary compatibility is not the JVM's, and a
+klib is linked against the compiler version that produced it. Kdrant does not promise that a klib built
+by one Kotlin version links against a consumer built by an older one; that is Kotlin's guarantee to
+make, not this project's. What is promised is that a Kotlin toolchain upgrade inside a `2.x` minor is
+recorded in the [CHANGELOG](CHANGELOG.md) under `Internal`, so an upgrade that forces a rebuild is
+never a surprise.
+
+**A Qdrant change that forces a signature change is still a break.** If Qdrant alters an existing
+endpoint in a way that cannot be carried additively, Kdrant does not quietly change the signature in a
+minor. The old shape stays and is deprecated, the new one arrives beside it, and the removal waits for
+the next major, on the same policy as everything else here.
 
 ## The guarantee
 
 Within a major version:
 
 - **No breaking public-API change without a major bump.** Source and binary compatibility are maintained
-  across a major version.
+  across a major version, for jars and for klibs, on the terms above.
 - **Deprecation policy.** An API is deprecated with `@Deprecated` (with a `ReplaceWith` where possible) for
   at least one minor release before removal, and removal happens only in a major release.
 - **Coroutine contract.** Every operation stays a `suspend` function or a `Flow`; cancellation is cooperative

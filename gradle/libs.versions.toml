@@ -19,6 +19,7 @@ mockk = "1.14.11"
 micrometer = "1.17.0"
 koog = "1.1.1"
 grpc = "1.83.1"
+qdrantClient = "1.15.0"
 grpcKotlin = "1.5.0"
 protobuf = "4.35.1"
 opentelemetry = "1.64.0"
@@ -40,8 +41,13 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+# Netty rather than CIO for the TLS trust tests: Ktor's CIO server has no HTTPS. Test-only.
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+# Generates a self-signed certificate in memory, so the TLS trust tests need no checked-in key and no
+# openssl on the runner. Test-only, on purpose: it must never reach a published POM.
+ktor-network-tls-certificates = { module = "io.ktor:ktor-network-tls-certificates", version.ref = "ktor" }
 
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -78,6 +84,13 @@ grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 grpc-okhttp = { module = "io.grpc:grpc-okhttp", version.ref = "grpc" }
 grpc-kotlin-stub = { module = "io.grpc:grpc-kotlin-stub", version.ref = "grpcKotlin" }
 grpc-inprocess = { module = "io.grpc:grpc-inprocess", version.ref = "grpc" }
+# The official Java client, as a benchmark dependency and nowhere else. A comparison nobody can run is
+# an assertion; this is what makes it a measurement. It must never reach a published POM, which the
+# `benchmarks` module's exclusion from publishing already guarantees — that module has no
+# mavenPublishing block, so the release workflow's derived artifact list never sees it.
+qdrant-client = { module = "io.qdrant:client", version.ref = "qdrantClient" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+guava = { module = "com.google.guava:guava", version = "33.5.0-jre" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
 protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 protoc-gen-grpc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }

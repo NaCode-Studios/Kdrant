@@ -27,6 +27,9 @@ public annotation class KdrantDsl
  * @property apiKey API key sent as the `api-key` header; `null` disables auth.
  * @property bearerToken Qdrant JWT sent as `Authorization: Bearer`; mutually exclusive with [apiKey].
  * @property useTls use HTTPS instead of HTTP.
+ * @property trustAnchors which certificates TLS will accept. The default is the platform's own store;
+ *   see [TrustAnchors] for what each platform reads and which options it can honour. Ignored when
+ *   [useTls] is false, because there is no certificate to judge.
  * @property requestTimeout per-request timeout (applies to each attempt).
  * @property connectTimeout timeout for establishing a connection; `null` uses the engine default.
  * @property socketTimeout maximum idle time between two data packets on an open connection; `null`
@@ -56,6 +59,7 @@ public class KdrantConfig(
     public val retryMaxDelay: Duration = 5.seconds,
     public val dispatcher: CoroutineDispatcher = ioDispatcher,
     public val bearerToken: String? = null,
+    public val trustAnchors: TrustAnchors = TrustAnchors.System,
 ) {
     init {
         require(port in 1..65535) { "port must be in 1..65535, was $port" }
@@ -71,6 +75,10 @@ public class KdrantConfig(
         connectTimeout?.let { require(it.isPositive()) { "connectTimeout must be positive, was $it" } }
         socketTimeout?.let { require(it.isPositive()) { "socketTimeout must be positive, was $it" } }
         require(maxRetries >= 0) { "maxRetries must be >= 0, was $maxRetries" }
+        require(useTls || trustAnchors == TrustAnchors.System) {
+            "trustAnchors decides which certificate to accept, and a plaintext connection presents " +
+                "none. Set useTls = true, or leave trustAnchors at TrustAnchors.System."
+        }
         require(retryBaseDelay.isPositive()) { "retryBaseDelay must be positive, was $retryBaseDelay" }
         require(retryMaxDelay >= retryBaseDelay) {
             "retryMaxDelay ($retryMaxDelay) must be >= retryBaseDelay ($retryBaseDelay)"
@@ -81,7 +89,8 @@ public class KdrantConfig(
     override fun toString(): String =
         "KdrantConfig(host=$host, port=$port, apiKey=${if (apiKey != null) "***" else "null"}, " +
             "bearerToken=${if (bearerToken != null) "***" else "null"}, " +
-            "useTls=$useTls, requestTimeout=$requestTimeout, connectTimeout=$connectTimeout, " +
+            "useTls=$useTls, trustAnchors=$trustAnchors, requestTimeout=$requestTimeout, " +
+            "connectTimeout=$connectTimeout, " +
             "socketTimeout=$socketTimeout, maxRetries=$maxRetries, " +
             "retryBaseDelay=$retryBaseDelay, retryMaxDelay=$retryMaxDelay, dispatcher=$dispatcher)"
 }
@@ -126,6 +135,13 @@ public class KdrantConfigBuilder internal constructor(
      */
     public var useTls: Boolean = false
 
+    /**
+     * Which certificates TLS will accept: the platform's store by default, a PEM bundle for a private
+     * CA or a self-signed node, or a set of pinned public keys. See [TrustAnchors] for what each
+     * platform can honour, and which store each one reads.
+     */
+    public var trustAnchors: TrustAnchors = TrustAnchors.System
+
     /** Per-request timeout (applies to each attempt). */
     public var requestTimeout: Duration = 30.seconds
 
@@ -150,7 +166,7 @@ public class KdrantConfigBuilder internal constructor(
     internal fun build(): KdrantConfig =
         KdrantConfig(
             host, port, apiKey, useTls, requestTimeout, connectTimeout, socketTimeout,
-            maxRetries, retryBaseDelay, retryMaxDelay, dispatcher, bearerToken,
+            maxRetries, retryBaseDelay, retryMaxDelay, dispatcher, bearerToken, trustAnchors,
         )
 }
 

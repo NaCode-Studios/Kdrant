@@ -1,23 +1,30 @@
 package dev.kdrant.testkit
 
+import dev.kdrant.IngestCheckpoint
 import dev.kdrant.KdrantException
 import dev.kdrant.QdrantClient
 import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.payloadOf
+import dev.kdrant.ingest
 import dev.kdrant.model.CollectionStatus
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
 import dev.kdrant.model.FacetValue
+import dev.kdrant.model.Modifier
+import dev.kdrant.model.MultiVectorComparator
 import dev.kdrant.model.OptimizersConfig
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.VectorData
 import dev.kdrant.model.VectorsConfig
 import dev.kdrant.model.WithPayload
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlin.test.assertEquals
@@ -49,6 +56,10 @@ import kotlin.test.assertTrue
  * @property client the connected client under test. Closing it is the caller's business.
  * @property namePrefix prefix for the collections this suite creates, so two suites can share a node.
  */
+// One class on purpose. It is the single statement of what an engine has to do, and splitting it by
+// topic would mean a reader asking "what is the contract" has four files to open and no guarantee the
+// four agree. It grows when the contract grows, which is the intended shape.
+@Suppress("LargeClass", "TooManyFunctions")
 public class QdrantClientContractSuite(
     private val client: QdrantClient,
     private val namePrefix: String = "contract",
@@ -81,13 +92,20 @@ public class QdrantClientContractSuite(
         case("withPayload selects fields, withVector decides on vectors") { withPayloadAndWithVector() },
         case("searchBatch answers each query in the order they were given") { searchBatchKeepsOrder() },
         case("searchGroups groups the hits by a payload field") { searchGroupsByPayloadField() },
+        case("a sparse vector round-trips and answers a sparse query") { sparseVectors() },
+        case("an IDF sparse collection scores by rarity, not by the value sent") { sparseIdfIsAppliedByTheServer() },
+        case("hybrid search fuses a dense and a sparse ranking") { hybridSearchFusesBothRankings() },
+        case("a multi-vector collection stores and scores late interaction") { multiVectors() },
+        case("a query naming a vector the collection lacks is refused") { unknownVectorNameIsRefused() },
         case("scroll emits every point exactly once across pages") { scrollEmitsEachPointOnce() },
         case("a filtered scroll returns only the matching points") { filteredScroll() },
         case("an ordered scroll comes back in the order it asked for") { orderedScroll() },
         case("setPayload merges, overwritePayload replaces, the rest remove") { payloadMutations() },
         case("named vectors can be updated and deleted one at a time") { namedVectorMutations() },
         case("a payload index can be created and dropped") { payloadIndexLifecycle() },
+        case("a payload index takes the parameters its type accepts") { payloadIndexParameters() },
         case("batchUpdate applies its operations in order") { batchUpdateIsOrdered() },
+        case("an ingest killed partway resumes from its token") { ingestResumesFromItsToken() },
         case("the filter clauses combine the way Qdrant combines them") { filterClausesCombine() },
         case("every matcher the DSL offers reaches the server") { everyMatcherReachesTheServer() },
         case("an alias can be created, listed, renamed and dropped") { aliasLifecycle() },
@@ -331,6 +349,214 @@ public class QdrantClientContractSuite(
         }
     }
 
+    // --- Sparse, multi-vector and hybrid ------------------------------------------------------
+
+    /**
+     * Sparse vectors were in the public API for four releases with nothing but body assertions behind
+     * them. A body assertion cannot see that Qdrant returns a sparse vector with its indices sorted,
+     * which is not the order they were sent in and is what a caller comparing the two would trip over.
+     */
+    public suspend fun sparseVectors() {
+        withCollection(create = { sparseVector("terms") }) { name ->
+            client.upsert(name, wait = true) {
+                point(1) {
+                    vector(VectorData.Named(mapOf("terms" to VectorData.Sparse(listOf(7, 2), listOf(0.9f, 0.4f)))))
+                }
+                point(2) { vector(VectorData.Named(mapOf("terms" to VectorData.Sparse(listOf(3), listOf(0.8f))))) }
+            }
+
+            val stored = client.retrieve(name, listOf(PointId.num(1)), withVector = true).single().vector
+            val sparse = (stored as VectorData.Named).vectors.getValue("terms") as VectorData.Sparse
+            assertEquals(setOf(2, 7), sparse.indices.toSet())
+            assertEquals(2, sparse.values.size)
+
+            val hits = client.search(name) {
+                querySparse(indices = listOf(7), values = listOf(1.0f))
+                using = "terms"
+                limit = 5
+            }
+
+            assertEquals(listOf(PointId.num(1)), hits.map { it.id }, "only the point sharing index 7 matches")
+        }
+    }
+
+    /**
+     * With `Modifier.IDF` the server rescales a sparse value by how rare its index is across the
+     * collection, so the score is not the dot product of what was sent. A serialization test predicts
+     * the request; only a server can produce this.
+     */
+    public suspend fun sparseIdfIsAppliedByTheServer() {
+        withCollection(create = { sparseVector("terms") { modifier = Modifier.IDF } }) { name ->
+            // Index 1 is in every point and index 9 in one, so index 9 is the rare, informative term.
+            client.upsert(name, wait = true) {
+                point(1) {
+                    vector(VectorData.Named(mapOf("terms" to VectorData.Sparse(listOf(1, 9), listOf(1.0f, 1.0f)))))
+                }
+                point(2) { vector(VectorData.Named(mapOf("terms" to VectorData.Sparse(listOf(1), listOf(1.0f))))) }
+                point(3) { vector(VectorData.Named(mapOf("terms" to VectorData.Sparse(listOf(1), listOf(1.0f))))) }
+            }
+
+            val hits = client.search(name) {
+                querySparse(indices = listOf(1, 9), values = listOf(1.0f, 1.0f))
+                using = "terms"
+                limit = 3
+            }
+
+            assertEquals(PointId.num(1), hits.first().id, "the point carrying the rare term ranks first")
+            assertTrue(
+                hits.first().score > hits.last().score,
+                "IDF should separate the scores; got ${hits.map { it.score }}",
+            )
+        }
+    }
+
+    /**
+     * Reciprocal-rank fusion over a dense prefetch and a sparse one: the single most common thing built
+     * on Qdrant, and the one path this client advertised with no end-to-end coverage at all.
+     */
+    public suspend fun hybridSearchFusesBothRankings() {
+        withCollection(
+            create = {
+                namedVector("dense") { size = 4; distance = Distance.DOT }
+                sparseVector("terms")
+            },
+        ) { name ->
+            // Point 1 wins on dense and loses on sparse; point 2 the other way round. Neither ranking
+            // alone puts them in the fused order, which is what makes the fusion visible.
+            client.upsert(name, wait = true) {
+                point(1) {
+                    vector(
+                        VectorData.Named(
+                            mapOf(
+                                "dense" to VectorData.Dense(listOf(1.0f, 0.0f, 0.0f, 0.0f)),
+                                "terms" to VectorData.Sparse(listOf(5), listOf(0.1f)),
+                            ),
+                        ),
+                    )
+                }
+                point(2) {
+                    vector(
+                        VectorData.Named(
+                            mapOf(
+                                "dense" to VectorData.Dense(listOf(0.0f, 1.0f, 0.0f, 0.0f)),
+                                "terms" to VectorData.Sparse(listOf(5), listOf(0.9f)),
+                            ),
+                        ),
+                    )
+                }
+                point(3) {
+                    vector(VectorData.Named(mapOf("dense" to VectorData.Dense(listOf(0.0f, 0.0f, 1.0f, 0.0f)))))
+                }
+            }
+
+            val fused = client.search(name) {
+                prefetch { query(listOf(1.0f, 0.0f, 0.0f, 0.0f)); using = "dense"; limit = 10 }
+                prefetch { querySparse(listOf(5), listOf(1.0f)); using = "terms"; limit = 10 }
+                rrf()
+                limit = 10
+            }
+
+            val ids = fused.map { it.id }
+            assertEquals(setOf(PointId.num(1), PointId.num(2)), ids.take(2).toSet())
+            assertTrue(PointId.num(3) in ids, "the dense-only point should still be fused in, ranked last")
+            assertEquals(PointId.num(3), ids.last())
+
+            // dbsf is the other fusion the DSL offers, and it has never met a server either.
+            val dbsf = client.search(name) {
+                prefetch { query(listOf(1.0f, 0.0f, 0.0f, 0.0f)); using = "dense"; limit = 10 }
+                prefetch { querySparse(listOf(5), listOf(1.0f)); using = "terms"; limit = 10 }
+                dbsf()
+                limit = 10
+            }
+            assertTrue(dbsf.isNotEmpty(), "distribution-based fusion returned nothing")
+        }
+    }
+
+    /**
+     * A multi-vector collection carries a comparator and refuses points whose inner vectors disagree on
+     * length. Both are server behaviours a request-shape test cannot reach.
+     */
+    public suspend fun multiVectors() {
+        withCollection(
+            create = {
+                namedVector("colbert") {
+                    size = 2
+                    distance = Distance.DOT
+                    multivector = MultiVectorComparator.MAX_SIM
+                }
+            },
+        ) { name ->
+            client.upsert(name, wait = true) {
+                point(1) {
+                    vector(
+                        VectorData.Named(
+                            mapOf("colbert" to VectorData.MultiDense(listOf(listOf(1.0f, 0.0f), listOf(0.9f, 0.1f)))),
+                        ),
+                    )
+                }
+                point(2) {
+                    vector(
+                        VectorData.Named(
+                            mapOf("colbert" to VectorData.MultiDense(listOf(listOf(0.0f, 1.0f)))),
+                        ),
+                    )
+                }
+            }
+
+            val hits = client.search(name) {
+                queryMulti(listOf(listOf(1.0f, 0.0f)))
+                using = "colbert"
+                limit = 2
+            }
+
+            assertEquals(PointId.num(1), hits.first().id)
+
+            val stored = client.retrieve(name, listOf(PointId.num(1)), withVector = true).single().vector
+            val multi = (stored as VectorData.Named).vectors.getValue("colbert")
+            assertTrue(multi is VectorData.MultiDense, "a multi-vector came back as ${multi::class.simpleName}")
+            assertEquals(2, multi.vectors.size)
+
+            // The inner vectors have to agree on length. The server is what enforces that.
+            val ragged = runCatching {
+                client.upsert(name, wait = true) {
+                    point(3) {
+                        vector(
+                            VectorData.Named(
+                                mapOf(
+                                    "colbert" to VectorData.MultiDense(
+                                        listOf(listOf(1.0f, 0.0f), listOf(1.0f, 0.0f, 0.0f)),
+                                    ),
+                                ),
+                            ),
+                        )
+                    }
+                }
+            }.exceptionOrNull()
+            assertTrue(
+                ragged is KdrantException,
+                "a ragged multi-vector should be refused, got ${ragged?.let { it::class.simpleName }}",
+            )
+        }
+    }
+
+    /** A query naming a vector the collection does not have fails, rather than silently searching another. */
+    public suspend fun unknownVectorNameIsRefused() {
+        withCollection(create = { namedVector("dense") { size = 4; distance = Distance.DOT } }) { name ->
+            val error = runCatching {
+                client.search(name) {
+                    querySparse(indices = listOf(1), values = listOf(1.0f))
+                    using = "no-such-vector"
+                    limit = 1
+                }
+            }.exceptionOrNull()
+
+            assertTrue(
+                error is KdrantException,
+                "expected a KdrantException, got ${error?.let { it::class.simpleName }}",
+            )
+        }
+    }
+
     // --- Scroll ------------------------------------------------------------------------------
 
     public suspend fun scrollEmitsEachPointOnce() {
@@ -443,6 +669,29 @@ public class QdrantClientContractSuite(
         }
     }
 
+    public suspend fun payloadIndexParameters() {
+        withCollection { name ->
+            seed(name)
+
+            // Every parameter the builder can send, across the four types that take different ones.
+            // The assertion is that the server accepted them and built the index it was asked for:
+            // `on_disk` and `is_tenant` change the layout rather than the answers, so a behavioural
+            // assertion about them would be an assertion about Qdrant's storage internals.
+            client.createPayloadIndex(name, "lang", wait = true) { keyword { isTenant = true; onDisk = true } }
+            client.createPayloadIndex(name, "year", wait = true) {
+                integer { lookup = true; range = true; isPrincipal = false; onDisk = true }
+            }
+
+            val schema = client.getCollection(name).payloadSchema
+            assertEquals("keyword", schema["lang"]?.dataType)
+            assertEquals("integer", schema["year"]?.dataType)
+
+            // The index still answers the filters it was built for.
+            assertEquals(2L, client.count(name) { must { "lang" eq "it" } })
+            assertEquals(2L, client.count(name) { must { "year" gte 2023 } })
+        }
+    }
+
     public suspend fun batchUpdateIsOrdered() {
         withCollection { name ->
             client.batchUpdate(name, wait = true) {
@@ -458,6 +707,99 @@ public class QdrantClientContractSuite(
             // filter matched at that moment rather than before the batch started.
             assertEquals(1L, client.count(name))
             assertEquals(setOf("stale", "reviewed"), payloadKeys(name, 2))
+        }
+    }
+
+    // --- Ingest ------------------------------------------------------------------------------
+
+    /**
+     * The measurement that decides whether the ingest worked is not throughput. It is what the process
+     * does when it is killed at an arbitrary point and started again, which before this was start over.
+     *
+     * The source is generated rather than materialized, which is the shape a source larger than memory
+     * has: nothing here holds more than a batch at a time, and the same call would run against a
+     * hundred-million-point file unchanged.
+     */
+    public suspend fun ingestResumesFromItsToken() {
+        withCollection { name ->
+            val total = 500L
+            var token: IngestCheckpoint? = null
+
+            // The first run dies partway, the way a process does: mid-stream and without warning.
+            val crashed = runCatching {
+                client.ingest(
+                    name,
+                    generatedPoints(total, failAfter = 220),
+                    batchSize = 50,
+                    concurrency = 2,
+                    onCheckpoint = { token = it },
+                )
+            }.exceptionOrNull()
+
+            assertNotNull(crashed, "the source was supposed to fail partway")
+            val checkpoint = assertNotNull(token, "no checkpoint was ever handed out")
+            assertTrue(checkpoint.acknowledgedPoints > 0, "nothing was acknowledged before the crash")
+            assertTrue(checkpoint.acknowledgedPoints < total, "the crash happened after everything was written")
+
+            // The token is a lower bound on what the collection holds, never an upper one. A batch that
+            // was in flight when the run died may already have been applied, and an acknowledgement
+            // that never came back cannot move a checkpoint. Resuming therefore re-sends a few points
+            // that are already there, which upsert makes free; the opposite would skip points and lose
+            // them without a trace.
+            val stored = client.count(name)
+            assertTrue(
+                stored >= checkpoint.acknowledgedPoints,
+                "the token claimed ${checkpoint.acknowledgedPoints} points and the collection holds " +
+                    "$stored: a token that over-claims skips points on resume",
+            )
+            assertTrue(stored < total, "the run was supposed to die before writing everything")
+
+            var produced = 0L
+            val report = client.ingest(
+                name,
+                generatedPoints(total, onEmit = { produced++ }),
+                batchSize = 50,
+                concurrency = 2,
+                resumeFrom = checkpoint,
+            )
+
+            assertEquals(total, client.count(name), "the resumed run should have completed the collection")
+            assertEquals(total, report.checkpoint.acknowledgedPoints, "the token has to be absolute, not per run")
+
+            // Batches, not emissions, is what "without re-sending" means. Resuming skips the acknowledged
+            // points on the way out, so the resumed run makes fewer requests than a full one would: 500
+            // points in batches of 50 is ten requests from cold, and fewer from a token.
+            val batchesFromCold = (total / 50).toInt()
+            assertTrue(
+                report.batches < batchesFromCold,
+                "a resumed run sent ${report.batches} batches, the same as starting over ($batchesFromCold)",
+            )
+
+            // And the source is still asked for all of them, which is the part that surprises people:
+            // `resumeFrom` drops the acknowledged points as they arrive rather than telling the source
+            // to skip them. Nothing goes over the network twice; the source is still read twice.
+            assertEquals(total, produced, "the source is replayed in full and the prefix is dropped on the way out")
+        }
+    }
+
+    /**
+     * A lazily generated source. [failAfter] makes it stop like a process being killed; [onEmit] counts
+     * what actually left the source, which is how the resumed run is shown not to re-send.
+     */
+    private fun generatedPoints(
+        count: Long,
+        failAfter: Long? = null,
+        onEmit: (Long) -> Unit = {},
+    ): Flow<PointStruct> = flow {
+        for (id in 1L..count) {
+            if (failAfter != null && id > failAfter) error("the source died at point $id")
+            onEmit(id)
+            emit(
+                PointStruct(
+                    id = PointId.num(id),
+                    vector = VectorData.Dense(listOf(0.1f, 0.2f, 0.3f, id / count.toFloat())),
+                ),
+            )
         }
     }
 
@@ -490,7 +832,11 @@ public class QdrantClientContractSuite(
                 }
             }
             // The text matchers need a full-text index; the others read the payload directly.
-            client.createPayloadIndex(name, "title", PayloadSchemaType.TEXT, wait = true)
+            // Phrase matching is not free — it stores token positions — so Qdrant only honours
+            // matchPhrase against an index that asked for it.
+            client.createPayloadIndex(name, "title", wait = true) {
+                text { tokenizer = Tokenizer.WORD; phraseMatching = true }
+            }
             client.createPayloadIndex(name, "at", PayloadSchemaType.DATETIME, wait = true)
 
             assertEquals(1L, client.count(name) { must { "lang" eq "it" } })
@@ -498,10 +844,10 @@ public class QdrantClientContractSuite(
             assertEquals(1L, client.count(name) { must { matchExcept("lang", "de") } })
             assertEquals(1L, client.count(name) { must { matchText("title", "vector Kotlin") } })
             assertEquals(1L, client.count(name) { must { matchTextAny("title", "vector rust") } })
-            // matchPhrase is deliberately absent. Qdrant matches a phrase only against a text index
-            // created with `phrase_matching: true`, and `createPayloadIndex` cannot ask for that yet,
-            // so the filter is accepted and matches nothing. Asserting zero here would pin the gap as
-            // if it were the behaviour.
+            assertEquals(1L, client.count(name) { must { matchPhrase("title", "vector database") } })
+            // The phrase is what separates this from matchText: both words are present, and in the
+            // other order, so a phrase match has to miss where a token match would hit.
+            assertEquals(0L, client.count(name) { must { matchPhrase("title", "database vector") } })
             assertEquals(1L, client.count(name) { must { "score" between 4.0..5.0 } })
             assertEquals(1L, client.count(name) { must { valuesCount("tags", gte = 2) } })
             assertEquals(1L, client.count(name) { must { hasId(PointId.num(1)) } })
@@ -603,6 +949,35 @@ public class QdrantClientContractSuite(
 
             client.deleteStorageSnapshot(snapshot.name)
             assertTrue(client.listStorageSnapshots().none { it.name == snapshot.name })
+        }
+    }
+
+    // --- Server-side inference -----------------------------------------------------------------
+
+    /**
+     * A document upserted and a document queried, with the embedding done by the server.
+     *
+     * Deliberately not in [cases]. Inference needs a provider configured on the Qdrant under test, and a
+     * plain container has none, so this runs where one exists and is skipped where it does not. The
+     * request shape is held everywhere else: the REST engine's contract test validates both bodies
+     * against Qdrant's own OpenAPI document on every build.
+     *
+     * @param model a model the server's provider offers.
+     * @param size the dimensionality that model produces, which the collection has to be created with.
+     */
+    public suspend fun inferenceRoundTrip(model: String, size: Long) {
+        withCollection(create = { vector { this.size = size; distance = Distance.COSINE } }) { name ->
+            client.upsert(name, wait = true) {
+                point(1) { document("Kotlin is a language for the JVM and beyond", model = model) }
+                point(2) { document("a recipe for tomato sauce", model = model) }
+            }
+
+            val hits = client.search(name) {
+                queryDocument("which language runs on the JVM", model = model)
+                limit = 1
+            }
+
+            assertEquals(PointId.num(1), hits.single().id, "the server embedded both sides and ranked them")
         }
     }
 

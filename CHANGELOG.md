@@ -6,6 +6,140 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-08-06
+
+Tiers 8 and 9, complete. The theme is the distance between a request this client can build and one that
+has been shown to work, and the client's behaviour where a cluster is not healthy. `matchPhrase` now
+matches something. Sparse and hybrid search meet a server. Metrics report from both engines. The public
+API is tracked per native target rather than only for the JVM, and the compatibility promise says what
+it means for a klib. A degraded cluster reports itself. And there is a binary.
+
+### Added
+
+- **The payload index parameters Qdrant takes** (M43). `createPayloadIndex(name, field, schema)` sent a
+  field name and a type, which was the entire request the client could build. A builder overload sends
+  the rest: a text index chooses its tokenizer, token lengths, lowercasing and phrase matching; an
+  integer index chooses whether it answers lookups, ranges or both; keyword and uuid indexes take
+  `isTenant`, integer, float and datetime take `isPrincipal`, and all of them take `onDisk`. The
+  four-argument call is unchanged and still there.
+  Two of those decide whether a query works rather than how fast it is. `matchPhrase` was in the filter
+  DSL and deliberately absent from the contract, because Qdrant matches a phrase only against an index
+  built with `phrase_matching: true` and nothing could ask for one, so the filter was accepted and
+  matched nothing. The contract now asserts it, over both engines, and the comment explaining why it
+  could not is deleted rather than reworded.
+- **Sparse, multi-vector and hybrid search in the shared contract** (M44). `sparseVector`,
+  `querySparse`, `queryMulti` and reciprocal-rank fusion were public API for four releases with nothing
+  but body assertions behind them, which is the gap between a request that is well formed and one that
+  works. The contract creates a collection carrying a dense and a sparse vector, upserts points with
+  both, runs an RRF hybrid query and a DBSF one, exercises IDF scoring where the server rescales what
+  was sent, stores and queries a multi-vector collection, and asserts that a query naming a vector the
+  collection lacks is refused. All of it over both engines against a real Qdrant.
+- **Server-side inference** (M48). Qdrant takes `Document`, `Image` and `InferenceObject` wherever it
+  takes a vector, and Kdrant could not express the request. `VectorData.Inference` and
+  `QueryInterface.Inference` carry one, with `document(...)` on the point builder and `queryDocument(...)`
+  on the search builder for the common case. Kdrant still embeds nothing: it bundles no model and takes
+  no dependency on an inference library, and this carries a request naming what to embed and with which
+  model exactly as a filter carries what to match. The round trip needs a provider configured on the
+  server, so it runs where one exists and is skipped where it is not, while both request shapes are
+  validated against Qdrant's own OpenAPI document on every build.
+- **An ingest that owns batching, concurrency and resume** (M55). `QdrantClient.ingest` takes a `Flow`
+  and owns the parts that were the caller's: batching by count and by serialized size, a bound on
+  requests in flight, retry of a batch rather than of the stream, and an `IngestCheckpoint` naming the
+  points the server acknowledged. The count advances only over an unbroken prefix, so a batch
+  acknowledged while an earlier one is still being retried never moves it and a resumed run cannot skip
+  a point that was never written.
+  The token is a lower bound rather than an equality, and the difference is the whole safety argument. A
+  batch that was in flight when a run died may already have been applied, and an acknowledgement that
+  never came back cannot move a checkpoint, so the collection can hold more than the token claims.
+  Resuming therefore re-sends a few points that are already there, which upsert makes free; a token that
+  could over-claim would skip points and lose them without a trace. `batchUpdate` and `upsert` are
+  unchanged and still there.
+- **TLS a native consumer can configure** (M47). `useTls` decided whether to speak HTTPS and nothing
+  decided which certificate to accept, and the documented escape hatch, `configureClient`, hands back a
+  star-projected Ktor config that cannot open an engine-specific block. `KdrantConfig.trustAnchors`
+  takes `TrustAnchors.System`, a `Pem` bundle, or a set of pinned public keys. The JVM honours all
+  three, Linux honours a PEM bundle through libcurl, and iOS, macOS and Windows honour the system store
+  their platform owns. A configuration a target cannot honour is refused when the client is built,
+  naming the platform and the store to put the certificate in, rather than falling back to system trust
+  and looking like it complied. The KDoc names the store each engine reads.
+- **`KdrantException.retryable`, and three failures a degraded cluster used to hide** (M52).
+  `ReadOnly` is a node refusing writes while still serving reads, which is not the same event as a
+  credential being refused; `ShardUnavailable` is a shard with no live replica, where the collection
+  exists and part of it is unreachable; `PartiallyApplied` reports how many points a split upsert wrote
+  before it failed, so the choice between re-sending everything and losing the rest is made with a
+  number. Every exception in the hierarchy now says whether the same request could succeed later.
+  `kdrant-testkit` grew `QdrantCluster`, a real two-node cluster in Docker, and
+  `DegradedClusterContract`, which stops a node and lowers a strict-mode ceiling and asserts what the
+  client does. Both engines run it.
+- **`StrictModeConfig`** on `createCollection` and `updateCollection`: the per-collection limits Qdrant
+  enforces on the requests it accepts, including the disk and memory ceilings past which a node refuses
+  writes and keeps serving reads. Added as part of M52, because it is what makes that state reachable
+  from a test rather than from an incident.
+  Its KDoc names which server versions enforce which limit, which is not decoration. Qdrant 1.18 refuses
+  writes over the disk ceiling and Qdrant 1.19 does not, having deprecated that family in favour of a
+  global quota API. The degraded-cluster contract found that by passing against the pinned version and
+  failing against `latest`, which is the version matrix earning its place on its first run.
+- **`kdrant-cli`** (M49). One static binary per platform for the operations that are not requests:
+  `migrate`, `snapshot create|list|download|restore|delete`, `collections` and `scroll`. No JVM, no
+  classpath, no install step. It is not published to Maven Central; the binaries are built on two
+  runners, run against a real Qdrant before they are allowed near a release, attested with SLSA
+  provenance and attached to the GitHub Release with their checksums. It cannot embed, so it migrates
+  what does not need re-embedding, and the help text says so.
+- **The client contract against four Qdrant versions** (M50). `QdrantVersionMatrixIntegrationTest` runs
+  the shared contract against the four most recent minors and writes the result into the README between
+  generated markers. It does not fail the build: a cell that is red against an older server is the
+  information the matrix exists to publish, and a matrix that fails a release for being honest is a
+  matrix that gets deleted. The blocking check is unchanged, against the pinned version and `latest`.
+- **A benchmark against `io.qdrant:client`** (M51). Every number this repository published compared
+  Kdrant to Kdrant. `OfficialClientComparisonBenchmark` runs both clients against the same server, the
+  same data and the same JVM over a single search, a batch search, an upsert of a large batch and a full
+  scroll. The official client is a benchmark dependency and reaches no published POM.
+
+### Changed
+
+- **Metrics moved to the transport seam** (M45). `kdrant-micrometer` was a Ktor client plugin, so a
+  client built with `KdrantGrpc` published no metrics at all and nothing said so. It is now a
+  `QdrantTransport` decorator, the same seam `kdrant-otel` traces, installed the same way:
+  `decorateTransport = kdrantMetrics(registry)`.
+  The tags change with it, and the cost belongs here rather than in a release note nobody reads. The
+  `operation` tag stops being a route template such as `/collections/{collection}/points/query` and
+  becomes the operation, `query`, which is the vocabulary `db.operation.name` already uses on the span.
+  `method` and `status` are gone, because neither exists on a gRPC call and a tag present on one engine
+  is a tag no dashboard can rely on. `outcome` gains `CANCELLED` and reports the exception subclass
+  instead of an HTTP class. Dashboards built on the old values need editing. Installing through
+  `configureClient` still works and is deprecated, with the replacement in the message.
+- **A TLS failure is a `KdrantException`.** A refused certificate is not an `IOException` on every
+  platform, so `CertPathValidatorException` and `CertificateException` used to escape the transport seam
+  and reach a caller who had been told every failure there is a `KdrantException`. They are wrapped in
+  `KdrantException.Transport` now, with the cause kept.
+- **`STABILITY.md` states the `2.x` promise per artifact type** (M53), including what a minor may and
+  may not do to a klib, why narrowing a declaration to fewer targets is a removal, what a Kotlin
+  compiler upgrade is allowed to do, and what happens when a Qdrant change forces a signature change.
+- **The Kotlin/JS exclusion is argued in the README** (M54) rather than in a comment in a build file. A
+  browser cannot reach a Qdrant without CORS on the server, a Qdrant reachable from a browser is
+  reachable from anyone, and an API key shipped to a browser is a published key. The README names what
+  would change the answer; the build-file comment is deleted rather than duplicated.
+
+### Deprecated
+
+- `KdrantMetrics`, the Ktor client plugin, and `HttpClientConfig<*>.kdrantMetrics(...)` that installs
+  it. Both keep working for one minor. Use `decorateTransport = kdrantMetrics(registry)`, which covers
+  both engines.
+
+### Internal
+
+- **The public API is tracked per native target** (M46). `apiDump` writes a `.klib.api` beside the JVM
+  dump for every multiplatform module, merged and target-annotated, so a declaration present on some
+  targets and not others is a diff rather than silence. The dump can only be regenerated on a host that
+  builds the Apple targets: `CONTRIBUTING.md` says so, and the macOS job in CI runs `apiCheck` for
+  exactly that reason.
+- `kdrant-micrometer` gained a Testcontainers integration test that runs the same operation over both
+  engines and compares the meter ids, which is the claim the module now rests on.
+- The release workflow builds the CLI binaries on two runners, proves each against a real Qdrant, and
+  attaches them to the GitHub Release with SLSA provenance and checksums.
+- The benchmarks workflow exposes Qdrant's gRPC port, because the official client speaks it.
+
+
 ## [2.1.0] - 2026-08-02
 
 Tier 7, complete. Four claims that were previously compiled, argued or asserted are now things a build
@@ -475,7 +609,8 @@ helper).
   `is_empty` / `is_null`, `has_id`, `has_vector`, per-element `nested`, and recursive sub-filters).
 - Typed error hierarchy `KdrantException`.
 
-[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.1.0...v1.2.0

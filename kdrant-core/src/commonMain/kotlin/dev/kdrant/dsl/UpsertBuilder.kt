@@ -1,10 +1,13 @@
 package dev.kdrant.dsl
 
 import dev.kdrant.KdrantDsl
+import dev.kdrant.model.InferenceInput
 import dev.kdrant.model.Payload
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.VectorData
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 
 /** DSL for `upsert`: accumulate points with [point]. */
 @KdrantDsl
@@ -59,6 +62,21 @@ public class PointBuilder internal constructor(private val id: PointId) {
     /** Set the vector(s) directly — for sparse, multi-vector, or mixed named vectors. */
     public fun vector(data: VectorData) {
         vector = data
+    }
+
+    /**
+     * Store [text] and let the **server** embed it with [model], instead of sending a vector.
+     *
+     * Kdrant computes nothing here: the point carries the text and the model name, and the embedding
+     * happens in Qdrant, which needs an inference provider configured. See [InferenceInput].
+     */
+    public fun document(text: String, model: String, options: Map<String, JsonElement>? = null) {
+        vector = VectorData.Inference(InferenceInput.Document(text, model, options))
+    }
+
+    /** As [document], for an image given as a URL or as base64-encoded bytes. */
+    public fun image(image: String, model: String, options: Map<String, JsonElement>? = null) {
+        vector = VectorData.Inference(InferenceInput.Image(JsonPrimitive(image), model, options))
     }
 
     /** Payload from key/value pairs, e.g. `payload("lang" to "it", "year" to 2024)`. */

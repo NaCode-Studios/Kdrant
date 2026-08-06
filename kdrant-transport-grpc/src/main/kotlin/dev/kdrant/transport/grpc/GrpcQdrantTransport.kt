@@ -14,6 +14,7 @@ import dev.kdrant.model.FacetHit
 import dev.kdrant.model.Filter
 import dev.kdrant.model.LocalShardInfo
 import dev.kdrant.model.Payload
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
@@ -273,6 +274,25 @@ public class GrpcQdrantTransport internal constructor(
                     .setWait(wait)
                     .setFieldName(field)
                     .setFieldType(RequestMapping.fieldType(schema))
+                    .build(),
+            )
+        }
+    }
+
+    override suspend fun createPayloadIndex(
+        name: String,
+        field: String,
+        params: PayloadIndexParams,
+        wait: Boolean,
+    ) {
+        call(name) {
+            points.deadlined().createFieldIndex(
+                Points.CreateFieldIndexCollection.newBuilder()
+                    .setCollectionName(name)
+                    .setWait(wait)
+                    .setFieldName(field)
+                    .setFieldType(RequestMapping.fieldType(params))
+                    .setFieldIndexParams(RequestMapping.indexParams(params))
                     .build(),
             )
         }

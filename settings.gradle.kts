@@ -25,6 +25,7 @@ include(
     "kdrant-koog",
     "kdrant-transport-grpc",
     "kdrant-migrate",
+    "kdrant-cli",
     "kdrant-testkit",
     "example-rag",
     "example-native-image",

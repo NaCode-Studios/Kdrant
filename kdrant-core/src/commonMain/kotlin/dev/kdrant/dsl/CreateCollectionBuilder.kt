@@ -10,6 +10,7 @@ import dev.kdrant.model.MultiVectorConfig
 import dev.kdrant.model.OptimizersConfig
 import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.SparseVectorParams
+import dev.kdrant.model.StrictModeConfig
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.VectorParams
@@ -40,6 +41,9 @@ public class CreateCollectionBuilder {
 
     /** Vector quantization, to shrink the collection's memory footprint. */
     public var quantization: QuantizationConfig? = null
+
+    /** Server-enforced limits on what this collection will accept. See [StrictModeConfig]. */
+    public var strictMode: StrictModeConfig? = null
 
     /** Configure a single anonymous vector. Mutually exclusive with [namedVector]. */
     public fun vector(configure: VectorParamsBuilder.() -> Unit) {
@@ -80,6 +84,7 @@ public class CreateCollectionBuilder {
             replicationFactor = replicationFactor,
             optimizersConfig = optimizers,
             quantizationConfig = quantization,
+            strictModeConfig = strictMode,
         )
     }
 }
@@ -96,10 +101,14 @@ public class UpdateCollectionBuilder {
     /** Vector quantization. */
     public var quantization: QuantizationConfig? = null
 
+    /** Server-enforced limits on what this collection will accept. See [StrictModeConfig]. */
+    public var strictMode: StrictModeConfig? = null
+
     internal fun build(): UpdateCollectionRequest = UpdateCollectionRequest(
         optimizersConfig = optimizers,
         hnswConfig = hnsw,
         quantizationConfig = quantization,
+        strictModeConfig = strictMode,
     )
 }
 

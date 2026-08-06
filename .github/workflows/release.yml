@@ -12,10 +12,104 @@ permissions:
   attestations: write
 
 jobs:
+  # The CLI is a binary per platform rather than a jar, so it is built where it runs and attached to
+  # the GitHub Release instead of published to Maven Central. Two runners, because a Kotlin/Native
+  # binary is linked by the host toolchain: macOS cannot produce the Linux one and Linux cannot
+  # produce the macOS one.
+  cli:
+    name: kdrant-cli (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linuxX64
+            asset: kdrant-linux-x64
+          - os: macos-latest
+            target: macosArm64
+            asset: kdrant-macos-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # The binary links against libcurl, which is what gives it TLS. Saying so here is the same
+      # statement the module's documentation makes to somebody downloading it.
+      - name: Install libcurl
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build the binary
+        run: >
+          ./gradlew :kdrant-cli:linkKdrantReleaseExecutable${{ matrix.target }}
+          --no-daemon --no-configuration-cache --stacktrace
+
+      # A binary that has never been run is a binary nobody knows works. It runs a real migration and a
+      # real snapshot round trip against a real Qdrant before it is allowed near a release.
+      - name: Prove it against a real Qdrant
+        env:
+          ASSET: ${{ matrix.asset }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          BINARY="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe"
+          docker run -d --name qdrant -p 6333:6333 qdrant/qdrant:v1.18.2
+          for _ in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -fsS -X PUT http://127.0.0.1:6333/collections/cli-source \
+            -H 'content-type: application/json' \
+            -d '{"vectors":{"size":4,"distance":"Dot"}}'
+          curl -fsS -X PUT "http://127.0.0.1:6333/collections/cli-source/points?wait=true" \
+            -H 'content-type: application/json' \
+            -d '{"points":[{"id":1,"vector":[1,0,0,0]},{"id":2,"vector":[0,1,0,0]}]}'
+
+          "$BINARY" collections
+          "$BINARY" migrate cli-source cli-target --checkpoint "$RUNNER_TEMP/cli.checkpoint"
+          SNAPSHOT=$("$BINARY" snapshot create cli-target | cut -f1)
+          "$BINARY" snapshot download cli-target "$SNAPSHOT" --out "$RUNNER_TEMP/cli.snapshot"
+          test -s "$RUNNER_TEMP/cli.snapshot" || { echo "::error::the snapshot came back empty"; exit 1; }
+          "$BINARY" scroll cli-target --limit 5
+
+      - name: Name the binary after the platform it runs on
+        env:
+          ASSET: ${{ matrix.asset }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p cli-artifacts
+          cp "kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe" "cli-artifacts/$ASSET"
+          chmod +x "cli-artifacts/$ASSET"
+          ( cd cli-artifacts && shasum -a 256 "$ASSET" > "$ASSET.sha256" )
+
+      # The binaries get provenance like every jar does. They are a different kind of artifact, not a
+      # less trustworthy one, and a downloaded executable is the artifact where provenance matters most.
+      - name: Attest build provenance (SLSA)
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: cli-artifacts/${{ matrix.asset }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cli-${{ matrix.asset }}
+          path: cli-artifacts/
+          retention-days: 7
+
   publish:
     # macOS, because kdrant-core is multiplatform and only a macOS host can compile the Apple targets.
     # A Linux runner would silently skip them and publish a release missing its iOS and macOS klibs.
     runs-on: macos-latest
+    # The Release is created here, so the binaries have to exist before it: a job that attached them
+    # afterwards would leave a window where the release page shows a CLI that cannot be downloaded.
+    needs: cli
     steps:
       - uses: actions/checkout@v7
 
@@ -82,6 +176,26 @@ jobs:
           # An empty body means the tag and the changelog disagree. Fail rather than publish a blank one.
           [ -s notes.md ] || { echo "::error::no CHANGELOG.md section for $VERSION"; exit 1; }
           gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
+
+      - name: Fetch the CLI binaries
+        if: github.event_name == 'push'
+        uses: actions/download-artifact@v7
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: cli-artifacts
+
+      # Attached to the Release rather than published to Maven Central: a CLI that needs a package
+      # manager and a runtime installed first has given up its only advantage over calling the API.
+      # The checksums go with them, because a downloaded binary somebody cannot verify is one they
+      # should not run.
+      - name: Attach the CLI binaries to the Release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ls -la cli-artifacts
+          gh release upload "$GITHUB_REF_NAME" cli-artifacts/* --clobber
 
       # Linked artifacts: tell GitHub which jars this build produced and where they now live. This is
       # metadata, not a second distribution channel — nobody resolves a dependency from here. It is

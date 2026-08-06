@@ -3,12 +3,14 @@ package dev.kdrant.transport.grpc
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.OrderBy
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchParams
 import dev.kdrant.model.ShardKey
+import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -169,6 +171,102 @@ internal object RequestMapping {
         PayloadSchemaType.BOOL -> Points.FieldType.FieldTypeBool
         PayloadSchemaType.DATETIME -> Points.FieldType.FieldTypeDatetime
         PayloadSchemaType.UUID -> Points.FieldType.FieldTypeUuid
+    }
+
+    /**
+     * The index type carried by [params], so the gRPC request names it the way the REST body's
+     * `type` discriminator does.
+     */
+    fun fieldType(params: PayloadIndexParams): Points.FieldType = when (params) {
+        is PayloadIndexParams.Keyword -> Points.FieldType.FieldTypeKeyword
+        is PayloadIndexParams.Integer -> Points.FieldType.FieldTypeInteger
+        is PayloadIndexParams.Float -> Points.FieldType.FieldTypeFloat
+        is PayloadIndexParams.Geo -> Points.FieldType.FieldTypeGeo
+        is PayloadIndexParams.Text -> Points.FieldType.FieldTypeText
+        is PayloadIndexParams.Bool -> Points.FieldType.FieldTypeBool
+        is PayloadIndexParams.Datetime -> Points.FieldType.FieldTypeDatetime
+        is PayloadIndexParams.Uuid -> Points.FieldType.FieldTypeUuid
+    }
+
+    /**
+     * The index parameters as the protobuf oneof. Every field is optional on both sides, so an unset
+     * Kotlin `null` stays unset here rather than being sent as a default the server would then apply.
+     */
+    fun indexParams(params: PayloadIndexParams): Collections.PayloadIndexParams =
+        Collections.PayloadIndexParams.newBuilder().apply {
+            when (params) {
+                is PayloadIndexParams.Keyword -> keywordIndexParams = keyword(params)
+                is PayloadIndexParams.Integer -> integerIndexParams = integer(params)
+                is PayloadIndexParams.Float -> floatIndexParams = float(params)
+                is PayloadIndexParams.Geo -> geoIndexParams = geo(params)
+                is PayloadIndexParams.Text -> textIndexParams = text(params)
+                is PayloadIndexParams.Bool -> boolIndexParams = bool(params)
+                is PayloadIndexParams.Datetime -> datetimeIndexParams = datetime(params)
+                is PayloadIndexParams.Uuid -> uuidIndexParams = uuid(params)
+            }
+        }.build()
+
+    private fun keyword(params: PayloadIndexParams.Keyword): Collections.KeywordIndexParams =
+        Collections.KeywordIndexParams.newBuilder().apply {
+            params.isTenant?.let { isTenant = it }
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun integer(params: PayloadIndexParams.Integer): Collections.IntegerIndexParams =
+        Collections.IntegerIndexParams.newBuilder().apply {
+            params.lookup?.let { lookup = it }
+            params.range?.let { range = it }
+            params.isPrincipal?.let { isPrincipal = it }
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun float(params: PayloadIndexParams.Float): Collections.FloatIndexParams =
+        Collections.FloatIndexParams.newBuilder().apply {
+            params.isPrincipal?.let { isPrincipal = it }
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun geo(params: PayloadIndexParams.Geo): Collections.GeoIndexParams =
+        Collections.GeoIndexParams.newBuilder().apply {
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun text(params: PayloadIndexParams.Text): Collections.TextIndexParams =
+        Collections.TextIndexParams.newBuilder().apply {
+            // The tokenizer is a plain field rather than an optional one, and its zero value is
+            // `Unknown`, which the server rejects. Leaving it unset therefore means asking for the
+            // server's own default explicitly.
+            tokenizer = tokenizer(params.tokenizer)
+            params.lowercase?.let { lowercase = it }
+            params.minTokenLen?.let { minTokenLen = it.toLong() }
+            params.maxTokenLen?.let { maxTokenLen = it.toLong() }
+            params.phraseMatching?.let { phraseMatching = it }
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun bool(params: PayloadIndexParams.Bool): Collections.BoolIndexParams =
+        Collections.BoolIndexParams.newBuilder().apply {
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun datetime(params: PayloadIndexParams.Datetime): Collections.DatetimeIndexParams =
+        Collections.DatetimeIndexParams.newBuilder().apply {
+            params.isPrincipal?.let { isPrincipal = it }
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun uuid(params: PayloadIndexParams.Uuid): Collections.UuidIndexParams =
+        Collections.UuidIndexParams.newBuilder().apply {
+            params.isTenant?.let { isTenant = it }
+            params.onDisk?.let { onDisk = it }
+        }.build()
+
+    private fun tokenizer(value: Tokenizer?): Collections.TokenizerType = when (value) {
+        null -> Collections.TokenizerType.Word
+        Tokenizer.PREFIX -> Collections.TokenizerType.Prefix
+        Tokenizer.WHITESPACE -> Collections.TokenizerType.Whitespace
+        Tokenizer.WORD -> Collections.TokenizerType.Word
+        Tokenizer.MULTILINGUAL -> Collections.TokenizerType.Multilingual
     }
 
     /**

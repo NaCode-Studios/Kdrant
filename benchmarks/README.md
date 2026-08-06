@@ -11,9 +11,34 @@ docker run -p 6333:6333 qdrant/qdrant
 ```
 
 `SampleTime` mode reports the p50 / p90 / p99 latency distribution — the numbers behind the
-performance claims in the top-level [README](../README.md#footprint-vs-the-official-client). For an
-apples-to-apples footprint/throughput comparison, run the same shapes against `io.qdrant:client` (gRPC)
-and note where HTTP/2 streaming wins.
+performance claims in the top-level [README](../README.md#footprint-vs-the-official-client).
+
+## Kdrant against the official Java client
+
+`OfficialClientComparisonBenchmark` runs Kdrant and `io.qdrant:client` against the same server, the
+same collection and the same JVM, over the four operations that dominate real traffic: a single
+search, a batch search, an upsert of a large batch, and a full scroll.
+
+```bash
+./gradlew :benchmarks:jmh -Pjmh.includes=OfficialClientComparison
+```
+
+It exists because every other number here compares Kdrant to Kdrant. Those answer questions somebody
+has after choosing this client; the question asked before choosing it is whether suspending functions,
+a typed filter DSL and a no-boxing hot path cost anything against the client a team could use from
+Kotlin today. An unmeasured suspicion is stronger than a measured deficit, because the reader gets to
+pick its size.
+
+Two things about it that a reader should know before comparing rows. The official client speaks gRPC
+and is measured over gRPC; Kdrant is measured over REST, which is its default. A gap between those two
+rows is a protocol difference before it is a client difference. And both are driven from a blocking
+benchmark thread, which measures end-to-end latency of one operation and measures neither client's
+concurrency.
+
+**The results are published from a workflow run, never from a laptop, and the write-up names the rows
+Kdrant loses.** A benchmark whose author wins every row is read as a benchmark whose author chose the
+rows. Dispatch the [`Benchmarks` workflow](../.github/workflows/benchmarks.yml) and record what it
+reports here, with its run id, the way the latency table below does.
 
 ## Where a publishable number comes from
 

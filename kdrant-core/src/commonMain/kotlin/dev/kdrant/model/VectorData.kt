@@ -27,6 +27,7 @@ import kotlinx.serialization.json.put
  * - [Sparse] — a sparse vector (always used under a name): `{"indices":[...],"values":[...]}`.
  * - [MultiDense] — a multi-vector / late-interaction (ColBERT) vector: `[[...],[...]]`.
  * - [Named] — a map of vector-name to any of the above; dense, sparse and multi-vectors may be mixed.
+ * - [Inference] — what the server should embed, rather than a vector: see [InferenceInput].
  * - [Raw] — a shape this version does not model, kept verbatim so decoding a response never fails.
  */
 @Serializable(with = VectorDataSerializer::class)
@@ -61,6 +62,12 @@ public sealed interface VectorData {
     /** Named vectors; each entry may be [Dense], [Sparse] or [MultiDense]. */
     public data class Named(public val vectors: Map<String, VectorData>) : VectorData
 
+    /**
+     * Text, an image or a custom object for the **server** to embed, instead of a vector the caller
+     * computed. Needs a Qdrant with an inference provider configured. See [InferenceInput].
+     */
+    public data class Inference(public val input: InferenceInput) : VectorData
+
     /** A vector shape this version does not model, kept verbatim so response decoding degrades gracefully. */
     public data class Raw(public val json: JsonElement) : VectorData
 }
@@ -80,11 +87,11 @@ internal object VectorDataSerializer : KSerializer<VectorData> {
             // Zero-boxing fast path: write the FloatArray straight to a JSON number array.
             encoder.encodeSerializableValue(floatArray, value.values)
         } else {
-            json.encodeJsonElement(toJson(value))
+            json.encodeJsonElement(toJson(json.json, value))
         }
     }
 
-    private fun toJson(value: VectorData): JsonElement = when (value) {
+    private fun toJson(json: Json, value: VectorData): JsonElement = when (value) {
         is VectorData.Dense -> JsonArray(value.values.map { JsonPrimitive(it) })
         is VectorData.DenseArray -> JsonArray(value.values.map { JsonPrimitive(it) })
         is VectorData.Sparse -> buildJsonObject {
@@ -93,7 +100,10 @@ internal object VectorDataSerializer : KSerializer<VectorData> {
         }
         is VectorData.MultiDense ->
             JsonArray(value.vectors.map { row -> JsonArray(row.map { JsonPrimitive(it) }) })
-        is VectorData.Named -> buildJsonObject { value.vectors.forEach { (name, data) -> put(name, toJson(data)) } }
+        is VectorData.Named -> buildJsonObject {
+            value.vectors.forEach { (name, data) -> put(name, toJson(json, data)) }
+        }
+        is VectorData.Inference -> json.encodeToJsonElement(InferenceInputSerializer, value.input)
         is VectorData.Raw -> value.json
     }
 

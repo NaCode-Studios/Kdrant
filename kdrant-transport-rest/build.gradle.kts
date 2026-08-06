@@ -66,6 +66,11 @@ kotlin {
             runtimeOnly(libs.junit.platform.launcher)
             implementation(libs.ktor.client.mock)
 
+            // A real HTTPS server with a self-signed certificate, which is the only way to assert that
+            // a caller-supplied trust decision is honoured rather than merely accepted.
+            implementation(libs.ktor.server.netty)
+            implementation(libs.ktor.network.tls.certificates)
+
             // Integration tests spin up a real Qdrant in Docker. The testkit carries the shared client
             // contract both engines are held to, and brings Testcontainers with it.
             implementation(project(":kdrant-testkit"))

@@ -7,6 +7,7 @@ public final class dev/kdrant/transport/grpc/GrpcQdrantTransport : dev/kdrant/tr
 	public fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadIndexParams;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createShardKey (Ljava/lang/String;Ldev/kdrant/model/CreateShardKeyRequest;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createShardSnapshot (Ljava/lang/String;IZLkotlin/coroutines/Continuation;)Ljava/lang/Object;

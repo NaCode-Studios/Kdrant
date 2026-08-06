@@ -75,6 +75,12 @@ public sealed interface QueryInterface {
     public data class MultiVector(public val vectors: List<List<Float>>) : VectorInput
 
     /**
+     * Nearest-neighbor search by text, an image or a custom object the **server** embeds, rather than
+     * by a vector the caller computed. Needs a Qdrant with an inference provider. See [InferenceInput].
+     */
+    public data class Inference(public val input: InferenceInput) : VectorInput
+
+    /**
      * Fuse the rankings of several [Prefetch] sources — the basis of hybrid search. Build it with
      * [rrf] (Reciprocal Rank Fusion, optionally parameterized) or [dbsf].
      */
@@ -144,8 +150,8 @@ public sealed interface QueryInterface {
 /**
  * A bare vector input — usable directly as a nearest-search [QueryInterface] and as a positive/negative
  * example inside [QueryInterface.Recommend], [QueryInterface.Discover] and [ContextPair]. One of a dense
- * [QueryInterface.Vector], a stored-point [QueryInterface.ById], a [QueryInterface.Sparse], or a
- * [QueryInterface.MultiVector].
+ * [QueryInterface.Vector], a stored-point [QueryInterface.ById], a [QueryInterface.Sparse], a
+ * [QueryInterface.MultiVector], or a [QueryInterface.Inference] the server embeds.
  */
 public sealed interface VectorInput : QueryInterface
 
@@ -190,6 +196,9 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
 
         is QueryInterface.MultiVector ->
             JsonArray(value.vectors.map { row -> JsonArray(row.map { JsonPrimitive(it) }) })
+
+        is QueryInterface.Inference ->
+            json.encodeToJsonElement(InferenceInputSerializer, value.input)
 
         is QueryInterface.Fusion -> fusionElement(value)
 

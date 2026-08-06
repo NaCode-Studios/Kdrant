@@ -14,4 +14,8 @@ public data class UpdateCollectionRequest(
 
     @SerialName("quantization_config")
     public val quantizationConfig: QuantizationConfig? = null,
+
+    /** Server-enforced limits on the requests this collection accepts. */
+    @SerialName("strict_mode_config")
+    public val strictModeConfig: StrictModeConfig? = null,
 )

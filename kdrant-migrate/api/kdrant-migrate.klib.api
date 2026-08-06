@@ -1,0 +1,76 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.nacode-studios:kdrant-migrate>
+abstract interface dev.kdrant.migrate/MigrationCheckpointStore { // dev.kdrant.migrate/MigrationCheckpointStore|null[0]
+    abstract suspend fun clear(kotlin/String) // dev.kdrant.migrate/MigrationCheckpointStore.clear|clear(kotlin.String){}[0]
+    abstract suspend fun load(kotlin/String): dev.kdrant.migrate/MigrationCheckpoint? // dev.kdrant.migrate/MigrationCheckpointStore.load|load(kotlin.String){}[0]
+    abstract suspend fun save(kotlin/String, dev.kdrant.migrate/MigrationCheckpoint) // dev.kdrant.migrate/MigrationCheckpointStore.save|save(kotlin.String;dev.kdrant.migrate.MigrationCheckpoint){}[0]
+
+    final object Companion { // dev.kdrant.migrate/MigrationCheckpointStore.Companion|null[0]
+        final fun inMemory(): dev.kdrant.migrate/MigrationCheckpointStore // dev.kdrant.migrate/MigrationCheckpointStore.Companion.inMemory|inMemory(){}[0]
+    }
+}
+
+final class dev.kdrant.migrate/MigrationCheckpoint { // dev.kdrant.migrate/MigrationCheckpoint|null[0]
+    constructor <init>(dev.kdrant.model/PointId, kotlin/Long) // dev.kdrant.migrate/MigrationCheckpoint.<init>|<init>(dev.kdrant.model.PointId;kotlin.Long){}[0]
+
+    final val copied // dev.kdrant.migrate/MigrationCheckpoint.copied|{}copied[0]
+        final fun <get-copied>(): kotlin/Long // dev.kdrant.migrate/MigrationCheckpoint.copied.<get-copied>|<get-copied>(){}[0]
+    final val resumeAt // dev.kdrant.migrate/MigrationCheckpoint.resumeAt|{}resumeAt[0]
+        final fun <get-resumeAt>(): dev.kdrant.model/PointId // dev.kdrant.migrate/MigrationCheckpoint.resumeAt.<get-resumeAt>|<get-resumeAt>(){}[0]
+
+    final fun toString(): kotlin/String // dev.kdrant.migrate/MigrationCheckpoint.toString|toString(){}[0]
+}
+
+final class dev.kdrant.migrate/MigrationReport { // dev.kdrant.migrate/MigrationReport|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Long, kotlin/Boolean, kotlin/Long, kotlin/Long, kotlin/Int, kotlin/Double?, kotlin/Boolean) // dev.kdrant.migrate/MigrationReport.<init>|<init>(kotlin.String;kotlin.String;kotlin.Long;kotlin.Boolean;kotlin.Long;kotlin.Long;kotlin.Int;kotlin.Double?;kotlin.Boolean){}[0]
+
+    final val aliasMoved // dev.kdrant.migrate/MigrationReport.aliasMoved|{}aliasMoved[0]
+        final fun <get-aliasMoved>(): kotlin/Boolean // dev.kdrant.migrate/MigrationReport.aliasMoved.<get-aliasMoved>|<get-aliasMoved>(){}[0]
+    final val copied // dev.kdrant.migrate/MigrationReport.copied|{}copied[0]
+        final fun <get-copied>(): kotlin/Long // dev.kdrant.migrate/MigrationReport.copied.<get-copied>|<get-copied>(){}[0]
+    final val recall // dev.kdrant.migrate/MigrationReport.recall|{}recall[0]
+        final fun <get-recall>(): kotlin/Double? // dev.kdrant.migrate/MigrationReport.recall.<get-recall>|<get-recall>(){}[0]
+    final val resumed // dev.kdrant.migrate/MigrationReport.resumed|{}resumed[0]
+        final fun <get-resumed>(): kotlin/Boolean // dev.kdrant.migrate/MigrationReport.resumed.<get-resumed>|<get-resumed>(){}[0]
+    final val sampledPairs // dev.kdrant.migrate/MigrationReport.sampledPairs|{}sampledPairs[0]
+        final fun <get-sampledPairs>(): kotlin/Int // dev.kdrant.migrate/MigrationReport.sampledPairs.<get-sampledPairs>|<get-sampledPairs>(){}[0]
+    final val source // dev.kdrant.migrate/MigrationReport.source|{}source[0]
+        final fun <get-source>(): kotlin/String // dev.kdrant.migrate/MigrationReport.source.<get-source>|<get-source>(){}[0]
+    final val sourceCount // dev.kdrant.migrate/MigrationReport.sourceCount|{}sourceCount[0]
+        final fun <get-sourceCount>(): kotlin/Long // dev.kdrant.migrate/MigrationReport.sourceCount.<get-sourceCount>|<get-sourceCount>(){}[0]
+    final val target // dev.kdrant.migrate/MigrationReport.target|{}target[0]
+        final fun <get-target>(): kotlin/String // dev.kdrant.migrate/MigrationReport.target.<get-target>|<get-target>(){}[0]
+    final val targetCount // dev.kdrant.migrate/MigrationReport.targetCount|{}targetCount[0]
+        final fun <get-targetCount>(): kotlin/Long // dev.kdrant.migrate/MigrationReport.targetCount.<get-targetCount>|<get-targetCount>(){}[0]
+
+    final fun toString(): kotlin/String // dev.kdrant.migrate/MigrationReport.toString|toString(){}[0]
+}
+
+final class dev.kdrant.migrate/MigrationVerification { // dev.kdrant.migrate/MigrationVerification|null[0]
+    constructor <init>(kotlin/Int = ..., kotlin/Int = ..., kotlin/Double = ..., kotlin/String? = ...) // dev.kdrant.migrate/MigrationVerification.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Double;kotlin.String?){}[0]
+
+    final val minRecall // dev.kdrant.migrate/MigrationVerification.minRecall|{}minRecall[0]
+        final fun <get-minRecall>(): kotlin/Double // dev.kdrant.migrate/MigrationVerification.minRecall.<get-minRecall>|<get-minRecall>(){}[0]
+    final val sampleSize // dev.kdrant.migrate/MigrationVerification.sampleSize|{}sampleSize[0]
+        final fun <get-sampleSize>(): kotlin/Int // dev.kdrant.migrate/MigrationVerification.sampleSize.<get-sampleSize>|<get-sampleSize>(){}[0]
+    final val topK // dev.kdrant.migrate/MigrationVerification.topK|{}topK[0]
+        final fun <get-topK>(): kotlin/Int // dev.kdrant.migrate/MigrationVerification.topK.<get-topK>|<get-topK>(){}[0]
+    final val using // dev.kdrant.migrate/MigrationVerification.using|{}using[0]
+        final fun <get-using>(): kotlin/String? // dev.kdrant.migrate/MigrationVerification.using.<get-using>|<get-using>(){}[0]
+}
+
+final class dev.kdrant.migrate/MigrationVerificationFailed : kotlin/Exception { // dev.kdrant.migrate/MigrationVerificationFailed|null[0]
+    constructor <init>(kotlin/String, dev.kdrant.migrate/MigrationReport) // dev.kdrant.migrate/MigrationVerificationFailed.<init>|<init>(kotlin.String;dev.kdrant.migrate.MigrationReport){}[0]
+
+    final val report // dev.kdrant.migrate/MigrationVerificationFailed.report|{}report[0]
+        final fun <get-report>(): dev.kdrant.migrate/MigrationReport // dev.kdrant.migrate/MigrationVerificationFailed.report.<get-report>|<get-report>(){}[0]
+}
+
+final fun dev.kdrant.migrate/copyUnchanged(dev.kdrant.model/Record): dev.kdrant.model/PointStruct? // dev.kdrant.migrate/copyUnchanged|copyUnchanged(dev.kdrant.model.Record){}[0]
+final suspend fun (dev.kdrant/QdrantClient).dev.kdrant.migrate/migrateCollection(kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/Function1<dev.kdrant.dsl/CreateCollectionBuilder, kotlin/Unit>? = ..., kotlin/Int = ..., dev.kdrant.migrate/MigrationCheckpointStore = ..., kotlin/String = ..., dev.kdrant.migrate/MigrationVerification = ..., kotlin.coroutines/SuspendFunction1<dev.kdrant.model/Record, dev.kdrant.model/PointStruct?> = ...): dev.kdrant.migrate/MigrationReport // dev.kdrant.migrate/migrateCollection|migrateCollection@dev.kdrant.QdrantClient(kotlin.String;kotlin.String;kotlin.String?;kotlin.Function1<dev.kdrant.dsl.CreateCollectionBuilder,kotlin.Unit>?;kotlin.Int;dev.kdrant.migrate.MigrationCheckpointStore;kotlin.String;dev.kdrant.migrate.MigrationVerification;kotlin.coroutines.SuspendFunction1<dev.kdrant.model.Record,dev.kdrant.model.PointStruct?>){}[0]

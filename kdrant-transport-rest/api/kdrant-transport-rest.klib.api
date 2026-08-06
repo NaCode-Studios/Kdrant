@@ -1,0 +1,9 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.github.nacode-studios:kdrant-transport-rest>
+final fun dev.kdrant.transport.rest/Kdrant(kotlin/String, kotlin/Int = ..., kotlin/Int = ..., kotlin/Int = ..., io.ktor.client.plugins.logging/LogLevel? = ..., kotlin/Int? = ..., kotlin.time/Duration? = ..., kotlin/Function0<kotlin/String>? = ..., kotlin/Function1<io.ktor.client/HttpClientConfig<*>, kotlin/Unit>? = ..., kotlin/Function1<dev.kdrant.transport/QdrantTransport, dev.kdrant.transport/QdrantTransport> = ..., kotlin/Function1<dev.kdrant/KdrantConfigBuilder, kotlin/Unit> = ...): dev.kdrant/QdrantClient // dev.kdrant.transport.rest/Kdrant|Kdrant(kotlin.String;kotlin.Int;kotlin.Int;kotlin.Int;io.ktor.client.plugins.logging.LogLevel?;kotlin.Int?;kotlin.time.Duration?;kotlin.Function0<kotlin.String>?;kotlin.Function1<io.ktor.client.HttpClientConfig<*>,kotlin.Unit>?;kotlin.Function1<dev.kdrant.transport.QdrantTransport,dev.kdrant.transport.QdrantTransport>;kotlin.Function1<dev.kdrant.KdrantConfigBuilder,kotlin.Unit>){}[0]

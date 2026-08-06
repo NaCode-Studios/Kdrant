@@ -1,13 +1,16 @@
 package dev.kdrant.transport.grpc
 
 import dev.kdrant.model.FacetValue
+import dev.kdrant.model.InferenceInput
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.VectorData
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import qdrant.Common
+import qdrant.JsonWithInt
 import qdrant.Points
 
 /**
@@ -70,6 +73,11 @@ internal object PointMapping {
                     .addAllValues(data.values.map { it })
                     .addAllIndices(data.indices)
                     .build()
+                is VectorData.Inference -> when (val input = data.input) {
+                    is InferenceInput.Document -> document = documentOf(input)
+                    is InferenceInput.Image -> image = imageOf(input)
+                    is InferenceInput.Custom -> `object` = inferenceObjectOf(input)
+                }
                 is VectorData.Named -> throw IllegalArgumentException(
                     "a named vector map cannot hold another named map; ${name ?: "the anonymous vector"} " +
                         "nests one, and Qdrant's wire format has no shape for that",
@@ -83,6 +91,34 @@ internal object PointMapping {
 
     private fun denseOf(values: List<Float>): Points.DenseVector =
         Points.DenseVector.newBuilder().addAllData(values).build()
+
+    /**
+     * The three inference requests, shared by the upsert path here and the query path in
+     * [QueryMapping]: the same message appears inside `Vector` and inside `VectorInput`.
+     */
+    fun documentOf(input: InferenceInput.Document): Points.Document =
+        Points.Document.newBuilder()
+            .setText(input.text)
+            .setModel(input.model)
+            .putAllOptions(optionsOf(input.options))
+            .build()
+
+    fun imageOf(input: InferenceInput.Image): Points.Image =
+        Points.Image.newBuilder()
+            .setImage(PayloadMapping.valueToProto(input.image))
+            .setModel(input.model)
+            .putAllOptions(optionsOf(input.options))
+            .build()
+
+    fun inferenceObjectOf(input: InferenceInput.Custom): Points.InferenceObject =
+        Points.InferenceObject.newBuilder()
+            .setObject(PayloadMapping.valueToProto(input.value))
+            .setModel(input.model)
+            .putAllOptions(optionsOf(input.options))
+            .build()
+
+    private fun optionsOf(options: Map<String, JsonElement>?): Map<String, JsonWithInt.Value> =
+        options.orEmpty().mapValues { (_, value) -> PayloadMapping.valueToProto(value) }
 
     fun vectorsToModel(vectors: Points.VectorsOutput): VectorData? =
         when (vectors.vectorsOptionsCase) {

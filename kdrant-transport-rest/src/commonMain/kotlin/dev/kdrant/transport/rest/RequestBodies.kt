@@ -2,6 +2,7 @@ package dev.kdrant.transport.rest
 
 import dev.kdrant.model.AliasOperation
 import dev.kdrant.model.Filter
+import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointVectors
@@ -37,6 +38,20 @@ internal data class BatchQueryRequest(
 internal data class CreateFieldIndexRequest(
     @SerialName("field_name") val fieldName: String,
     @SerialName("field_schema") val fieldSchema: PayloadSchemaType? = null,
+)
+
+/**
+ * Body for `PUT /collections/{name}/index` when the caller chose the index parameters.
+ *
+ * A separate class rather than a union field on [CreateFieldIndexRequest]: Qdrant's `field_schema` is
+ * `anyOf(PayloadSchemaType, PayloadSchemaParams)`, a bare string in one case and an object carrying its
+ * own `type` discriminator in the other, and modelling that as one Kotlin property would need a custom
+ * serializer to express what two data classes express for free.
+ */
+@Serializable
+internal data class CreateFieldIndexParamsRequest(
+    @SerialName("field_name") val fieldName: String,
+    @SerialName("field_schema") val fieldSchema: PayloadIndexParams,
 )
 
 /** Body for `PUT /collections/{name}/points/vectors` (update point vectors). */
