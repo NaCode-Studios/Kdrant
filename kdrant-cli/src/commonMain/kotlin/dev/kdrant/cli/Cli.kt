@@ -25,9 +25,12 @@ internal suspend fun run(
     val arguments = Arguments.parse(argv, environment)
     val command = arguments.positional.firstOrNull()
 
-    if (command == null || arguments.flag("help") || command == "help") {
+    val askedForHelp = arguments.flag("help") || command == "help"
+    if (command == null || askedForHelp) {
         Commands.help(out)
-        return if (command == null) USAGE_ERROR else 0
+        // Asking for help is not a usage error, even though being given nothing at all is. A script
+        // doing `kdrant --help && ...` should carry on.
+        return if (askedForHelp) 0 else USAGE_ERROR
     }
 
     return try {
