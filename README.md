@@ -206,11 +206,15 @@ is published whichever way it goes. A cell that fails on an older server is what
 server needs to know, and a range like "1.16 and later" cannot say which part is affected.
 
 <!-- qdrant-matrix:start -->
-Not yet generated for this release. Run:
+| Qdrant | The shared client contract |
+| --- | --- |
+| `v1.19.0` | **39/39 pass** |
+| `v1.18.3` | **39/39 pass** |
+| `v1.17.1` | **39/39 pass** |
+| `v1.16.3` | **39/39 pass** |
 
-```bash
-KDRANT_UPDATE_COMPAT=1 ./gradlew :kdrant-transport-rest:jvmTest --tests '*QdrantVersionMatrix*'
-```
+Written by `QdrantVersionMatrixIntegrationTest` from the run on the `2.2.0` merge commit. Regenerate it
+with `KDRANT_UPDATE_COMPAT=1 ./gradlew :kdrant-transport-rest:jvmTest --tests '*QdrantVersionMatrix*'`.
 <!-- qdrant-matrix:end -->
 
 The table is written by that command rather than by hand, and the `Qdrant version matrix` job in CI

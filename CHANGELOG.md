@@ -128,6 +128,10 @@ it means for a klib. A degraded cluster reports itself. And there is a binary.
 
 ### Internal
 
+- `STABILITY.md` gains an [Upgrading from `2.1`](STABILITY.md#upgrading-from-21) section naming the
+  twelve lines this release removes from the API dumps, all of which are a defaulted parameter changing
+  the signature Kotlin emits or a class becoming open, and none of which is a capability going away. The
+  count came from `git diff v2.1.0 v2.2.0 -- '*/api/*.api'` rather than from an impression.
 - **The public API is tracked per native target** (M46). `apiDump` writes a `.klib.api` beside the JVM
   dump for every multiplatform module, merged and target-annotated, so a declaration present on some
   targets and not others is a diff rather than silence. The dump can only be regenerated on a host that
