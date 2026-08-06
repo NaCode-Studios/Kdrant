@@ -147,6 +147,12 @@ it means for a klib. A degraded cluster reports itself. And there is a binary.
 - The release workflow builds the CLI binaries on two runners, proves each against a real Qdrant, and
   attaches them to the GitHub Release with SLSA provenance and checksums.
 - The benchmarks workflow exposes Qdrant's gRPC port, because the official client speaks it.
+- Dependency and action bumps that landed between the tier work and the tag: Ktor 3.5.1 to 3.5.2,
+  langchain4j 1.18.0 to 1.18.1, Guava 33.5.0 to 33.6.0, and `io.qdrant:client` 1.15.0 to 1.18.3, which
+  is a benchmark dependency and reaches no published POM. Two GitHub Actions moved by a major:
+  `actions/attest-build-provenance` v3 to v4 and `actions/download-artifact` v7 to v8, both in
+  `release.yml`. A grouped minor or patch bump with green CI needs no entry; a major does, and a
+  workflow that ships no API still decides how this project releases.
 
 
 ## [2.1.0] - 2026-08-02
