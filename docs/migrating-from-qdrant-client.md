@@ -21,7 +21,7 @@ Prometheus metrics, the two issues calls, snapshot recovery, the snapshot and st
 transfers, and the six shard-scope snapshot operations. On the gRPC engine each of them throws rather
 than pretending. If you need any of
 them, use the REST engine for the whole client or for that one call. The footprint trade-off between
-the two is set out in the [README](../README.md#footprint-vs-the-official-client).
+the two is set out in the [README](../README.md#compared-with-the-official-client).
 
 Cluster support covers a collection's shard distribution: reading it, moving and replicating shards,
 and creating or dropping custom sharding keys. The node-level calls that administer the raft cluster
