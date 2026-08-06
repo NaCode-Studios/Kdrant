@@ -63,6 +63,10 @@ class QdrantVersionMatrixIntegrationTest {
             )
             val table = renderTable(results)
             println(table)
+            // Also to a file, because Gradle does not show a test's stdout by default and a table that
+            // exists only in a swallowed println is a table nobody can read off a CI run. The workflow
+            // uploads this and puts it in the run summary.
+            writeReport(table)
             if (System.getenv("KDRANT_UPDATE_COMPAT") == "1") writeIntoReadme(table)
         }
     }
@@ -94,6 +98,14 @@ class QdrantVersionMatrixIntegrationTest {
             }
             appendLine("| `${result.version}` | $verdict |")
         }
+    }
+
+    /** Writes the table where a CI run can upload it and a person can read it. */
+    private fun writeReport(table: String) {
+        val target = File("build/reports/qdrant-matrix.md")
+        target.parentFile.mkdirs()
+        target.writeText(table)
+        println("wrote the compatibility table to ${target.absolutePath}")
     }
 
     /**

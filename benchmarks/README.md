@@ -11,7 +11,7 @@ docker run -p 6333:6333 qdrant/qdrant
 ```
 
 `SampleTime` mode reports the p50 / p90 / p99 latency distribution — the numbers behind the
-performance claims in the top-level [README](../README.md#footprint-vs-the-official-client).
+performance claims in the top-level [README](../README.md#compared-with-the-official-client).
 
 ## Kdrant against the official Java client
 
