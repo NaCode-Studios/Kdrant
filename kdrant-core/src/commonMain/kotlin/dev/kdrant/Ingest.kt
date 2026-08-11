@@ -116,6 +116,9 @@ public data class IngestReport(
  * @throws IllegalArgumentException if a bound is not positive.
  * @throws KdrantException if a batch fails and cannot be retried. The exception is thrown after the
  *   last [onCheckpoint] call, so the token in hand is the prefix that was written.
+ * @throws Throwable whatever [points] itself threw, on the same terms: the batches already in flight
+ *   are allowed to finish and report before it reaches the caller, because a source that dies is the
+ *   case a resume token exists for and it would be handed out empty otherwise.
  */
 @Suppress("LongParameterList")
 public suspend fun QdrantClient.ingest(
@@ -143,6 +146,14 @@ public suspend fun QdrantClient.ingest(
     // flight rather than by the size of the source.
     val queue = Channel<IngestBatch>(capacity = 0)
 
+    // The source's own failure is recorded here rather than thrown where it happens, for the reason a
+    // batch failure is: leaving the scope with an exception cancels the batches still in flight, and a
+    // batch cancelled after the server accepted it is a point the collection holds and no checkpoint
+    // counts. Worse, when the source dies early it can be the *only* batch, and the run that was killed
+    // at point four hundred thousand is handed no token at all. It is thrown once the workers have
+    // drained, so the last `onCheckpoint` has already run when the caller sees it.
+    var sourceFailure: Throwable? = null
+
     coroutineScope {
         repeat(concurrency) {
             launch {
@@ -168,12 +179,18 @@ public suspend fun QdrantClient.ingest(
                 bytes += size
             }
             if (buffer.isNotEmpty()) queue.send(IngestBatch(index, offset, buffer))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            sourceFailure = e
         } finally {
             queue.close()
         }
     }
 
-    tracker.failure?.let { throw it }
+    // The source first: when it is what died, a batch that failed afterwards is a consequence, and the
+    // caller is better told which of their two moving parts stopped the run.
+    (sourceFailure ?: tracker.failure)?.let { throw it }
     return IngestReport(tracker.checkpoint(), tracker.batchesSent)
 }
 
