@@ -159,8 +159,23 @@ jobs:
       # test.
       - name: Start Qdrant
         run: |
-          curl -fsSL -o qdrant.tar.gz \
-            "https://github.com/qdrant/qdrant/releases/download/v${QDRANT_VERSION}/qdrant-aarch64-apple-darwin.tar.gz"
+          # The download is retried because the hosted runner's TLS to the release host fails now and
+          # then — "self signed certificate", on a certificate that is fine from everywhere else, and
+          # gone on the next attempt. Retrying is the honest answer to that; -k would turn a flake into
+          # a job that downloads and runs whatever answers the name.
+          downloaded=""
+          for attempt in 1 2 3; do
+            if curl -fsSL -o qdrant.tar.gz \
+              "https://github.com/qdrant/qdrant/releases/download/v${QDRANT_VERSION}/qdrant-aarch64-apple-darwin.tar.gz"
+            then
+              downloaded=yes
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          if [ -z "$downloaded" ]; then
+            echo "::error::could not download Qdrant ${QDRANT_VERSION} after three attempts"; exit 1
+          fi
           tar -xzf qdrant.tar.gz
           ./qdrant &
           for _ in $(seq 1 60); do

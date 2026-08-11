@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -135,6 +136,31 @@ class IngestTest {
 
         assertTrue(failure is KdrantException.InvalidRequest)
         assertEquals(listOf(2L), seen.map { it.acknowledgedPoints })
+    }
+
+    @Test
+    fun `a source that dies mid-stream still hands out the batches that were in flight`() = runTest {
+        // The first batch is still on the wire when the source dies. Abandoning it there loses the only
+        // token the run ever had, and a process killed at point four hundred thousand starts from zero.
+        var firstBatch = true
+        coEvery { client.upsert(any<String>(), any<Sequence<PointStruct>>(), any()) } coAnswers {
+            if (firstBatch) {
+                firstBatch = false
+                kotlinx.coroutines.delay(50)
+            }
+        }
+        val seen = mutableListOf<IngestCheckpoint>()
+
+        val source = flow {
+            points(1L..8L).collect { emit(it) }
+            error("the source died at point 9")
+        }
+        val failure = runCatching {
+            client.ingest("docs", source, batchSize = 2, concurrency = 2, onCheckpoint = { seen.add(it) })
+        }.exceptionOrNull()
+
+        assertTrue(failure is IllegalStateException, "the source's own failure is what the caller is told")
+        assertEquals(listOf(6L), seen.map { it.acknowledgedPoints }, "the in-flight batch never reported")
     }
 
     @Test

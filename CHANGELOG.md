@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- **An ingest whose source dies now hands out the checkpoint it earned.** The batches still in flight
+  when the source threw were cancelled where they stood, so whether a run reported any checkpoint at
+  all depended on which request happened to come back first, and a run killed early enough could report
+  none — leaving nothing to resume from in exactly the case the token exists for. The source's failure
+  is now held until those batches have drained and reported, then thrown, which is what a batch failure
+  already did and for the same reason: a batch cancelled after the server accepted it is a point the
+  collection holds and no token counts.
+
 ## [2.2.0] - 2026-08-06
 
 Tiers 8 and 9, complete. The theme is the distance between a request this client can build and one that
