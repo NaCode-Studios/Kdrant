@@ -5,7 +5,7 @@ public final class dev/kdrant/transport/grpc/GrpcQdrantTransport : dev/kdrant/tr
 	public fun close ()V
 	public fun collectionClusterInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadIndexParams;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -41,10 +41,11 @@ public final class dev/kdrant/transport/grpc/GrpcQdrantTransport : dev/kdrant/tr
 	public fun query (Ljava/lang/String;Ldev/kdrant/model/SearchRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun queryBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun queryGroups (Ljava/lang/String;Ldev/kdrant/model/SearchGroupsRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun quotas (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readyz (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recoverShardSnapshot (Ljava/lang/String;ILjava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recoverSnapshot (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun scroll (Ljava/lang/String;Ldev/kdrant/model/ScrollRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun searchMatrixOffsets (Ljava/lang/String;Ldev/kdrant/model/SearchMatrixRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun searchMatrixPairs (Ljava/lang/String;Ldev/kdrant/model/SearchMatrixRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -53,6 +54,7 @@ public final class dev/kdrant/transport/grpc/GrpcQdrantTransport : dev/kdrant/tr
 	public fun updateAliases (Ljava/util/List;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun updateCollection (Ljava/lang/String;Ldev/kdrant/model/UpdateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun updateCollectionCluster (Ljava/lang/String;Ldev/kdrant/model/ClusterOperation;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateQuotas (Ldev/kdrant/model/QuotaConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun uploadShardSnapshot (Ljava/lang/String;ILkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun uploadSnapshot (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;

@@ -80,7 +80,7 @@ public class QdrantCluster(
 
     public companion object {
         /** Pinned to the same image the rest of the suite runs against; `QDRANT_IMAGE` overrides it. */
-        public const val DEFAULT_IMAGE: String = "qdrant/qdrant:v1.18.2"
+        public const val DEFAULT_IMAGE: String = "qdrant/qdrant:v1.19.1"
         private const val FIRST_ALIAS = "qdrant-1"
         private const val SECOND_ALIAS = "qdrant-2"
         private const val REST_PORT = 6333

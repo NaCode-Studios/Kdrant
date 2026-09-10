@@ -235,3 +235,148 @@ kover {
         }
     }
 }
+
+// Which Qdrant this client speaks to is a fact the repository states in fourteen places: two testkit
+// defaults, five integration-test image constants, four CI workflow fields, a docker-compose service,
+// the version matrix, and the README beside the vendored OpenAPI document. Nothing compared them, so
+// they drifted, and the drift was invisible in the direction that matters. The vendored schema's README
+// said v1.18.2 while the document itself was a `master` snapshot taken before 1.19.0 shipped, which
+// means the contract test — the one check standing between a Qdrant that renames a field and a client
+// that keeps sending the old spelling — was validating against a document no released server matches.
+//
+// `info.version` cannot be the pin, which is what made the drift possible: Qdrant's own OpenAPI document
+// carries "master" as its version at every released tag, v1.19.1 included. So the pin lives in
+// gradle.properties, it is a released tag, and this task makes every other mention agree with it.
+//
+// The rule is that the newest Qdrant named anywhere is the pinned one. The older versions in the
+// compatibility matrix are deliberate — they are the proof that this client still speaks to them — so
+// the check is on the ceiling rather than on every value.
+val qdrantPin: Provider<String> = providers.gradleProperty("qdrantVersion")
+
+val verifyQdrantPin = tasks.register("verifyQdrantPin") {
+    description = "Fails when a Qdrant version named anywhere in the repository is newer than the pin."
+    group = "verification"
+    val pinned = qdrantPin
+    val root = layout.projectDirectory.asFile
+    outputs.upToDateWhen { false }
+    doLast { checkQdrantPin(pinned.get(), root) }
+}
+tasks.named("check") { dependsOn(verifyQdrantPin) }
+
+/** Where a Qdrant server version can be written, and how it is spelled in each place. */
+private val qdrantVersionPatterns = listOf(
+    Regex("""qdrant/qdrant:v(\d+\.\d+\.\d+)"""),
+    Regex("""QDRANT_VERSION:\s*"?(\d+\.\d+\.\d+)"?"""),
+    Regex("""qdrant/releases/download/v(\d+\.\d+\.\d+)"""),
+    Regex("""listOf\((\s*"v\d+\.\d+\.\d+",?)+\s*\)"""),
+)
+
+fun checkQdrantPin(pinned: String, root: File) {
+    require(pinned.matches(Regex("""\d+\.\d+\.\d+"""))) {
+        "qdrantVersion must be a released Qdrant tag without the leading v, was '$pinned'"
+    }
+    val ignored = setOf("build", ".git", ".gradle", ".kotlin", "node_modules")
+    val found = mutableMapOf<String, MutableSet<String>>()
+    root.walkTopDown()
+        .onEnter { it.name !in ignored }
+        .filter { it.isFile && it.extension in setOf("yml", "yaml", "kt", "kts", "md", "properties") }
+        .forEach { file ->
+            val text = file.readText()
+            qdrantVersionPatterns.forEach { pattern ->
+                pattern.findAll(text).forEach { match ->
+                    Regex("""\d+\.\d+\.\d+""").findAll(match.value).forEach { version ->
+                        found.getOrPut(version.value) { mutableSetOf() } += file.toRelativeString(root)
+                    }
+                }
+            }
+        }
+    require(found.isNotEmpty()) {
+        "no Qdrant version is named anywhere, so this check is no longer checking anything"
+    }
+    val newest = found.keys.maxWith(qdrantVersionOrder)
+    require(qdrantVersionOrder.compare(newest, pinned) <= 0) {
+        "the newest Qdrant named in this repository is $newest, which is newer than the pinned " +
+            "$pinned. Either move the pin in gradle.properties and run refreshVendoredQdrant, or " +
+            "correct the mention:\n" + found.getValue(newest).sorted().joinToString("\n") { "  $it" }
+    }
+    require(newest == pinned) {
+        "the pin in gradle.properties is $pinned but the newest Qdrant anything here actually runs " +
+            "against is $newest. A pin nothing exercises is a claim, not a check; raise the image in " +
+            "the CI matrix and the testkit defaults, or lower the pin."
+    }
+}
+
+/** Numeric ordering, so 1.19.1 sorts above 1.9.9 the way a human reads it and a string sort does not. */
+val qdrantVersionOrder: Comparator<String> = Comparator { left, right ->
+    val a = left.split('.').map(String::toInt)
+    val b = right.split('.').map(String::toInt)
+    (a zip b).firstOrNull { (x, y) -> x != y }?.let { (x, y) -> x.compareTo(y) } ?: 0
+}
+
+// The vendored files are the other half of the pin, and until now nothing tied them to it. The proto
+// README states the invariant plainly — "Nothing here is edited. A vendored file that has been touched
+// is a file nobody can diff against upstream" — and points.proto had been edited anyway, by hand, to
+// carry part of 1.19 while claiming v1.18.2. The edits happened to be faithful. Nothing would have said
+// so if they had not been.
+//
+// So the diff the README describes becomes a task. `verifyVendoredQdrant` fetches the pinned tag and
+// fails on any difference, byte for byte, over both the protobuf definitions and the OpenAPI document
+// the contract test validates against. It reaches the network, so it is not wired into `check`: it runs
+// as its own CI job, where a Qdrant that changed a wire format surfaces as a red build rather than as a
+// request that quietly means something else.
+//
+// `refreshVendoredQdrant` is the other direction, and it is the only supported way to move: raise
+// qdrantVersion, run it, and the files and the pin move together.
+val vendoredQdrantFiles: Map<String, String> = buildMap {
+    listOf(
+        "collections.proto", "collections_service.proto", "points.proto", "points_service.proto",
+        "snapshots_service.proto", "health_check.proto", "json_with_int.proto", "qdrant_common.proto",
+    ).forEach { put("kdrant-transport-grpc/src/main/proto/$it", "lib/api/src/grpc/proto/$it") }
+    put(
+        "kdrant-transport-rest/src/jvmTest/resources/qdrant-openapi.json",
+        "docs/redoc/master/openapi.json",
+    )
+}
+
+tasks.register("verifyVendoredQdrant") {
+    description = "Fails when a vendored Qdrant file differs from the pinned tag. Reaches the network."
+    group = "verification"
+    val pinned = qdrantPin
+    val root = layout.projectDirectory.asFile
+    outputs.upToDateWhen { false }
+    doLast {
+        val tag = "v${pinned.get()}"
+        val drifted = vendoredQdrantFiles.filterNot { (local, upstream) ->
+            File(root, local).readBytes().contentEquals(fetchQdrantFile(tag, upstream))
+        }.keys
+        require(drifted.isEmpty()) {
+            "these vendored files differ from Qdrant $tag. Run refreshVendoredQdrant to take upstream's " +
+                "bytes, and if a difference was deliberate it needs to stop being vendored:\n" +
+                drifted.sorted().joinToString("\n") { "  $it" }
+        }
+        logger.lifecycle("${vendoredQdrantFiles.size} vendored files match Qdrant $tag byte for byte")
+    }
+}
+
+tasks.register("refreshVendoredQdrant") {
+    description = "Rewrites every vendored Qdrant file from the pinned tag. Reaches the network."
+    group = "build setup"
+    val pinned = qdrantPin
+    val root = layout.projectDirectory.asFile
+    outputs.upToDateWhen { false }
+    doLast {
+        val tag = "v${pinned.get()}"
+        vendoredQdrantFiles.forEach { (local, upstream) ->
+            File(root, local).writeBytes(fetchQdrantFile(tag, upstream))
+        }
+        logger.lifecycle("rewrote ${vendoredQdrantFiles.size} vendored files from Qdrant $tag")
+    }
+}
+
+/** One vendored file as upstream publishes it at [tag]. A missing path is a moved file, not a 404 to swallow. */
+fun fetchQdrantFile(tag: String, path: String): ByteArray {
+    val url = "https://raw.githubusercontent.com/qdrant/qdrant/$tag/$path"
+    return runCatching { java.net.URI(url).toURL().readBytes() }.getOrElse { cause ->
+        throw GradleException("could not read $url — is $tag a released Qdrant tag, and is $path still there?", cause)
+    }
+}

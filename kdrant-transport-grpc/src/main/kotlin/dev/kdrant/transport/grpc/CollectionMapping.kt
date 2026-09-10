@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION") // Qdrant 1.19 marks legacy fields deprecated; Kdrant keeps them source-compatible.
+
 package dev.kdrant.transport.grpc
 
 import dev.kdrant.model.AliasOperation
@@ -9,12 +11,14 @@ import dev.kdrant.model.CollectionStatus
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.Distance
 import dev.kdrant.model.HnswConfig
+import dev.kdrant.model.Memory
 import dev.kdrant.model.Modifier
 import dev.kdrant.model.MultiVectorComparator
 import dev.kdrant.model.MultiVectorConfig
 import dev.kdrant.model.OptimizersConfig
 import dev.kdrant.model.PayloadIndexInfo
 import dev.kdrant.model.PayloadSchemaType
+import dev.kdrant.model.PayloadStorageParams
 import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.ReplicaState
 import dev.kdrant.model.SnapshotDescription
@@ -49,6 +53,7 @@ internal object CollectionMapping {
             request.sparseVectors?.let { sparseVectorsConfig = sparseVectorConfig(it) }
             request.hnswConfig?.let { hnswConfig = hnswConfig(it) }
             request.onDiskPayload?.let { onDiskPayload = it }
+            request.payload?.let { payload = payloadStorage(it) }
             request.shardNumber?.let { shardNumber = it }
             request.replicationFactor?.let { replicationFactor = it }
             request.optimizersConfig?.let { optimizersConfig = optimizersConfig(it) }
@@ -175,7 +180,18 @@ internal object CollectionMapping {
         replicationFactor = params.takeIf { it.hasReplicationFactor() }?.replicationFactor,
         writeConsistencyFactor = params.takeIf { it.hasWriteConsistencyFactor() }?.writeConsistencyFactor,
         onDiskPayload = params.onDiskPayload,
+        payload = params.takeIf { it.hasPayload() }?.payload?.let(::payloadStorageToModel),
     )
+
+    private fun payloadStorage(params: PayloadStorageParams): Collections.PayloadStorageParams =
+        Collections.PayloadStorageParams.newBuilder().apply {
+            params.memory?.let { memory = RequestMapping.memory(it) }
+        }.build()
+
+    private fun payloadStorageToModel(params: Collections.PayloadStorageParams): PayloadStorageParams =
+        PayloadStorageParams(
+            memory = params.takeIf { it.hasMemory() }?.memory?.let(::memoryToModel),
+        )
 
     /**
      * The index type is kept as its wire string rather than as the enum, matching the REST engine: an
@@ -222,6 +238,7 @@ internal object CollectionMapping {
             params.datatype?.let { datatype = datatype(it) }
             params.hnswConfig?.let { hnswConfig = hnswConfig(it) }
             params.multivectorConfig?.let { multivectorConfig = multiVectorConfig(it) }
+            params.memory?.let { memory = RequestMapping.memory(it) }
         }.build()
 
     private fun vectorParamsToModel(params: Collections.VectorParams): VectorParams = VectorParams(
@@ -233,6 +250,7 @@ internal object CollectionMapping {
         multivectorConfig = params.takeIf { it.hasMultivectorConfig() }?.let {
             MultiVectorConfig(MultiVectorComparator.MAX_SIM)
         },
+        memory = params.takeIf { it.hasMemory() }?.memory?.let(::memoryToModel),
     )
 
     private fun sparseVectorConfig(vectors: Map<String, SparseVectorParams>): Collections.SparseVectorConfig =
@@ -288,12 +306,21 @@ internal object CollectionMapping {
         VectorDatatype.FLOAT32 -> Collections.Datatype.Float32
         VectorDatatype.UINT8 -> Collections.Datatype.Uint8
         VectorDatatype.FLOAT16 -> Collections.Datatype.Float16
+        VectorDatatype.TURBO4 -> Collections.Datatype.Turbo4
     }
 
     private fun datatypeToModel(datatype: Collections.Datatype): VectorDatatype? = when (datatype) {
         Collections.Datatype.Float32 -> VectorDatatype.FLOAT32
         Collections.Datatype.Uint8 -> VectorDatatype.UINT8
         Collections.Datatype.Float16 -> VectorDatatype.FLOAT16
+        Collections.Datatype.Turbo4 -> VectorDatatype.TURBO4
+        else -> null
+    }
+
+    private fun memoryToModel(memory: Collections.Memory): Memory? = when (memory) {
+        Collections.Memory.Cold -> Memory.COLD
+        Collections.Memory.Cached -> Memory.CACHED
+        Collections.Memory.Pinned -> Memory.PINNED
         else -> null
     }
 
@@ -305,6 +332,7 @@ internal object CollectionMapping {
             config.maxIndexingThreads?.let { maxIndexingThreads = it.toLong() }
             config.onDisk?.let { onDisk = it }
             config.payloadM?.let { payloadM = it.toLong() }
+            config.memory?.let { memory = RequestMapping.memory(it) }
         }.build()
 
     private fun hnswConfigToModel(config: Collections.HnswConfigDiff): HnswConfig = HnswConfig(
@@ -314,6 +342,7 @@ internal object CollectionMapping {
         maxIndexingThreads = config.takeIf { it.hasMaxIndexingThreads() }?.maxIndexingThreads?.toInt(),
         onDisk = config.takeIf { it.hasOnDisk() }?.onDisk,
         payloadM = config.takeIf { it.hasPayloadM() }?.payloadM?.toInt(),
+        memory = config.takeIf { it.hasMemory() }?.memory?.let(::memoryToModel),
     )
 
     private fun optimizersConfig(config: OptimizersConfig): Collections.OptimizersConfigDiff =
@@ -349,7 +378,9 @@ internal object CollectionMapping {
             config.writeRateLimit?.let { writeRateLimit = it }
             config.maxPointsCount?.let { maxPointsCount = it }
             config.filterMaxConditions?.let { filterMaxConditions = it.toLong() }
-            config.maxDiskUsagePercent?.let { maxDiskUsagePercent = it }
+            // Qdrant 1.19 reserved the old per-collection disk ceiling in gRPC. Global quotas own
+            // that policy now; retaining this model property keeps REST/older-server compatibility,
+            // but it cannot be represented by the v1.19 gRPC schema.
             config.maxResidentMemoryPercent?.let { maxResidentMemoryPercent = it }
         }.build()
 

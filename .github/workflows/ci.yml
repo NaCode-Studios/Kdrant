@@ -26,6 +26,27 @@ jobs:
       - uses: actions/checkout@v7
       - uses: gradle/actions/wrapper-validation@v6
 
+  vendored-qdrant:
+    name: Vendored Qdrant files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The protobuf definitions and the OpenAPI document the contract test validates against are
+      # copies of upstream's, and a copy nobody diffs is a copy that drifts. This reaches the network,
+      # which is why it is a job of its own rather than part of `check`.
+      - name: Compare every vendored file with the pinned Qdrant tag
+        run: ./gradlew verifyVendoredQdrant --no-daemon --stacktrace
+
   build:
     name: Build (JDK ${{ matrix.java }})
     runs-on: ubuntu-latest
@@ -42,7 +63,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
       - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ matrix.java }}
           distribution: temurin
@@ -52,6 +73,14 @@ jobs:
 
       - name: Build, test, lint (ktlint + detekt) and verify public API
         run: ./gradlew build --no-daemon --stacktrace
+
+      # The JMH sources are not part of `build`, so nothing compiled them and they rotted: the official
+      # client moved PointId into another generated class at 1.19 and the comparison harness stopped
+      # compiling without anything saying so. A harness that does not build publishes no numbers, which
+      # is a slower way to have no benchmark than not writing one.
+      - name: Compile the benchmark harness
+        if: matrix.java == '17'
+        run: ./gradlew :benchmarks:compileJmhKotlin --no-daemon --stacktrace
 
       - name: Coverage (Kover)
         if: matrix.java == '17'
@@ -85,7 +114,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: temurin
@@ -121,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       qdrant:
-        image: qdrant/qdrant:v1.18.2
+        image: qdrant/qdrant:v1.19.1
         ports:
           - 6333:6333
     steps:
@@ -133,7 +162,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: temurin
@@ -184,10 +213,10 @@ jobs:
           done
           echo "::error::Qdrant did not become ready"; exit 1
         env:
-          QDRANT_VERSION: "1.18.2"
+          QDRANT_VERSION: "1.19.1"
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: temurin
@@ -211,7 +240,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       qdrant:
-        image: qdrant/qdrant:v1.18.2
+        image: qdrant/qdrant:v1.19.1
         ports:
           - 6333:6333
     steps:
@@ -220,7 +249,7 @@ jobs:
       # Two JDKs on purpose: the library modules compile against a 17 toolchain, and native-image comes
       # from the GraalVM distribution, which is a 21.
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: temurin
@@ -264,6 +293,50 @@ jobs:
             echo "| Reflection metadata | generated from the classpath, shipped in kdrant-transport-rest |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  cli:
+    name: kdrant-cli against a real Qdrant
+    runs-on: ubuntu-latest
+    # Linux only, and on purpose. This job exists to catch a defect before a tag, and every defect that
+    # stopped 2.2.0 three times was in the tool rather than in a platform: the Linux runner has Docker,
+    # so it is the cheap one, and the release still builds and proves all three binaries. A macOS or
+    # Windows job here would triple the wall clock to re-prove what the release re-proves anyway.
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.19.1
+        ports:
+          - 6333:6333
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build the binary
+        run: >
+          ./gradlew :kdrant-cli:linkKdrantReleaseExecutableLinuxX64
+          --no-daemon --no-configuration-cache --stacktrace
+
+      - name: Wait for Qdrant
+        run: |
+          for _ in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "::error::Qdrant did not become ready"; exit 1
+
+      # The same script the release runs, so the release is the second time these commands execute.
+      - name: Run every subcommand
+        run: bash .github/scripts/prove-cli.sh linuxX64
+
   qdrant-compat:
     name: Integration (${{ matrix.qdrant }})
     runs-on: ubuntu-latest
@@ -271,13 +344,13 @@ jobs:
       fail-fast: false
       matrix:
         qdrant:
-          - "qdrant/qdrant:v1.18.2"
+          - "qdrant/qdrant:v1.19.1"
           - "qdrant/qdrant:latest"
     steps:
       - uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: temurin
@@ -309,7 +382,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: temurin

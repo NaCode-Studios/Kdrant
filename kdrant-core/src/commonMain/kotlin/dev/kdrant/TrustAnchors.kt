@@ -30,12 +30,40 @@ package dev.kdrant
  * | | JVM | Linux | iOS, macOS | Windows |
  * | --- | --- | --- | --- | --- |
  * | [System] | yes | yes | yes | yes |
- * | [Pem] | yes | yes | no | no |
+ * | [Pem] | yes | yes | no, and see below | no |
  * | [Pinned] | yes | no | no | no |
  *
  * A combination a target cannot honour is refused when the client is built, with a message naming the
  * platform and the store to put the certificate in. Silently falling back to system trust would be the
  * worst of the options: the connection would succeed, and the caller would believe they had pinned it.
+ *
+ * ### Why the empty cells are empty
+ *
+ * Each of them is a decision rather than an unfinished task, and each names what would have to change.
+ *
+ * **Linux cannot pin, and cannot until Ktor exposes the option.** libcurl has `CURLOPT_PINNEDPUBLICKEY`
+ * and Ktor's `CurlClientEngineConfig` offers `caInfo`, `caPath` and `sslVerify` and nothing else, so
+ * there is no supported way to set it. The alternatives are an upstream contribution to Ktor, or
+ * reaching into a libcurl handle the engine owns from outside it, which is a way to get a client whose
+ * behaviour depends on when the engine happens to reset the handle. The former is the answer; until it
+ * lands, pin from the JVM.
+ *
+ * **Windows takes neither, and that is where the decision belongs anyway.** `WinHttpClientEngineConfig`
+ * offers `protocolVersion`, `securityProtocols` and `sslVerify`: WinHttp has no per-handle root
+ * override and no pinning, because trust on Windows is machine policy rather than a process's choice.
+ * A private CA goes in with `certutil -addstore Root ca.pem`, or with the group policy that does it for
+ * every machine at once. There is nothing here for a future release to add.
+ *
+ * **Darwin could take a PEM bundle, and does not, deliberately.** NSURLSession decides trust from the
+ * keychain, and Ktor's `DarwinClientEngineConfig` does expose `handleChallenge`, so a bundle could be
+ * honoured by evaluating the server's chain against it with `SecTrustSetAnchorCertificates` and
+ * `SecTrustEvaluateWithError`. That is custom trust evaluation, which is the category of code that is
+ * wrong in a way nobody notices: a bug here accepts more than it should and the failure is silent by
+ * construction. It is worth building only together with a test that proves the negative case, that a
+ * chain the bundle does not anchor is rejected, on a real Apple target in CI rather than on a mock.
+ * Until that test exists this stays refused, because a refusal is honest and a quiet acceptance is not.
+ * The keychain is the answer meanwhile, and on iOS it is the only answer anyway: App Transport Security
+ * applies whatever this client decides.
  */
 public sealed interface TrustAnchors {
 

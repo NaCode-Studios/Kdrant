@@ -14,4 +14,8 @@ public enum class VectorDatatype {
 
     @SerialName("float16")
     FLOAT16,
+
+    /** TurboQuant 4-bit primary storage. Qdrant stores no original float vector. */
+    @SerialName("turbo4")
+    TURBO4,
 }

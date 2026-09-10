@@ -12,6 +12,20 @@ plugins {
 kotlin {
     jvmToolchain(17)
     explicitApi()
+
+    // This module compiles in one unit with the stubs protoc generates from the vendored `.proto`
+    // files, and Qdrant marks its own superseded RPCs — Search, Recommend, Discover and their batch
+    // and group variants — `option deprecated = true`. The generated Kotlin carries the annotation
+    // through, so the repository-wide `allWarningsAsErrors` fails on eight functions this engine
+    // deliberately never calls, in code nobody here wrote.
+    //
+    // The alternative would be to edit the vendored proto, which is the one thing
+    // `src/main/proto/README.md` forbids: an edited vendored file cannot be diffed against upstream,
+    // and `verifyVendoredQdrant` now enforces that. So the diagnostic is dropped rather than the
+    // policy: every other warning class still fails this module's build.
+    compilerOptions {
+        freeCompilerArgs.add("-Xwarning-level=DEPRECATION:disabled")
+    }
 }
 
 dependencies {
@@ -73,7 +87,7 @@ tasks.test {
 }
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("io.github.nacode-studios", "kdrant-transport-grpc", version.toString())
     pom {

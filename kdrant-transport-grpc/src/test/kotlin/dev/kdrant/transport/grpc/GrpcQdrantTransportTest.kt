@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package dev.kdrant.transport.grpc
 
 import dev.kdrant.dsl.filter
@@ -9,6 +11,7 @@ import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
 import dev.kdrant.model.FacetValue
+import dev.kdrant.model.Memory
 import dev.kdrant.model.OrderBy
 import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
@@ -375,6 +378,54 @@ class GrpcQdrantTransportTest {
 
         assertEquals(Points.FieldType.FieldTypeKeyword, points.indexes.single().fieldType)
         assertEquals("lang", points.indexes.single().fieldName)
+    }
+
+    /**
+     * The two transports disagree about how this option is spelled: REST takes a boolean, gRPC takes an
+     * empty message whose presence enables the feature. The core model carries the boolean, so this is
+     * the assertion that the gRPC side renders it rather than dropping it, which would leave one engine
+     * building the index a caller asked for and the other quietly scanning instead.
+     */
+    @Test
+    fun `a keyword index asking for prefix matching sends the message whose presence enables it`() = runTest {
+        transport.createPayloadIndex(
+            "docs",
+            "sku",
+            PayloadIndexParams.Keyword(prefix = true, memory = Memory.PINNED),
+            wait = true,
+        )
+
+        val keyword = points.indexes.single().fieldIndexParams.keywordIndexParams
+        assertTrue(keyword.hasPrefix(), "prefix matching was asked for and the message was not sent")
+        assertEquals(Collections.Memory.Pinned, keyword.memory)
+    }
+
+    @Test
+    fun `a keyword index that did not ask for prefix matching leaves the message off`() = runTest {
+        transport.createPayloadIndex("docs", "sku", PayloadIndexParams.Keyword(isTenant = true), wait = true)
+
+        assertFalse(points.indexes.single().fieldIndexParams.keywordIndexParams.hasPrefix())
+    }
+
+    @Test
+    fun `a slice condition survives the round trip through the wire form`() = runTest {
+        val slice = filter { must { slice(index = 1, total = 4) } }
+
+        val proto = FilterMapping.toProto(slice)
+
+        assertEquals(1, proto.mustList.single().slice.index)
+        assertEquals(4, proto.mustList.single().slice.total)
+        assertEquals(slice, FilterMapping.toModel(proto))
+    }
+
+    @Test
+    fun `a prefix match survives the round trip through the wire form`() = runTest {
+        val prefix = filter { must { matchPrefix("sku", "AB-") } }
+
+        val proto = FilterMapping.toProto(prefix)
+
+        assertEquals("AB-", proto.mustList.single().field.match.prefix)
+        assertEquals(prefix, FilterMapping.toModel(proto))
     }
 
     @Test

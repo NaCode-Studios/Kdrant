@@ -1,22 +1,27 @@
 # Vendored Qdrant protobuf definitions
 
-These are Qdrant's own `.proto` files, copied verbatim from
-[`lib/api/src/grpc/proto`](https://github.com/qdrant/qdrant/tree/v1.18.2/lib/api/src/grpc/proto) at the
-tag this engine is pinned to, currently **v1.18.2** — the same version the REST engine's contract tests
-and the CI integration matrix use.
+These are Qdrant's own `.proto` files, copied verbatim from `lib/api/src/grpc/proto` at the tag this
+client is pinned to. The tag is `qdrantVersion` in `gradle.properties`, which is the only place in the
+repository the version is written: `verifyQdrantPin` fails the build when anything else names a newer
+Qdrant than the pin, and the REST engine's contract schema is refreshed from the same tag, so the two
+transports cannot end up pinned to different servers.
 
-Nothing here is edited. A vendored file that has been touched is a file nobody can diff against
-upstream, so the way to move to a newer Qdrant is to re-download, not to patch:
+Nothing here is edited, and that is now checked rather than asked for. A vendored file that has been
+touched is a file nobody can diff against upstream, which is what `points.proto` became when it was
+hand-edited to carry part of Qdrant 1.19 while this page still said v1.18.2. `verifyVendoredQdrant`
+fetches the pinned tag and compares every vendored file byte for byte.
+
+Moving to a newer Qdrant is one command. Raise `qdrantVersion`, then:
 
 ```bash
-V=v1.18.2
-for f in collections.proto collections_service.proto points.proto points_service.proto \
-         snapshots_service.proto health_check.proto json_with_int.proto qdrant_common.proto; do
-  curl -fsSL "https://raw.githubusercontent.com/qdrant/qdrant/$V/lib/api/src/grpc/proto/$f" \
-    -o "kdrant-transport-grpc/src/main/proto/$f"
-done
+./gradlew refreshVendoredQdrant
 ./gradlew :kdrant-transport-grpc:build
 ```
+
+Qdrant marks its superseded RPCs `option deprecated = true`, and protoc carries the annotation into the
+generated stubs, so this module drops the `DEPRECATION` diagnostic rather than its
+`allWarningsAsErrors` policy. The eight deprecated calls are the pre-Query-API search, recommend and
+discover families, none of which this engine uses.
 
 ## What is deliberately not here
 

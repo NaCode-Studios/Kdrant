@@ -21,6 +21,8 @@ import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.RemoteShardInfo
 import dev.kdrant.model.ScoredPoint
@@ -42,6 +44,7 @@ import dev.kdrant.transport.QdrantTransport
 import grpc.health.v1.HealthCheck
 import grpc.health.v1.HealthGrpcKt
 import io.grpc.ManagedChannel
+import io.grpc.Metadata
 import io.grpc.Status
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
@@ -84,6 +87,10 @@ import kotlin.random.Random
  * **Retries** mirror the REST engine's, because [KdrantConfig.maxRetries] is a client setting and an
  * engine that ignored it would be a behaviour difference the caller did not ask for.
  */
+// One class, for the same reason the REST engine is one: it is the statement of what this engine does,
+// and splitting it by topic would leave a reader asking "what does gRPC support" with several files and
+// no guarantee they agree. It grows when the seam grows, which is the intended shape.
+@Suppress("LargeClass", "TooManyFunctions")
 public class GrpcQdrantTransport internal constructor(
     private val config: KdrantConfig,
     private val channel: ManagedChannel,
@@ -171,7 +178,7 @@ public class GrpcQdrantTransport internal constructor(
 
     override suspend fun query(name: String, request: SearchRequest): List<ScoredPoint> = call(name) {
         points.deadlined()
-            .query(QueryMapping.queryPoints(name, request))
+            .query(QueryMapping.queryPoints(name, request), routeAffinity(request.routeAffinity))
             .resultList
             .map(PointMapping::scoredPointToModel)
     }
@@ -184,6 +191,17 @@ public class GrpcQdrantTransport internal constructor(
                         .setCollectionName(name)
                         .addAllQueryPoints(requests.map { QueryMapping.queryPoints(name, it) })
                         .build(),
+                    // One call, one token. The REST engine states the same rule and rejects a batch
+                    // whose searches disagree; keep the two engines answering the same way.
+                    routeAffinity(
+                        requests.mapNotNull { it.routeAffinity }.distinct().let { tokens ->
+                            require(tokens.size <= 1) {
+                                "a batch is one request and carries one routeAffinity, but its searches " +
+                                    "asked for $tokens. Send them separately, or give them the same token."
+                            }
+                            tokens.firstOrNull()
+                        },
+                    ),
                 )
                 .resultList
                 .map { batch -> batch.resultList.map(PointMapping::scoredPointToModel) }
@@ -191,7 +209,7 @@ public class GrpcQdrantTransport internal constructor(
 
     override suspend fun queryGroups(name: String, request: SearchGroupsRequest): List<PointGroup> = call(name) {
         points.deadlined()
-            .queryGroups(QueryMapping.queryGroups(name, request))
+            .queryGroups(QueryMapping.queryGroups(name, request), routeAffinity(request.routeAffinity))
             .result
             .groupsList
             .map { group ->
@@ -204,7 +222,8 @@ public class GrpcQdrantTransport internal constructor(
     }
 
     override suspend fun scroll(name: String, request: ScrollRequest): ScrollPage = call(name) {
-        val response = points.deadlined().scroll(RequestMapping.scrollPoints(name, request))
+        val response = points.deadlined()
+            .scroll(RequestMapping.scrollPoints(name, request), routeAffinity(request.routeAffinity))
         ScrollPage(
             points = response.resultList.map(PointMapping::recordToModel),
             nextPageOffset = if (response.hasNextPageOffset()) {
@@ -215,7 +234,12 @@ public class GrpcQdrantTransport internal constructor(
         )
     }
 
-    override suspend fun count(name: String, filter: Filter?, exact: Boolean): Long = call(name) {
+    override suspend fun count(
+        name: String,
+        filter: Filter?,
+        exact: Boolean,
+        routeAffinity: String?,
+    ): Long = call(name) {
         points.deadlined()
             .count(
                 Points.CountPoints.newBuilder().apply {
@@ -223,6 +247,7 @@ public class GrpcQdrantTransport internal constructor(
                     this.exact = exact
                     filter?.let { this.filter = FilterMapping.toProto(it) }
                 }.build(),
+                routeAffinity(routeAffinity),
             )
             .result
             .count
@@ -233,6 +258,7 @@ public class GrpcQdrantTransport internal constructor(
         ids: List<PointId>,
         withPayload: WithPayload?,
         withVector: Boolean?,
+        routeAffinity: String?,
     ): List<Record> = call(name) {
         points.deadlined()
             .get(
@@ -242,6 +268,7 @@ public class GrpcQdrantTransport internal constructor(
                     RequestMapping.withPayload(withPayload)?.let { setWithPayload(it) }
                     RequestMapping.withVectors(withVector)?.let { setWithVectors(it) }
                 }.build(),
+                routeAffinity(routeAffinity),
             )
             .resultList
             .map(PointMapping::recordToModel)
@@ -463,6 +490,10 @@ public class GrpcQdrantTransport internal constructor(
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             false
         }
+
+    override suspend fun quotas(): QuotaStatus = restOnly("quotas")
+
+    override suspend fun updateQuotas(config: QuotaConfig): QuotaStatus = restOnly("updateQuotas")
 
     override suspend fun telemetry(): JsonObject = restOnly("telemetry")
 
@@ -726,6 +757,15 @@ public class GrpcQdrantTransport internal constructor(
         withDeadlineAfter(config.requestTimeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
 
     /**
+     * Qdrant reads the same read-affinity key from gRPC metadata that it reads from the REST header, so
+     * a token pins a read to one replica over either engine. Empty metadata when there is no token,
+     * which is what the stubs default to anyway.
+     */
+    private fun routeAffinity(token: String?): Metadata = Metadata().apply {
+        token?.let { put(ROUTE_AFFINITY_KEY, it) }
+    }
+
+    /**
      * Runs one operation on the configured dispatcher, retrying what the REST engine retries and
      * translating what is left. [collection] is the collection the call concerns, so a `NOT_FOUND`
      * can name it; `null` for the cluster-wide calls.
@@ -778,3 +818,7 @@ private const val SHUTDOWN_GRACE_SECONDS = 5L
 
 /** Caps the doubling at 2^6, so a long-running retry cannot overflow before retryMaxDelay clamps it. */
 private const val MAX_BACKOFF_SHIFT = 6
+
+/** Lowercase because gRPC metadata keys are, and Qdrant reads the same name the REST header uses. */
+private val ROUTE_AFFINITY_KEY: Metadata.Key<String> =
+    Metadata.Key.of("x-qdrant-route-affinity", Metadata.ASCII_STRING_MARSHALLER)

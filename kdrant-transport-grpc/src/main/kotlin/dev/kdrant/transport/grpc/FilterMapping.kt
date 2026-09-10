@@ -80,6 +80,10 @@ internal object FilterMapping {
                     .build()
                 is Condition.HasVector ->
                     hasVector = Common.HasVectorCondition.newBuilder().setHasVector(condition.name).build()
+                is Condition.Slice -> slice = Common.SliceCondition.newBuilder()
+                    .setIndex(condition.index)
+                    .setTotal(condition.total)
+                    .build()
                 is Condition.Nested -> nested = Common.NestedCondition.newBuilder()
                     .setKey(condition.key)
                     .setFilter(toProto(condition.filter))
@@ -97,6 +101,8 @@ internal object FilterMapping {
                 Condition.HasId(condition.hasId.hasIdList.map(PointMapping::idToModel))
             Common.Condition.ConditionOneOfCase.HAS_VECTOR ->
                 Condition.HasVector(condition.hasVector.hasVector)
+            Common.Condition.ConditionOneOfCase.SLICE ->
+                Condition.Slice(condition.slice.index, condition.slice.total)
             Common.Condition.ConditionOneOfCase.NESTED ->
                 Condition.Nested(condition.nested.key, toModel(condition.nested.filter))
             Common.Condition.ConditionOneOfCase.FILTER -> Condition.Sub(toModel(condition.filter))
@@ -116,6 +122,7 @@ internal object FilterMapping {
             is FieldMatcher.MatchText -> builder.match = Common.Match.newBuilder().setText(matcher.text).build()
             is FieldMatcher.MatchTextAny -> builder.match = Common.Match.newBuilder().setTextAny(matcher.text).build()
             is FieldMatcher.MatchPhrase -> builder.match = Common.Match.newBuilder().setPhrase(matcher.text).build()
+            is FieldMatcher.MatchPrefix -> builder.match = Common.Match.newBuilder().setPrefix(matcher.prefix).build()
             is FieldMatcher.Range -> builder.range = rangeToProto(matcher)
             is FieldMatcher.DatetimeRange -> builder.datetimeRange = datetimeRangeToProto(matcher, condition.key)
             is FieldMatcher.ValuesCount -> builder.valuesCount = valuesCountToProto(matcher)
@@ -196,6 +203,7 @@ internal object FilterMapping {
             Common.Match.MatchValueCase.TEXT -> FieldMatcher.MatchText(match.text)
             Common.Match.MatchValueCase.TEXT_ANY -> FieldMatcher.MatchTextAny(match.textAny)
             Common.Match.MatchValueCase.PHRASE -> FieldMatcher.MatchPhrase(match.phrase)
+            Common.Match.MatchValueCase.PREFIX -> FieldMatcher.MatchPrefix(match.prefix)
             Common.Match.MatchValueCase.KEYWORDS ->
                 FieldMatcher.MatchAny(match.keywords.stringsList.map(::JsonPrimitive))
             Common.Match.MatchValueCase.INTEGERS ->

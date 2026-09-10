@@ -117,7 +117,7 @@ class TracingAcrossEnginesIntegrationTest {
     }
 
     private companion object {
-        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.18.2"
+        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.19.1"
         const val COLLECTION = "traced"
     }
 }

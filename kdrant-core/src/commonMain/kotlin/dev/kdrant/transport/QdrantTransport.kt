@@ -19,6 +19,8 @@ import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -124,15 +126,21 @@ public interface QdrantTransport : AutoCloseable {
     /** Collection status and counts (`GET /collections/{name}`). */
     public suspend fun getCollection(name: String): CollectionInfo
 
-    /** Count points, optionally filtered (`POST /collections/{name}/points/count`). */
-    public suspend fun count(name: String, filter: Filter?, exact: Boolean): Long
+    /**
+     * Count points, optionally filtered (`POST /collections/{name}/points/count`).
+     *
+     * [routeAffinity] is Qdrant's `X-Qdrant-Route-Affinity` read hint, sent as a header rather than in
+     * the body. The request models carry their own; count and retrieve have none, so it is a parameter.
+     */
+    public suspend fun count(name: String, filter: Filter?, exact: Boolean, routeAffinity: String? = null): Long
 
-    /** Retrieve points by id (`POST /collections/{name}/points`). */
+    /** Retrieve points by id (`POST /collections/{name}/points`). See [count] for [routeAffinity]. */
     public suspend fun retrieve(
         name: String,
         ids: List<PointId>,
         withPayload: WithPayload?,
         withVector: Boolean?,
+        routeAffinity: String? = null,
     ): List<Record>
 
     // --- Aliases (M19) ---
@@ -159,6 +167,17 @@ public interface QdrantTransport : AutoCloseable {
 
     /** List all collection names (`GET /collections`). */
     public suspend fun listCollections(): List<CollectionDescription>
+
+    /**
+     * The cluster-wide resource quota and the utilization it is measured against (`GET /quotas`).
+     *
+     * Qdrant 1.19 and later; REST only. The configuration is the same on every peer, and the
+     * utilization is the answering node's, so a caller reading one node has read one node.
+     */
+    public suspend fun quotas(): QuotaStatus
+
+    /** Replace the cluster-wide resource quota (`PUT /quotas`). Qdrant 1.19 and later; REST only. */
+    public suspend fun updateQuotas(config: QuotaConfig): QuotaStatus
 
     /** Telemetry data as a raw JSON object (`GET /telemetry`). */
     public suspend fun telemetry(): JsonObject

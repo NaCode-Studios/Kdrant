@@ -105,6 +105,10 @@ public data class CollectionParams(
 
     @SerialName("on_disk_payload")
     public val onDiskPayload: Boolean? = null,
+
+    /** Payload-storage placement returned by Qdrant 1.19+. */
+    @SerialName("payload")
+    public val payload: PayloadStorageParams? = null,
 )
 
 /** What kind of index exists on a payload field, and how many points it covers. */

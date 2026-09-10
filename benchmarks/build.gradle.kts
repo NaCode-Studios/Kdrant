@@ -9,6 +9,10 @@ kotlin {
 
 dependencies {
     jmhImplementation(project(":kdrant-transport-rest"))
+    // The gRPC engine, so the comparison can separate the protocol from the client. Without a
+    // Kdrant-over-gRPC row, every gap against the official client is a gap against gRPC and nothing
+    // can be concluded about either.
+    jmhImplementation(project(":kdrant-transport-grpc"))
     jmhImplementation(libs.kotlinx.coroutines.core)
 
     // The competitor's artifact, so the comparison is run rather than argued. It is a benchmark

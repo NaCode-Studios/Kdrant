@@ -4,10 +4,12 @@ import dev.kdrant.KdrantDsl
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.Distance
 import dev.kdrant.model.HnswConfig
+import dev.kdrant.model.Memory
 import dev.kdrant.model.Modifier
 import dev.kdrant.model.MultiVectorComparator
 import dev.kdrant.model.MultiVectorConfig
 import dev.kdrant.model.OptimizersConfig
+import dev.kdrant.model.PayloadStorageParams
 import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.SparseVectorParams
 import dev.kdrant.model.StrictModeConfig
@@ -26,6 +28,9 @@ public class CreateCollectionBuilder {
 
     /** Store payloads on disk instead of RAM. */
     public var onDiskPayload: Boolean? = null
+
+    /** Memory placement of payload values. Overrides [onDiskPayload] when both are set. */
+    public var payloadMemory: Memory? = null
 
     /** Collection-wide HNSW index tuning. */
     public var hnswConfig: HnswConfig? = null
@@ -80,6 +85,7 @@ public class CreateCollectionBuilder {
             sparseVectors = sparseVectors.takeIf { it.isNotEmpty() },
             hnswConfig = hnswConfig,
             onDiskPayload = onDiskPayload,
+            payload = payloadMemory?.let(::PayloadStorageParams),
             shardNumber = shardNumber,
             replicationFactor = replicationFactor,
             optimizersConfig = optimizers,
@@ -124,6 +130,9 @@ public class VectorParamsBuilder {
     /** Store this vector on disk instead of RAM. */
     public var onDisk: Boolean? = null
 
+    /** Memory placement of original vector storage. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
     /** Element storage datatype (defaults to float32). */
     public var datatype: VectorDatatype? = null
 
@@ -137,7 +146,15 @@ public class VectorParamsBuilder {
         val size = requireNotNull(size) { "vector 'size' is required" }
         val distance = requireNotNull(distance) { "vector 'distance' is required" }
         require(size > 0) { "vector 'size' must be > 0, was $size" }
-        return VectorParams(size, distance, onDisk, datatype, hnswConfig, multivector?.let { MultiVectorConfig(it) })
+        return VectorParams(
+            size = size,
+            distance = distance,
+            onDisk = onDisk,
+            datatype = datatype,
+            hnswConfig = hnswConfig,
+            multivectorConfig = multivector?.let(::MultiVectorConfig),
+            memory = memory,
+        )
     }
 }
 

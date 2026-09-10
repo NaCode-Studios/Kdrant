@@ -19,6 +19,8 @@ import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -99,15 +101,16 @@ internal class TracingQdrantTransport(
     override suspend fun delete(name: String, selector: DeleteSelector, wait: Boolean): Unit =
         span("delete", name) { delegate.delete(name, selector, wait) }
 
-    override suspend fun count(name: String, filter: Filter?, exact: Boolean): Long =
-        span("count", name) { delegate.count(name, filter, exact) }
+    override suspend fun count(name: String, filter: Filter?, exact: Boolean, routeAffinity: String?): Long =
+        span("count", name) { delegate.count(name, filter, exact, routeAffinity) }
 
     override suspend fun retrieve(
         name: String,
         ids: List<PointId>,
         withPayload: WithPayload?,
         withVector: Boolean?,
-    ): List<Record> = span("retrieve", name) { delegate.retrieve(name, ids, withPayload, withVector) }
+        routeAffinity: String?,
+    ): List<Record> = span("retrieve", name) { delegate.retrieve(name, ids, withPayload, withVector, routeAffinity) }
 
     override suspend fun scroll(name: String, request: ScrollRequest): ScrollPage =
         span("scroll", name) { delegate.scroll(name, request) }
@@ -198,6 +201,11 @@ internal class TracingQdrantTransport(
     override suspend fun readyz(): Boolean = span("readyz", null) { delegate.readyz() }
 
     override suspend fun livez(): Boolean = span("livez", null) { delegate.livez() }
+
+    override suspend fun quotas(): QuotaStatus = span("quotas", null) { delegate.quotas() }
+
+    override suspend fun updateQuotas(config: QuotaConfig): QuotaStatus =
+        span("updateQuotas", null) { delegate.updateQuotas(config) }
 
     override suspend fun telemetry(): JsonObject = span("telemetry", null) { delegate.telemetry() }
 

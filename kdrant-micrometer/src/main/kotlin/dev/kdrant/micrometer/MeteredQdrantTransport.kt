@@ -19,6 +19,8 @@ import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -98,15 +100,16 @@ internal class MeteredQdrantTransport(
     override suspend fun delete(name: String, selector: DeleteSelector, wait: Boolean): Unit =
         meter("delete") { delegate.delete(name, selector, wait) }
 
-    override suspend fun count(name: String, filter: Filter?, exact: Boolean): Long =
-        meter("count") { delegate.count(name, filter, exact) }
+    override suspend fun count(name: String, filter: Filter?, exact: Boolean, routeAffinity: String?): Long =
+        meter("count") { delegate.count(name, filter, exact, routeAffinity) }
 
     override suspend fun retrieve(
         name: String,
         ids: List<PointId>,
         withPayload: WithPayload?,
         withVector: Boolean?,
-    ): List<Record> = meter("retrieve") { delegate.retrieve(name, ids, withPayload, withVector) }
+        routeAffinity: String?,
+    ): List<Record> = meter("retrieve") { delegate.retrieve(name, ids, withPayload, withVector, routeAffinity) }
 
     override suspend fun scroll(name: String, request: ScrollRequest): ScrollPage =
         meter("scroll") { delegate.scroll(name, request) }
@@ -197,6 +200,11 @@ internal class MeteredQdrantTransport(
     override suspend fun readyz(): Boolean = meter("readyz") { delegate.readyz() }
 
     override suspend fun livez(): Boolean = meter("livez") { delegate.livez() }
+
+    override suspend fun quotas(): QuotaStatus = meter("quotas") { delegate.quotas() }
+
+    override suspend fun updateQuotas(config: QuotaConfig): QuotaStatus =
+        meter("updateQuotas") { delegate.updateQuotas(config) }
 
     override suspend fun telemetry(): JsonObject = meter("telemetry") { delegate.telemetry() }
 

@@ -248,8 +248,26 @@ public abstract class QdrantClientContract {
     public fun `an operation on a collection that does not exist reports it as such`(): Unit =
         runBlocking { suite.missingCollectionIsReported() }
 
+    // --- Qdrant 1.19 -------------------------------------------------------------------------
+
+    @Test
+    public fun `a prefix filter is correct with and without the index that serves it`(): Unit =
+        runBlocking { suite.prefixMatching() }
+
+    @Test
+    public fun `relevance feedback reranks the query it was given`(): Unit =
+        runBlocking { suite.relevanceFeedbackReranks() }
+
+    @Test
+    public fun `four sliced scrolls read every point exactly once, repeatably`(): Unit =
+        runBlocking { suite.slicedScrollPartitions() }
+
+    @Test
+    public fun `4-bit storage and a memory tier per component round-trip through getCollection`(): Unit =
+        runBlocking { suite.memoryTiersRoundTrip() }
+
     private companion object {
         /** Overridable so CI can hold every engine to a matrix of Qdrant versions. */
-        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.18.2"
+        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.19.1"
     }
 }

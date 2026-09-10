@@ -4,7 +4,10 @@ import dev.kdrant.KdrantDsl
 import dev.kdrant.model.ContextPair
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Expression
+import dev.kdrant.model.FeedbackItem
+import dev.kdrant.model.FeedbackStrategy
 import dev.kdrant.model.Filter
+import dev.kdrant.model.IdfParams
 import dev.kdrant.model.InferenceInput
 import dev.kdrant.model.LookupLocation
 import dev.kdrant.model.Mmr
@@ -53,6 +56,21 @@ public class SearchBuilder {
 
     /** Search only the shards holding this key. `null` (default) searches every shard. */
     public var shardKey: ShardKey? = null
+
+    /**
+     * Stable token sent as `X-Qdrant-Route-Affinity`, so reads carrying the same one are served by the
+     * same replica: a user id, a session id, a hashed api key. The thing that should be sticky is one
+     * reader's session rather than the whole application, which is why this is per request and not on
+     * the client.
+     *
+     * It is the light answer to read-your-own-writes. A write replicates asynchronously, so a read
+     * issued straight after one can land on a replica that has not caught up, and the other lever
+     * available is `wait = true` on the write, which blocks the writer to fix a reader.
+     *
+     * Qdrant 1.19 and later; an older server ignores the header. It is a hint rather than a guarantee:
+     * the replica it pins to can go away, and the read is then served by another.
+     */
+    public var routeAffinity: String? = null
 
     /** Search by an explicit dense query vector. */
     public fun query(values: List<Float>) { query = QueryInterface.Vector(values) }
@@ -148,6 +166,17 @@ public class SearchBuilder {
         query = ContextBuilder().apply(configure).build()
     }
 
+    /**
+     * Rerank an original query from scored relevance feedback supplied by a downstream evaluator.
+     *
+     * The points named in the feedback are **not** returned. That suits the loop this exists in, where
+     * the judged results have already been shown to whoever judged them, and it is not what "rerank"
+     * suggests, so it is worth knowing before wiring this into a pager.
+     */
+    public fun relevanceFeedback(configure: RelevanceFeedbackBuilder.() -> Unit) {
+        query = RelevanceFeedbackBuilder().apply(configure).build()
+    }
+
     /** Restrict the search to points matching this filter. */
     public fun filter(configure: FilterBuilder.() -> Unit) {
         filter = FilterBuilder().apply(configure).build()
@@ -210,6 +239,7 @@ public class SearchBuilder {
             params = params,
             lookupFrom = lookupFrom,
             shardKey = shardKey,
+            routeAffinity = routeAffinity,
         )
     }
 }
@@ -307,7 +337,15 @@ public class SearchParamsBuilder {
     public var exact: Boolean? = null
     public var indexedOnly: Boolean? = null
 
-    internal fun build(): SearchParams = SearchParams(hnswEf, exact, indexedOnly)
+    /** Compute sparse-vector IDF statistics over this corpus instead of the whole collection. */
+    public var idfCorpus: Filter? = null
+
+    /** Build the sparse-vector IDF corpus inline. */
+    public fun idfCorpus(configure: FilterBuilder.() -> Unit) {
+        idfCorpus = FilterBuilder().apply(configure).build()
+    }
+
+    internal fun build(): SearchParams = SearchParams(hnswEf, exact, indexedOnly, idfCorpus?.let(::IdfParams))
 }
 
 /** DSL for a recommend query: [positive] / [negative] examples plus an optional [strategy]. */
@@ -378,6 +416,39 @@ public class ContextBuilder {
     }
 
     internal fun build(): QueryInterface.Context = QueryInterface.Context(pairs.toList())
+}
+
+/** DSL for Qdrant's relevance-feedback query. */
+@KdrantDsl
+public class RelevanceFeedbackBuilder {
+    private var target: VectorInput? = null
+    private val feedback = mutableListOf<FeedbackItem>()
+    private var strategy: FeedbackStrategy? = null
+
+    /** The dense vector used for the original query. */
+    public fun target(values: List<Float>) { target = QueryInterface.Vector(values) }
+
+    /** The stored vector used for the original query. */
+    public fun target(id: PointId) { target = QueryInterface.ById(id) }
+
+    /** The original query as any supported vector input. */
+    public fun target(input: VectorInput) { target = input }
+
+    /** Add one result and its relevance score from the feedback provider. */
+    public fun feedback(example: VectorInput, score: Float) {
+        feedback += FeedbackItem(example, score)
+    }
+
+    /** Use Qdrant's built-in linear strategy and its trained coefficients. */
+    public fun naive(a: Float, b: Float, c: Float) {
+        strategy = FeedbackStrategy.Naive(a, b, c)
+    }
+
+    internal fun build(): QueryInterface.RelevanceFeedback = QueryInterface.RelevanceFeedback(
+        target = requireNotNull(target) { "relevanceFeedback requires target(...)" },
+        feedback = feedback.toList().also { require(it.isNotEmpty()) { "relevanceFeedback requires feedback(...)" } },
+        strategy = requireNotNull(strategy) { "relevanceFeedback requires naive(a, b, c)" },
+    )
 }
 
 /** DSL for `searchBatch`: accumulate several searches to run in a single request. */

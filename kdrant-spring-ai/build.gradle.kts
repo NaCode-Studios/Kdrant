@@ -33,7 +33,7 @@ tasks.test {
 }
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("io.github.nacode-studios", "kdrant-spring-ai", version.toString())
     pom {

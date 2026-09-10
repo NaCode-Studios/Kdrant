@@ -145,6 +145,13 @@ public sealed interface QueryInterface {
     public data class Context(
         public val pairs: List<ContextPair> = emptyList(),
     ) : QueryInterface
+
+    /** Rerank from an original [target] using graded feedback from a downstream evaluator. */
+    public data class RelevanceFeedback(
+        public val target: VectorInput,
+        public val feedback: List<FeedbackItem>,
+        public val strategy: FeedbackStrategy,
+    ) : QueryInterface
 }
 
 /**
@@ -160,6 +167,22 @@ public data class ContextPair(
     public val positive: VectorInput,
     public val negative: VectorInput,
 )
+
+/** One item judged by a feedback provider, with the provider's relevance [score]. */
+public data class FeedbackItem(
+    public val example: VectorInput,
+    public val score: Float,
+)
+
+/** Formula and trained coefficients used for a [QueryInterface.RelevanceFeedback] query. */
+public sealed interface FeedbackStrategy {
+    /** Qdrant's built-in linear relevance-feedback strategy. */
+    public data class Naive(
+        public val a: Float,
+        public val b: Float,
+        public val c: Float,
+    ) : FeedbackStrategy
+}
 
 /** Write-only serializer emitting each [QueryInterface] variant in Qdrant's `VectorInput | Query` shape. */
 internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
@@ -212,6 +235,8 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
 
         is QueryInterface.Recommend -> recommendElement(json, value)
 
+        is QueryInterface.RelevanceFeedback -> relevanceFeedbackElement(json, value)
+
         else -> compositeElement(json, value)
     }
 
@@ -260,6 +285,33 @@ internal object QueryInterfaceSerializer : KSerializer<QueryInterface> {
             value.strategy?.let { put("strategy", strategyWire(it)) }
         }
     }
+
+    private fun relevanceFeedbackElement(json: Json, value: QueryInterface.RelevanceFeedback): JsonElement =
+        buildJsonObject {
+            putJsonObject("relevance_feedback") {
+                put("target", toElement(json, value.target))
+                put(
+                    "feedback",
+                    JsonArray(
+                        value.feedback.map { item ->
+                            buildJsonObject {
+                                put("example", toElement(json, item.example))
+                                put("score", item.score)
+                            }
+                        },
+                    ),
+                )
+                when (val strategy = value.strategy) {
+                    is FeedbackStrategy.Naive -> putJsonObject("strategy") {
+                        putJsonObject("naive") {
+                            put("a", strategy.a)
+                            put("b", strategy.b)
+                            put("c", strategy.c)
+                        }
+                    }
+                }
+            }
+        }
 
     /** Discover and context, the two remaining shapes that carry example pairs. */
     private fun compositeElement(json: Json, value: QueryInterface): JsonElement = when (value) {

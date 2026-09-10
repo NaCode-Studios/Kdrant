@@ -103,7 +103,7 @@ class ScopedAccessIntegrationTest {
     }
 
     private companion object {
-        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.18.2"
+        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.19.1"
         const val API_KEY = "contract-master-key"
         const val COLLECTION = "scoped-access"
     }

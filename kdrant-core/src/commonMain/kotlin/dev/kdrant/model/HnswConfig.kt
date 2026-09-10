@@ -28,4 +28,8 @@ public data class HnswConfig(
     /** Dedicated `m` for payload-based indexes (multitenancy). */
     @SerialName("payload_m")
     public val payloadM: Int? = null,
+
+    /** Memory placement of the HNSW graph. Overrides [onDisk] when both are set. */
+    @SerialName("memory")
+    public val memory: Memory? = null,
 )

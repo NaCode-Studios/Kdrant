@@ -1,0 +1,112 @@
+name: Qdrant watch
+
+# This client's entire claim is that it speaks current Qdrant, and nothing here noticed when Qdrant
+# moved. 1.19.0 shipped on 2026-08-05 with seven additions to the API surface; five weeks later the
+# vendored schema was still a pre-1.19 snapshot, the CI matrix still ran 1.18.2, and three of those
+# seven features — the per-query IDF corpus, the min and max formula expressions, and the explicit
+# stemmer switch — had no board item at all. They had none because planning them depended on somebody
+# happening to read a changelog, and nobody is reliably somebody.
+#
+# So the changelog gets read on a schedule instead. When upstream's newest release is ahead of the pin
+# in gradle.properties, this opens an issue carrying the features section of the release notes, and
+# moving the pin becomes a decision that was taken rather than one that was missed.
+
+on:
+  schedule:
+    # Monday morning, after Qdrant's usual mid-week release cadence has settled.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: qdrant-watch
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    name: Compare upstream with the pin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the pinned Qdrant version
+        id: pin
+        run: |
+          PINNED=$(sed -n 's/^qdrantVersion=//p' gradle.properties | tr -d '[:space:]')
+          if [ -z "$PINNED" ]; then
+            echo "::error::gradle.properties has no qdrantVersion, so there is nothing to compare against"
+            exit 1
+          fi
+          echo "pinned=$PINNED" >> "$GITHUB_OUTPUT"
+
+      - name: Read Qdrant's newest release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/qdrant/qdrant/releases/latest > release.json
+          LATEST=$(jq -r '.tag_name' release.json | sed 's/^v//')
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "url=$(jq -r '.html_url' release.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether upstream is ahead
+        id: decide
+        env:
+          PINNED: ${{ steps.pin.outputs.pinned }}
+          LATEST: ${{ steps.upstream.outputs.latest }}
+        run: |
+          NEWEST=$(printf '%s\n%s\n' "$PINNED" "$LATEST" | sort -V | tail -1)
+          if [ "$PINNED" = "$LATEST" ] || [ "$NEWEST" = "$PINNED" ]; then
+            echo "Kdrant is pinned to $PINNED and Qdrant's newest release is $LATEST. Nothing to do."
+            echo "ahead=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Qdrant $LATEST is ahead of the pinned $PINNED."
+            echo "ahead=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # An issue per release, not per run. Reopening the same one every Monday would train everybody
+      # to ignore it, which is the failure this workflow exists to prevent.
+      - name: Open an issue, unless one is already open for this release
+        if: steps.decide.outputs.ahead == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED: ${{ steps.pin.outputs.pinned }}
+          LATEST: ${{ steps.upstream.outputs.latest }}
+          RELEASE_URL: ${{ steps.upstream.outputs.url }}
+        run: |
+          TITLE="Qdrant $LATEST is out and this client is pinned to $PINNED"
+          EXISTING=$(gh issue list --state open --search "in:title Qdrant $LATEST is out" --json number --jq 'length')
+          if [ "$EXISTING" != "0" ]; then
+            echo "An issue for Qdrant $LATEST is already open. Leaving it alone."
+            exit 0
+          fi
+
+          # The features section is the part that becomes work here. Improvements and bug fixes land in
+          # the server and reach a client's users without a client change; a new field, filter or query
+          # variant does not.
+          FEATURES=$(jq -r '.body' release.json | awk '
+            /^## *Features/ { capture = 1; next }
+            /^## / { capture = 0 }
+            capture { print }
+          ')
+          [ -n "$(printf '%s' "$FEATURES" | tr -d '[:space:]')" ] || FEATURES="This release lists no features section; read the notes to see whether anything reaches the client surface."
+
+          {
+            echo "Qdrant released **$LATEST** on $RELEASE_URL. \`gradle.properties\` pins this client to \`$PINNED\`."
+            echo
+            echo "What the release adds to the API surface:"
+            echo
+            printf '%s\n' "$FEATURES"
+            echo
+            echo "Moving the pin is one command — raise \`qdrantVersion\` in \`gradle.properties\` and run"
+            echo "\`./gradlew refreshVendoredQdrant\`, which rewrites the vendored protobuf definitions and the"
+            echo "OpenAPI document together. \`verifyQdrantPin\` then names every other place that still"
+            echo "disagrees, and \`verifyVendoredQdrant\` proves the files came from the tag they claim."
+            echo
+            echo "Deciding not to move is a fine answer, and closing this is how it gets recorded."
+          } > body.md
+
+          gh issue create --title "$TITLE" --body-file body.md

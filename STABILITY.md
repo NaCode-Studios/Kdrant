@@ -68,6 +68,25 @@ signature Kotlin emits, so code that called the constructor positionally against
 recompiling. The configuration DSL, `Kdrant(host, port) { ... }`, which is the documented way in, is
 unaffected, and that is why the parameter goes on the end rather than beside the one it belongs with.
 
+### Where a memory tier and an `on_disk` flag disagree
+
+Qdrant 1.19 replaced several independent placement flags with one setting. `memory` takes `cold`,
+`cached` or `pinned`, and it appears on vector parameters, on the HNSW config, on every payload index
+parameter, on the quantization configs and, as `payload.memory`, on the collection. The flags it
+replaces are still accepted: `onDisk` in those first three places, `alwaysRam` on quantization, and
+`onDiskPayload` on the collection.
+
+**A caller who sets both gets the tier.** That is Qdrant's rule rather than this client's, it holds on
+both engines, and it is stated on every `memory` property so the answer is where the question is asked.
+The mapping is `onDisk = true` to `cold` and `onDisk = false` to whatever the server's default for that
+component is, which is why the two are not quite aliases: `cold`, `cached` and `pinned` distinguish
+three cases where a boolean has two.
+
+Kdrant keeps the older properties. Qdrant marks them deprecated rather than removed, a collection
+created with them still works, and removing them here would break callers to no purpose while the
+server still reads them. They will be deprecated in this client when Qdrant schedules their removal,
+and removed in a major, never before.
+
 ### What the `2.x` promise means per artifact type
 
 A klib is not a jar, and a promise that does not say so is a promise a consumer on `linuxX64` cannot

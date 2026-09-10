@@ -7,9 +7,11 @@ import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.VectorData
+import dev.kdrant.transport.grpc.KdrantGrpc
 import dev.kdrant.transport.rest.Kdrant
 import io.qdrant.client.QdrantClient as OfficialClient
 import io.qdrant.client.QdrantGrpcClient
+import io.qdrant.client.grpc.Common
 import io.qdrant.client.grpc.Points
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -56,6 +58,7 @@ import kotlin.random.Random
 open class OfficialClientComparisonBenchmark {
 
     private lateinit var kdrant: QdrantClient
+    private lateinit var kdrantGrpc: QdrantClient
     private lateinit var official: OfficialClient
     private lateinit var queryVector: List<Float>
     private lateinit var batch: List<PointStruct>
@@ -68,6 +71,10 @@ open class OfficialClientComparisonBenchmark {
         val grpcPort = (System.getenv("QDRANT_GRPC_PORT") ?: "6334").toInt()
 
         kdrant = Kdrant(host = host, port = restPort)
+        // The same client over the other engine. Three rows per operation rather than two is what makes
+        // the table readable: Kdrant against the official client answers "which library", and Kdrant
+        // against itself answers "how much of that was the wire format".
+        kdrantGrpc = KdrantGrpc(host = host, port = grpcPort)
         official = OfficialClient(QdrantGrpcClient.newBuilder(host, grpcPort, false).build())
 
         queryVector = randomVector()
@@ -103,6 +110,11 @@ open class OfficialClientComparisonBenchmark {
     }
 
     @Benchmark
+    fun kdrantGrpcSearch(): List<ScoredPoint> = runBlocking {
+        kdrantGrpc.search(COLLECTION) { query(queryVector); limit = TOP_K }
+    }
+
+    @Benchmark
     fun officialSearch(): List<Points.ScoredPoint> =
         official.queryAsync(
             Points.QueryPoints.newBuilder()
@@ -117,6 +129,13 @@ open class OfficialClientComparisonBenchmark {
     @Benchmark
     fun kdrantSearchBatch(): List<List<ScoredPoint>> = runBlocking {
         kdrant.searchBatch(COLLECTION) {
+            repeat(BATCH_QUERIES) { search { query(queryVector); limit = TOP_K } }
+        }
+    }
+
+    @Benchmark
+    fun kdrantGrpcSearchBatch(): List<List<ScoredPoint>> = runBlocking {
+        kdrantGrpc.searchBatch(COLLECTION) {
             repeat(BATCH_QUERIES) { search { query(queryVector); limit = TOP_K } }
         }
     }
@@ -142,6 +161,11 @@ open class OfficialClientComparisonBenchmark {
     }
 
     @Benchmark
+    fun kdrantGrpcUpsertBatch(): Unit = runBlocking {
+        kdrantGrpc.upsert(COLLECTION, batch.asSequence(), wait = true)
+    }
+
+    @Benchmark
     fun officialUpsertBatch(): Points.UpdateResult =
         official.upsertAsync(COLLECTION, officialBatch).get()
 
@@ -153,8 +177,13 @@ open class OfficialClientComparisonBenchmark {
     }
 
     @Benchmark
+    fun kdrantGrpcScroll(): Int = runBlocking {
+        kdrantGrpc.scroll(COLLECTION, pageSize = SCROLL_PAGE).toList().size
+    }
+
+    @Benchmark
     fun officialScroll(): Int {
-        var offset: Points.PointId? = null
+        var offset: Common.PointId? = null
         var seen = 0
         while (true) {
             val request = Points.ScrollPoints.newBuilder()
@@ -171,6 +200,7 @@ open class OfficialClientComparisonBenchmark {
     @TearDown
     fun tearDown() {
         kdrant.close()
+        kdrantGrpc.close()
         official.close()
     }
 

@@ -6,8 +6,144 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- **Prefix matching, and the keyword index that serves it** (M56). `matchPrefix(key, prefix)` joins the
+  filter DSL, and `keyword { prefixMatching = true }` builds the index that answers it without scanning.
+  The index is an accelerator rather than a precondition, unlike the one `matchPhrase` needs: without it
+  the condition is still correct and is checked point by point, and only strict mode with unindexed
+  filtering off refuses it outright. The two transports spell the option differently, which is the trap
+  this shipped with: REST takes a boolean and gRPC an empty message whose presence enables it. The model
+  carries the boolean and each engine renders it, asserted on both sides.
+- **Relevance feedback, the eleventh query variant** (M57). `relevanceFeedback { }` takes the vector or
+  point the original query used, the results a downstream evaluator graded and the score it gave each
+  one, and Qdrant's linear strategy with its coefficients. `recommend` was the closest thing available
+  and it is not the same: it treats examples as a target, where this takes a graded response to a query
+  that already happened. The points named in the feedback do not come back, which suits the loop it
+  belongs to and is not what "rerank" suggests, so both the KDoc and the contract say so.
+- **Slice filtering** (M58). `slice(index, total)` selects one of `total` deterministic partitions of
+  the id space, so a scroll can be split across workers without guessing how the ids are distributed
+  and a sample can be reproduced. Qdrant hashes the id with SipHash-2-4, so the split is uniform for
+  UUIDs from an upstream system, and slices of different totals nest: slice 0 of 4 is inside slice 0 of 2.
+- **Memory tiers and 4-bit primary storage** (M59). Every component that took an `onDisk` or `alwaysRam`
+  flag now also takes `memory`, which is `cold`, `cached` or `pinned`, and a collection places its
+  payload with `payloadMemory`. `VectorDatatype.TURBO4` stores only 4-bit quantized vectors and keeps no
+  originals. Where a caller sets both a tier and a flag the tier wins, which is Qdrant's rule and is
+  stated in [STABILITY.md](STABILITY.md) and on every `memory` property.
+- **Per-query IDF corpus.** `params { idfCorpus { ... } }` computes sparse-vector IDF statistics over
+  the points matching a filter rather than over the whole collection, which is what a per-tenant BM25
+  score needs. This arrived in Qdrant 1.19 with the four milestones above and had no board item, which
+  is the gap the release watch below exists to close.
+- **`min`, `max` and `acosh` in formula expressions.** Three variants Qdrant 1.19 added to its
+  expression language, absent here for the same reason.
+- **Deterministic read routing** (M61). `routeAffinity` on the search, scroll, count and retrieve paths
+  sends Qdrant's `X-Qdrant-Route-Affinity` hint, so reads carrying the same token are served by the same
+  replica. It is the light answer to read-your-own-writes on a replicated collection: the lever available
+  before it was `wait = true` on the write, which blocks the writer to fix a reader. Per request rather
+  than per client, because the thing that should be sticky is one reader's session. The token travels as
+  a header over REST and as gRPC metadata under the same key, so a batch, which is one call either way,
+  is refused rather than half-honoured when its searches ask for different replicas.
+- **The second half of the command line** (M65). `kdrant health` reports the three probes separately and
+  exits on readiness, because a node that is alive and not ready is the state an operator is usually
+  looking at and a single verdict would hide it. `kdrant collection create|describe|delete` covers the
+  lifecycle `kdrant collections` only listed. `--shard N` scopes any snapshot action to one shard, which
+  is how a sharded collection is actually snapshotted and restored, and `kdrant storage-snapshot` covers
+  the whole node. It is still not a query tool.
+- **A Windows binary** (M65). `mingwX64` compiled and shipped nowhere for two releases. It is now built,
+  proven against a real Qdrant on a Windows runner, checksummed and attested like the other two, and
+  attached to the release as `kdrant-windows-x64.exe`.
+- **The cluster-wide quota, read rather than discovered** (M62). `quotas()` returns the limits in force
+  and the utilization each peer reports against them; `updateQuotas(config)` replaces them. A quota a
+  caller can only learn about by being refused is a caller that retries into the same wall:
+  `RateLimited` says waiting is worth it and cannot say how much room is left. The update replaces rather
+  than merges, which is stated where a caller would look, because a config naming one limit silently
+  drops the others. REST only, and the gRPC engine refuses both by name.
+
+### Changed
+
+- **The Qdrant this client is pinned to is now one fact rather than fourteen** (M60). `qdrantVersion` in
+  `gradle.properties` is the pin, and `verifyQdrantPin` fails the build when anything else in the
+  repository names a newer Qdrant. The version had drifted where it mattered least visibly: the vendored
+  OpenAPI document said v1.18.2 in its README and was a `master` snapshot taken before 1.19.0 shipped,
+  so the contract test validated request bodies against fields no released server had. The document
+  cannot say where it came from, because Qdrant ships `"version": "master"` under `info` at every
+  released tag, so `verifyVendoredQdrant` fetches the pinned tag and compares byte for byte instead, over
+  the protobuf definitions as well as the schema. `refreshVendoredQdrant` moves them together, and both
+  vendored copies now come from v1.19.1.
+- **The contract test names the operations it covers rather than counting them.** A count is a check
+  somebody eventually lowers to make a build pass. Naming them means dropping one has to be written down.
+- **A release publishes itself, and says whether it resolved** (M67). Every module sets
+  `automaticRelease = true`, so a deployment releases once the Portal has validated it instead of
+  waiting for somebody to press Publish. Twice nobody did: `2.0.0` and `2.2.0` were both tagged,
+  attested, green everywhere, and unresolvable. The manual step was meant to be the last look before an
+  artifact became permanent, and in practice it was a button pressed because the workflow was green.
+  What actually stood in for it is the new step beside it, which asks Maven Central for every artifact
+  the release claims and fails when one does not answer.
+- **The CLI runs on every push, not only at a tag** (M66). `2.2.0` took three release attempts and all
+  three failed in the CLI job, on defects any push could have caught, because nothing below the release
+  workflow had ever started the binary. The proof script moved into `.github/scripts/prove-cli.sh` and a
+  CI job runs it against a real Qdrant on every push, so the release is now the second time the tool
+  runs rather than the first.
+- **The shared client contract covers the 1.19 surface against a real server.** Prefix matching before
+  and after the index that serves it, relevance feedback reranking a query it was given, four sliced
+  scrolls reading a collection exactly once between them and repeatably, and 4-bit storage with a memory
+  tier per component round-tripping through `getCollection`. All four run over both engines.
+
+- **The RAG example uses what the library became** (M71). It was written for the `1.x` line and had
+  stayed there: `upsert` in a loop, a dense-only search, no index parameters, and a catch that treated
+  every failure the same. It now ingests through `ingest` with the resume token on disk, retrieves over
+  a dense and a sparse ranking fused by reciprocal rank with the sparse vector weighted by the server's
+  own IDF, creates its payload indexes with the parameters its filters need, and answers `503` or `502`
+  from `retryable`. Its README says which release each of those arrived in, so the next reader can tell
+  what is current. It did not grow a second purpose: there is still nothing to configure.
+- **Every `TrustAnchors` row says why it is empty** (M63). Windows offers no per-handle root override
+  and never will, so a private CA goes in the machine store and that is the answer rather than a gap.
+  Linux cannot pin because Ktor's Curl engine exposes `caInfo`, `caPath` and `sslVerify` and nothing
+  else, so libcurl's pinning option is unreachable without an upstream change. Darwin could take a
+  bundle through the challenge handler Ktor does expose, and will not until there is a test proving it
+  rejects a chain the bundle does not anchor, because custom trust evaluation is the code that is wrong
+  in a way nobody notices. No row is left reading as work in progress.
+- **The comparison benchmark has numbers** (M68). The harness shipped in `2.2.0` and had never been run,
+  which mattered because the missing half is the one that contradicts the assumption that ergonomics were
+  bought with throughput. It has been run, and it says Kdrant loses every row: 2.5x slower than the
+  official client on a single search and 9.3x on a 500-point upsert. It also gained a third column,
+  Kdrant over its own gRPC engine, because without one every gap is a gap against protobuf before it is a
+  gap against a library. Over the same protocol the gap is 8% to 30%, and the worst row is partly a
+  round trip rather than serialization: Kdrant splits an upsert at 256 points by default and sent two
+  requests where the official client sent one.
+- **Multi-tenancy is measured** (M64). A tenant-indexed collection and a plainly-indexed one, same points
+  and same filtered search: the tenant index is about 10% faster on the mean and 20% at the 99th
+  percentile, over 20 000 points across 50 tenants. That is close to the floor of what the layout can be
+  worth, because a collection that small has almost nothing to colocate, and it is published anyway so a
+  reader knows what the small end looks like rather than assuming either way.
+- **The JMH harness is compiled by CI.** It had not compiled since the official client moved `PointId`
+  between generated classes at 1.19, and nothing noticed because the benchmark source set is not part of
+  `build`.
+- **The README says Kdrant is a client** (M70). An ARM target, a 37 ms cold start in 42 MB and a 5.7 MB
+  static binary read together as a project that could hold an index on a device. It cannot: it talks to
+  a Qdrant over a network, and the answer for a device that has to answer offline is Qdrant Edge. The
+  Platforms section now draws that line rather than leaving a reader to work it out.
+
+### Deprecated
+
+- **`StrictModeConfig.maxDiskUsagePercent` and `maxResidentMemoryPercent`.** Qdrant 1.19 replaced the
+  per-collection ceilings with the cluster-wide quota API: it removed the disk one from the REST schema
+  and reserved its gRPC field, so a 1.19 server accepts the setting and never enforces it, and it
+  deprecated the memory one, which it still enforces and plans to remove in 1.21. Two minors from
+  introduction to deprecation is short enough to look like churn, so: they were added in `2.2.0` because
+  a node refusing writes while still serving reads is the degraded state a client most needs to be
+  predictable in, and that argument still holds. What changed is where the limit is set. Both stay until
+  `3.0` on the same policy as everything else.
+
 ### Fixed
 
+- **A downed shard is reported as retryable whichever way Qdrant words it.** A node whose only replica for
+  a shard is gone answers `1 of 1 read operations failed: Timeout error: Deadline Exceeded ... "Healthcheck
+  timeout 2000ms exceeded"`, depending on which check gives up first. The matcher that reads a degraded
+  cluster out of a message knew `timed out` and not `timeout`, so that one fell through to a plain server
+  error and told the caller not to retry a condition that clears in seconds. Both engines carry their own
+  copy of that matcher, which is how they came to disagree; both are fixed, and the duplication is filed.
+  Caught by the `:latest` cell of the integration matrix, which is what it is for.
 - **An ingest whose source dies now hands out the checkpoint it earned.** The batches still in flight
   when the source threw were cancelled where they stood, so whether a run reported any checkpoint at
   all depended on which request happened to come back first, and a run killed early enough could report

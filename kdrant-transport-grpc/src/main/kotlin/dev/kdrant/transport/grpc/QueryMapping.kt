@@ -3,6 +3,7 @@ package dev.kdrant.transport.grpc
 import dev.kdrant.model.ContextPair
 import dev.kdrant.model.DecayParams
 import dev.kdrant.model.Expression
+import dev.kdrant.model.FeedbackStrategy
 import dev.kdrant.model.Filter
 import dev.kdrant.model.FusionAlgorithm
 import dev.kdrant.model.InferenceInput
@@ -26,8 +27,6 @@ import qdrant.Points
  * with `nearest` is the long form. Protobuf has a variant per shape, so the ambiguity that the REST
  * serializer resolves on the way out is resolved here on the way in, once, in [vectorInput].
  *
- * `RelevanceFeedbackInput`, the eleventh `Query` variant, has no model: it is newer than the client's
- * query surface and reaching it would mean adding it to the REST engine too.
  */
 internal object QueryMapping {
 
@@ -102,6 +101,7 @@ internal object QueryMapping {
             QueryInterface.Sample -> builder.sample = Points.Sample.Random
             is QueryInterface.Formula -> builder.formula = formula(query)
             is QueryInterface.Recommend -> builder.recommend = recommend(query)
+            is QueryInterface.RelevanceFeedback -> builder.relevanceFeedback = relevanceFeedback(query)
             is QueryInterface.Discover -> builder.discover = Points.DiscoverInput.newBuilder()
                 .setTarget(vectorInput(query.target))
                 .setContext(contextInput(query.context))
@@ -122,6 +122,30 @@ internal object QueryMapping {
             addAllPositive(query.positive.map(::vectorInput))
             addAllNegative(query.negative.map(::vectorInput))
             query.strategy?.let { strategy = strategy(it) }
+        }.build()
+
+    private fun relevanceFeedback(query: QueryInterface.RelevanceFeedback): Points.RelevanceFeedbackInput =
+        Points.RelevanceFeedbackInput.newBuilder().apply {
+            target = vectorInput(query.target)
+            addAllFeedback(
+                query.feedback.map { item ->
+                    Points.FeedbackItem.newBuilder()
+                        .setExample(vectorInput(item.example))
+                        .setScore(item.score)
+                        .build()
+                },
+            )
+            strategy = when (val feedbackStrategy = query.strategy) {
+                is FeedbackStrategy.Naive -> Points.FeedbackStrategy.newBuilder()
+                    .setNaive(
+                        Points.NaiveFeedbackStrategy.newBuilder()
+                            .setA(feedbackStrategy.a)
+                            .setB(feedbackStrategy.b)
+                            .setC(feedbackStrategy.c)
+                            .build(),
+                    )
+                    .build()
+            }
         }.build()
 
     /**
@@ -231,6 +255,12 @@ internal object QueryMapping {
             is Expression.Sum -> builder.sum = Points.SumExpression.newBuilder()
                 .addAllSum(expression.operands.map(::expression))
                 .build()
+            is Expression.Max -> builder.max = Points.MaxExpression.newBuilder()
+                .addAllMax(expression.operands.map(::expression))
+                .build()
+            is Expression.Min -> builder.min = Points.MinExpression.newBuilder()
+                .addAllMin(expression.operands.map(::expression))
+                .build()
             is Expression.Div -> builder.div = div(expression)
             is Expression.Pow -> builder.pow = Points.PowExpression.newBuilder()
                 .setBase(expression(expression.base))
@@ -242,6 +272,7 @@ internal object QueryMapping {
             is Expression.Exp -> builder.exp = expression(expression.operand)
             is Expression.Log10 -> builder.log10 = expression(expression.operand)
             is Expression.Ln -> builder.ln = expression(expression.operand)
+            is Expression.Acosh -> builder.acosh = expression(expression.operand)
             is Expression.ExpDecay -> builder.expDecay = decay(expression.params)
             is Expression.GaussDecay -> builder.gaussDecay = decay(expression.params)
             is Expression.LinDecay -> builder.linDecay = decay(expression.params)

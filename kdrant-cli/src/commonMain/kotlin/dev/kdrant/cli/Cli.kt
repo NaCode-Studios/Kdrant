@@ -36,9 +36,15 @@ internal suspend fun run(
     return try {
         connect(arguments).use { client ->
             when (command) {
+                // health is the one command whose exit code is its answer rather than its success, so
+                // it reports its own: a node that is alive and not ready has not failed, and a script
+                // asking `kdrant health && ...` still needs to stop.
+                "health" -> return Commands.health(client, out)
                 "collections" -> Commands.collections(client, out)
+                "collection" -> Commands.collection(client, arguments, out)
                 "scroll" -> Commands.scroll(client, arguments, out)
                 "snapshot" -> Commands.snapshot(client, arguments, files, out)
+                "storage-snapshot" -> Commands.storageSnapshot(client, arguments, files, out)
                 "migrate" -> Commands.migrate(client, arguments, files, out)
                 else -> {
                     err("unknown command '$command'")

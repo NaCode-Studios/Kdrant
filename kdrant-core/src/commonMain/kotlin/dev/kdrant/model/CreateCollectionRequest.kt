@@ -26,6 +26,10 @@ public data class CreateCollectionRequest(
     @SerialName("on_disk_payload")
     public val onDiskPayload: Boolean? = null,
 
+    /** Memory placement of payload storage. Overrides [onDiskPayload] when both are set. */
+    @SerialName("payload")
+    public val payload: PayloadStorageParams? = null,
+
     @SerialName("shard_number")
     public val shardNumber: Int? = null,
 

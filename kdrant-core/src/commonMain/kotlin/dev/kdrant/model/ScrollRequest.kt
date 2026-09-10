@@ -2,6 +2,7 @@ package dev.kdrant.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonPrimitive
 
 /** Request body for a single `POST /collections/{name}/points/scroll` page. */
@@ -37,6 +38,13 @@ public data class ScrollRequest(
     /** Restrict the scroll to the shards holding this key. `null` reads every shard. */
     @SerialName("shard_key")
     public val shardKey: ShardKey? = null,
+
+    /**
+     * Stable token sent as the `X-Qdrant-Route-Affinity` header rather than in the body, which is why it
+     * is [Transient]. See [dev.kdrant.dsl.ScrollBuilder.routeAffinity].
+     */
+    @Transient
+    public val routeAffinity: String? = null,
 )
 
 /**
