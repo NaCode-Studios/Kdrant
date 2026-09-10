@@ -70,9 +70,10 @@ import kotlin.random.Random
  * services.
  *
  * **The seam is wider than the protocol.** `QdrantTransport` was shaped by Qdrant's REST API, and
- * fourteen of its operations have no gRPC equivalent: telemetry, Prometheus metrics, the two issues
- * calls, snapshot recovery, the snapshot and storage-snapshot transfers, and the six shard-scope
- * snapshot operations.
+ * sixteen of its operations have no gRPC equivalent: telemetry, Prometheus metrics, the two issues
+ * calls, the two quota calls, snapshot recovery, the snapshot and storage-snapshot transfers, and the
+ * six shard-scope snapshot operations. `RestOnlyOperationsTest` is what keeps that number honest: it
+ * drives every one of them, so the list cannot grow without the test growing with it.
  * They are not silently degraded here. Each throws an [UnsupportedOperationException] naming the
  * operation and pointing at the REST engine, because a snapshot download that quietly returns nothing
  * is a backup that quietly does not exist. A `KdrantException` would have been the wrong type: nothing

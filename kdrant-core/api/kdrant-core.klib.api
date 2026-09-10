@@ -3413,7 +3413,7 @@ final class dev.kdrant.model/ContextPair { // dev.kdrant.model/ContextPair|null[
 }
 
 final class dev.kdrant.model/CreateCollectionRequest { // dev.kdrant.model/CreateCollectionRequest|null[0]
-    constructor <init>(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., dev.kdrant.model/PayloadStorageParams? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ...) // dev.kdrant.model/CreateCollectionRequest.<init>|<init>(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;dev.kdrant.model.PayloadStorageParams?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?){}[0]
+    constructor <init>(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ..., dev.kdrant.model/PayloadStorageParams? = ...) // dev.kdrant.model/CreateCollectionRequest.<init>|<init>(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?;dev.kdrant.model.PayloadStorageParams?){}[0]
 
     final val hnswConfig // dev.kdrant.model/CreateCollectionRequest.hnswConfig|{}hnswConfig[0]
         final fun <get-hnswConfig>(): dev.kdrant.model/HnswConfig? // dev.kdrant.model/CreateCollectionRequest.hnswConfig.<get-hnswConfig>|<get-hnswConfig>(){}[0]
@@ -3437,16 +3437,16 @@ final class dev.kdrant.model/CreateCollectionRequest { // dev.kdrant.model/Creat
         final fun <get-vectors>(): dev.kdrant.model/VectorsConfig? // dev.kdrant.model/CreateCollectionRequest.vectors.<get-vectors>|<get-vectors>(){}[0]
 
     final fun component1(): dev.kdrant.model/VectorsConfig? // dev.kdrant.model/CreateCollectionRequest.component1|component1(){}[0]
-    final fun component10(): dev.kdrant.model/StrictModeConfig? // dev.kdrant.model/CreateCollectionRequest.component10|component10(){}[0]
+    final fun component10(): dev.kdrant.model/PayloadStorageParams? // dev.kdrant.model/CreateCollectionRequest.component10|component10(){}[0]
     final fun component2(): kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? // dev.kdrant.model/CreateCollectionRequest.component2|component2(){}[0]
     final fun component3(): dev.kdrant.model/HnswConfig? // dev.kdrant.model/CreateCollectionRequest.component3|component3(){}[0]
     final fun component4(): kotlin/Boolean? // dev.kdrant.model/CreateCollectionRequest.component4|component4(){}[0]
-    final fun component5(): dev.kdrant.model/PayloadStorageParams? // dev.kdrant.model/CreateCollectionRequest.component5|component5(){}[0]
+    final fun component5(): kotlin/Int? // dev.kdrant.model/CreateCollectionRequest.component5|component5(){}[0]
     final fun component6(): kotlin/Int? // dev.kdrant.model/CreateCollectionRequest.component6|component6(){}[0]
-    final fun component7(): kotlin/Int? // dev.kdrant.model/CreateCollectionRequest.component7|component7(){}[0]
-    final fun component8(): dev.kdrant.model/OptimizersConfig? // dev.kdrant.model/CreateCollectionRequest.component8|component8(){}[0]
-    final fun component9(): dev.kdrant.model/QuantizationConfig? // dev.kdrant.model/CreateCollectionRequest.component9|component9(){}[0]
-    final fun copy(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., dev.kdrant.model/PayloadStorageParams? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ...): dev.kdrant.model/CreateCollectionRequest // dev.kdrant.model/CreateCollectionRequest.copy|copy(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;dev.kdrant.model.PayloadStorageParams?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?){}[0]
+    final fun component7(): dev.kdrant.model/OptimizersConfig? // dev.kdrant.model/CreateCollectionRequest.component7|component7(){}[0]
+    final fun component8(): dev.kdrant.model/QuantizationConfig? // dev.kdrant.model/CreateCollectionRequest.component8|component8(){}[0]
+    final fun component9(): dev.kdrant.model/StrictModeConfig? // dev.kdrant.model/CreateCollectionRequest.component9|component9(){}[0]
+    final fun copy(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ..., dev.kdrant.model/PayloadStorageParams? = ...): dev.kdrant.model/CreateCollectionRequest // dev.kdrant.model/CreateCollectionRequest.copy|copy(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?;dev.kdrant.model.PayloadStorageParams?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/CreateCollectionRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/CreateCollectionRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/CreateCollectionRequest.toString|toString(){}[0]
