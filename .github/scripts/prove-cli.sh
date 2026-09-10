@@ -58,6 +58,11 @@ STORAGE_SNAPSHOT="$("$BINARY" storage-snapshot create | cut -f1)"
 [ -s "$OUT/cli-storage.snapshot" ] || { echo "::error::the storage snapshot came back empty"; exit 1; }
 "$BINARY" storage-snapshot delete "$STORAGE_SNAPSHOT"
 
+# `snapshot restore` is deliberately not here. It takes a location the *server* resolves, so a file://
+# URL pointing at what this script just downloaded names a path inside the runner rather than inside the
+# container, and an http:// one would need somewhere to serve it from. Restoring is covered against a
+# real server by the shared client contract, which runs in the same process as the node it talks to.
+
 say "delete refuses without --yes"
 if "$BINARY" collection delete cli-source 2>/dev/null; then
   echo "::error::collection delete dropped a collection without --yes"; exit 1

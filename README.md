@@ -528,6 +528,12 @@ provenance. Every one of them runs every subcommand against a real Qdrant before
 the same script runs on every push, so a release is the second time the tool has been started rather
 than the first.
 
+There is no Homebrew tap and no Scoop manifest, and that is a decision rather than a gap. Each is a
+small file and a standing obligation to keep a version number in a second place, which is the kind of
+thing that goes stale quietly and then tells somebody the current version is the one from two releases
+ago. A `curl` from the release URL above has no such copy in it. If enough people ask, the tap is worth
+the obligation; until then the download is one line.
+
 ## Architecture
 
 The wire lives behind one interface, `QdrantTransport`, and everything above it is protocol-neutral:
