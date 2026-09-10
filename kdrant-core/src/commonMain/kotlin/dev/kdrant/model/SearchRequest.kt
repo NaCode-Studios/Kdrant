@@ -120,7 +120,52 @@ public data class SearchParams(
     /** Sparse-vector IDF statistics computed only over [IdfParams.corpus]. */
     @SerialName("idf")
     public val idf: IdfParams? = null,
+
+    /** How a quantized collection is read. See [QuantizationSearchParams]. */
+    @SerialName("quantization")
+    public val quantization: QuantizationSearchParams? = null,
 )
+
+/**
+ * How a search reads a quantized collection.
+ *
+ * This is the half of quantization that decides recall, and leaving it unset is the mistake: a collection
+ * quantized to a quarter of its size answers from the approximation unless something asks for the
+ * originals, and a caller who never sets [rescore] has traded accuracy they did not choose to trade.
+ * Qdrant decides for itself when it is unset, and its choice depends on where the vectors are stored.
+ *
+ * [oversampling] is the lever that makes rescoring worth it: preselect more candidates from the quantized
+ * index, then rank that larger set against the originals. At `2.0` with a limit of 100, Qdrant scores 200
+ * approximately and returns the best 100 exactly.
+ */
+@Serializable
+public data class QuantizationSearchParams(
+    /** Read the original vectors and ignore the quantized ones entirely. */
+    @SerialName("ignore")
+    public val ignore: Boolean? = null,
+
+    /**
+     * Re-score the top candidates against the original vectors.
+     *
+     * Costs a read of the originals, which is why it is a choice rather than a default: with the originals
+     * on disk it is a disk read per candidate, and with them in RAM it is nearly free.
+     */
+    @SerialName("rescore")
+    public val rescore: Boolean? = null,
+
+    /** Candidates to preselect from the quantized index, as a multiple of the limit. */
+    @SerialName("oversampling")
+    public val oversampling: Double? = null,
+) {
+    init {
+        oversampling?.let {
+            require(it >= 1.0) {
+                "oversampling must be >= 1.0, was $it. Below one it would preselect fewer candidates " +
+                    "than the limit asks for, which cannot return a full page."
+            }
+        }
+    }
+}
 
 /** A per-query population used to compute sparse-vector IDF statistics. */
 @Serializable

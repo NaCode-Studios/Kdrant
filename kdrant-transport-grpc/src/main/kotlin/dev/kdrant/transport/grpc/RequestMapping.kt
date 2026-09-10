@@ -10,9 +10,11 @@ import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuantizationSearchParams
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchParams
 import dev.kdrant.model.ShardKey
+import dev.kdrant.model.StemmingAlgorithm
 import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.WithPayload
 import kotlinx.serialization.json.JsonPrimitive
@@ -90,6 +92,7 @@ internal object RequestMapping {
             it.hnswEf?.let { ef -> hnswEf = ef.toLong() }
             it.exact?.let { value -> exact = value }
             it.indexedOnly?.let { value -> indexedOnly = value }
+            it.quantization?.let { quantization = quantizationSearchParams(it) }
             it.idf?.let { idf ->
                 this.idf = Points.IdfParams.newBuilder()
                     .setCorpus(FilterMapping.toProto(idf.corpus))
@@ -97,6 +100,14 @@ internal object RequestMapping {
             }
         }.build()
     }
+
+    private fun quantizationSearchParams(
+        params: QuantizationSearchParams,
+    ): Points.QuantizationSearchParams = Points.QuantizationSearchParams.newBuilder().apply {
+        params.ignore?.let { ignore = it }
+        params.rescore?.let { rescore = it }
+        params.oversampling?.let { oversampling = it }
+    }.build()
 
     fun direction(direction: Direction): Points.Direction = when (direction) {
         Direction.ASC -> Points.Direction.Asc
@@ -221,6 +232,7 @@ internal object RequestMapping {
             // REST spells this as a boolean; gRPC as an empty message whose presence enables it.
             if (params.prefix == true) prefix = Collections.KeywordPrefixParams.newBuilder().build()
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun integer(params: PayloadIndexParams.Integer): Collections.IntegerIndexParams =
@@ -230,6 +242,7 @@ internal object RequestMapping {
             params.isPrincipal?.let { isPrincipal = it }
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun float(params: PayloadIndexParams.Float): Collections.FloatIndexParams =
@@ -237,12 +250,14 @@ internal object RequestMapping {
             params.isPrincipal?.let { isPrincipal = it }
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun geo(params: PayloadIndexParams.Geo): Collections.GeoIndexParams =
         Collections.GeoIndexParams.newBuilder().apply {
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun text(params: PayloadIndexParams.Text): Collections.TextIndexParams =
@@ -255,14 +270,18 @@ internal object RequestMapping {
             params.minTokenLen?.let { minTokenLen = it.toLong() }
             params.maxTokenLen?.let { maxTokenLen = it.toLong() }
             params.phraseMatching?.let { phraseMatching = it }
+            params.asciiFolding?.let { asciiFolding = it }
+            params.stemmer?.let { stemmer = stemmer(it) }
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun bool(params: PayloadIndexParams.Bool): Collections.BoolIndexParams =
         Collections.BoolIndexParams.newBuilder().apply {
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun datetime(params: PayloadIndexParams.Datetime): Collections.DatetimeIndexParams =
@@ -270,6 +289,7 @@ internal object RequestMapping {
             params.isPrincipal?.let { isPrincipal = it }
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun uuid(params: PayloadIndexParams.Uuid): Collections.UuidIndexParams =
@@ -277,6 +297,7 @@ internal object RequestMapping {
             params.isTenant?.let { isTenant = it }
             params.onDisk?.let { onDisk = it }
             params.memory?.let { memory = memory(it) }
+            params.enableHnsw?.let { enableHnsw = it }
         }.build()
 
     private fun tokenizer(value: Tokenizer?): Collections.TokenizerType = when (value) {
@@ -286,6 +307,20 @@ internal object RequestMapping {
         Tokenizer.WORD -> Collections.TokenizerType.Word
         Tokenizer.MULTILINGUAL -> Collections.TokenizerType.Multilingual
     }
+
+    /**
+     * Qdrant's gRPC shape is a oneof rather than REST's tagged object, so the two spellings differ and the
+     * model carries neither: `{"type":"snowball","language":"italian"}` over HTTP, a `snowball` field here.
+     */
+    private fun stemmer(algorithm: StemmingAlgorithm): Collections.StemmingAlgorithm =
+        Collections.StemmingAlgorithm.newBuilder().apply {
+            when (algorithm) {
+                is StemmingAlgorithm.Snowball -> snowball = Collections.SnowballParams.newBuilder()
+                    .setLanguage(algorithm.language.name.lowercase())
+                    .build()
+                StemmingAlgorithm.Disabled -> disabled = Collections.DisabledStemmer.newBuilder().build()
+            }
+        }.build()
 
     fun memory(memory: Memory): Collections.Memory = when (memory) {
         Memory.COLD -> Collections.Memory.Cold

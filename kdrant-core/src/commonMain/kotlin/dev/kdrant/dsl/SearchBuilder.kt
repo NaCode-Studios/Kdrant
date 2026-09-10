@@ -13,6 +13,7 @@ import dev.kdrant.model.LookupLocation
 import dev.kdrant.model.Mmr
 import dev.kdrant.model.PointId
 import dev.kdrant.model.Prefetch
+import dev.kdrant.model.QuantizationSearchParams
 import dev.kdrant.model.QueryInterface
 import dev.kdrant.model.RecommendStrategy
 import dev.kdrant.model.SearchParams
@@ -345,7 +346,27 @@ public class SearchParamsBuilder {
         idfCorpus = FilterBuilder().apply(configure).build()
     }
 
-    internal fun build(): SearchParams = SearchParams(hnswEf, exact, indexedOnly, idfCorpus?.let(::IdfParams))
+    /** How to read a quantized collection. See [QuantizationSearchParams]. */
+    public var quantization: QuantizationSearchParams? = null
+
+    /**
+     * Re-score the top candidates against the original vectors, optionally preselecting
+     * [oversampling] times the limit from the quantized index first.
+     *
+     * The shorthand exists because this is the setting a quantized collection is usually read wrong
+     * without, and a caller should not have to name a type to ask for accuracy.
+     */
+    public fun rescore(oversampling: Double? = null) {
+        quantization = QuantizationSearchParams(rescore = true, oversampling = oversampling)
+    }
+
+    internal fun build(): SearchParams = SearchParams(
+        hnswEf = hnswEf,
+        exact = exact,
+        indexedOnly = indexedOnly,
+        idf = idfCorpus?.let(::IdfParams),
+        quantization = quantization,
+    )
 }
 
 /** DSL for a recommend query: [positive] / [negative] examples plus an optional [strategy]. */
