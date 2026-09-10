@@ -6,6 +6,31 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-10
+
+Tiers 10 and 11, complete, in one version. The theme is tracking the server this client exists to speak to,
+and measuring what had only been asserted.
+
+Qdrant 1.19's query and storage surface is reachable: prefix matching, relevance feedback, slice filtering,
+memory tiers and 4-bit storage. Which Qdrant this client is pinned to is one fact with a check behind it
+rather than fourteen copies, and a scheduled job notices when upstream moves. Reads can be pinned to a
+replica and the cluster quota can be read rather than discovered. The CLI grew the half that was cut and a
+Windows binary, and both it and the new MCP server run against a real Qdrant on every push rather than for
+the first time at a tag. And the comparison benchmark has numbers, including the four rows where Kdrant
+loses.
+
+**Post-`1.0`, a version follows API impact and nothing else**, which is why two planned minors are one. Both
+tiers are additive, and two tags on the same tree would make "when did that land" a question with two
+answers. Tier 11's release item records the same decision Tier 9's did at `2.2.0`.
+
+**What it does to a jar swap.** Every call site from `2.2.0` compiles unchanged, and
+`git diff v2.2.0 v2.3.0 -- '*/api/*.api'` removes 132 lines, so this is a recompile rather than a drop-in.
+Nineteen public data classes gained a defaulted property and their constructors and generated `copy`
+changed shape with it, which is the case [STABILITY.md](STABILITY.md) already names. The one that is not a
+data class is `count` and `retrieve` on `QdrantClient` and `QdrantTransport`, which gained `routeAffinity`
+on the end. Nothing was renamed and nothing was removed, and `payload` on `CreateCollectionRequest` was
+appended rather than placed beside the flag it overrides, deliberately, so no `componentN` shifted meaning.
+
 ### Added
 
 - **Prefix matching, and the keyword index that serves it** (M56). `matchPrefix(key, prefix)` joins the
@@ -163,13 +188,6 @@ All notable changes to this project are documented in this file. The format is b
   a Qdrant over a network, and the answer for a device that has to answer offline is Qdrant Edge. The
   Platforms section now draws that line rather than leaving a reader to work it out.
 
-### Internal
-
-- **Kotlin 2.4.20, Gradle 9.7.1, langchain4j 1.20.0 and the GraalVM build tools 1.1.12.** No source change
-  was needed. The public API dump gains one line: `KdrantException.RateLimited` now carries an explicit
-  no-argument constructor, which the 2.4.20 compiler emits where 2.4.10 left only the synthetic one. It is
-  additive to the ABI rather than a change to the class.
-
 ### Deprecated
 
 - **`StrictModeConfig.maxDiskUsagePercent` and `maxResidentMemoryPercent`.** Qdrant 1.19 replaced the
@@ -197,6 +215,25 @@ All notable changes to this project are documented in this file. The format is b
   is now held until those batches have drained and reported, then thrown, which is what a batch failure
   already did and for the same reason: a batch cancelled after the server accepted it is a point the
   collection holds and no token counts.
+
+### Internal
+
+- **Fifteen dependency versions moved, across three Dependabot groups.** Kotlin 2.4.10 to 2.4.20, Gradle
+  9.6.1 to 9.7.1, JUnit 6.1.2 to 6.1.3, Kotest 6.2.3 to 6.2.4, Spring Boot 4.1.0 to 4.1.1, Spring AI 2.0.0
+  to 2.0.1, langchain4j 1.18.1 to 1.20.0, Micrometer 1.17.0 to 1.17.1, Koog 1.1.1 to 1.2.0, gRPC 1.83.1 to
+  1.84.0, protobuf 4.35.1 to 4.36.1, OpenTelemetry 1.64.0 to 1.65.0, Guava 33.6.0 to 33.7.1, the binary
+  compatibility validator 0.18.1 to 0.18.2, and the GraalVM build tools 1.1.6 to 1.1.12. No source change
+  was needed for any of them.
+  One had a consequence worth naming. `io.qdrant:client` went to 1.19.0, and Qdrant moved `PointId` out of
+  its `Points` class when it split its protos, so the comparison benchmark stopped compiling. Nothing
+  reported it, because the JMH source set was not part of `build`. It is now.
+  Kotlin 2.4.20 adds one line to the public API dump on its own: `KdrantException.RateLimited` gains an
+  explicit no-argument constructor where 2.4.10 emitted only the synthetic bridge. Additive to the ABI,
+  with no source change behind it.
+- **Two Dependabot branches were applied by hand rather than merged**, because each predated a merge that
+  had touched `gradle/libs.versions.toml`. Taking the file wholesale reverts the catalog, and the second
+  time it did: the build failed on three entries the MCP module needs. A bump that reverts a catalog is not
+  a bump.
 
 ## [2.2.0] - 2026-08-06
 
@@ -817,6 +854,7 @@ helper).
 - Typed error hierarchy `KdrantException`.
 
 [Unreleased]: https://github.com/NaCode-Studios/Kdrant/compare/v2.2.0...HEAD
+[2.3.0]: https://github.com/NaCode-Studios/Kdrant/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/NaCode-Studios/Kdrant/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/NaCode-Studios/Kdrant/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/NaCode-Studios/Kdrant/compare/v1.2.0...v2.0.0

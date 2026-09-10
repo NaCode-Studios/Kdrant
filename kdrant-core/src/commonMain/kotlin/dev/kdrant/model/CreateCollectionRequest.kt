@@ -26,10 +26,6 @@ public data class CreateCollectionRequest(
     @SerialName("on_disk_payload")
     public val onDiskPayload: Boolean? = null,
 
-    /** Memory placement of payload storage. Overrides [onDiskPayload] when both are set. */
-    @SerialName("payload")
-    public val payload: PayloadStorageParams? = null,
-
     @SerialName("shard_number")
     public val shardNumber: Int? = null,
 
@@ -45,4 +41,15 @@ public data class CreateCollectionRequest(
     /** Server-enforced limits on the requests this collection accepts. */
     @SerialName("strict_mode_config")
     public val strictModeConfig: StrictModeConfig? = null,
+
+    /**
+     * Memory placement of payload storage. Overrides [onDiskPayload] when both are set.
+     *
+     * Appended rather than placed beside the flag it replaces, which would read better and would have
+     * shifted every `componentN` after it: a destructuring or a positional `copy()` compiled against
+     * `2.2.0` would then resolve to the wrong field. A field added to the end of a public data class
+     * costs a recompile; one added to the middle costs more than that.
+     */
+    @SerialName("payload")
+    public val payload: PayloadStorageParams? = null,
 )

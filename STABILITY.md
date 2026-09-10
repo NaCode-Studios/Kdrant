@@ -131,6 +131,34 @@ Within a major version:
 - **Wire compatibility.** Kdrant tracks Qdrant's stable API; new Qdrant features arrive as additive
   minor releases.
 
+## Upgrading from `2.2`
+
+`2.3.0` is a minor and every `2.2.0` call site compiles unchanged. It is a recompile rather than a jar
+swap, and the reason is the one this policy already names rather than a new one.
+
+`git diff v2.2.0 v2.3.0 -- '*/api/*.api'` removes 132 lines, in two groups:
+
+| What | Why | Lines |
+| --- | --- | --- |
+| Nineteen data classes, their constructors and generated `copy` | each gained a defaulted property: memory tiers on the vector, HNSW and payload-index parameters, `enableHnsw` on all eight index types, `payload` on the collection, `routeAffinity` on the read requests, `quantization` and `idf` on the search parameters | 114 |
+| `count` and `retrieve` on `QdrantClient`, `QdrantTransport` and the gRPC engine | both gained `routeAffinity`, a defaulted parameter on the end | 18 |
+
+Nothing was renamed and nothing was removed. `payload` on `CreateCollectionRequest` was appended rather
+than placed beside the `onDiskPayload` it overrides, which would have read better and would have shifted
+every `componentN` after it: a destructuring or a positional `copy()` compiled against `2.2.0` would then
+have resolved to the wrong field. A property added to the end of a data class costs a recompile; one added
+to the middle costs more than that.
+
+**Two public properties are deprecated and still work.** `StrictModeConfig.maxDiskUsagePercent` and
+`maxResidentMemoryPercent` are replaced by the cluster quota API that
+[`quotas`][dev.kdrant.QdrantClient.quotas] reads, for the reasons in
+[the memory-tier section](#where-a-memory-tier-and-an-on_disk-flag-disagree) and in the changelog. They go
+in `3.0`.
+
+**One thing is not in any dump and is worth knowing before relying on it.** Relevance feedback does not
+return the points it was given feedback on. That suits the loop it belongs in, where the judged results
+have already been shown, and it is not what "rerank" suggests.
+
 ## Upgrading from `2.1`
 
 `2.2.0` is a minor and every `2.1.0` call site compiles unchanged. Two things are worth knowing before

@@ -12,6 +12,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white&labelColor=0B0E17)](https://kotlinlang.org)
 [![API docs](https://img.shields.io/badge/API%20docs-Dokka-232B45?labelColor=0B0E17)](https://nacode-studios.github.io/Kdrant/)
 [![Website](https://img.shields.io/badge/website-nacodestudios.it-232B45?labelColor=0B0E17)](https://nacodestudios.it/en/project/kdrant)
+[![Awesome Kotlin](https://kotlin.link/awesome-kotlin.svg)](https://github.com/Heapy/awesome-kotlin)
 
 Qdrant's official JVM client is built for Java: every call returns a `ListenableFuture`, requests are
 assembled with protobuf builders, and the wire is decided for you: gRPC, with a shaded Netty on your
@@ -49,10 +50,12 @@ configured, Kdrant can send the text and the model name and let the server produ
 > **See it end to end.** [`example-rag`](example-rag/) is a small runnable Retrieval-Augmented-Generation
 > service (ingest, embed, store, retrieve) built on Kdrant, with a `docker-compose` for Qdrant.
 
-> **Status — `2.2`, stable.** Both engines cover Qdrant's API: collections, points, the modern
-> `/points/query` search including hybrid fusion, sparse and multi-vectors, scroll, payload and vector
-> management, aliases, snapshots, cluster and sharding. The public API is stable under SemVer and
-> tracked per target; see [STABILITY.md](STABILITY.md). The plan is on the
+> **Status — `2.3`, stable.** Both engines cover Qdrant's API through 1.19: collections, points, the
+> modern `/points/query` search including hybrid fusion, sparse and multi-vectors, prefix matching,
+> relevance feedback and sliced scrolls, memory tiers and 4-bit storage, scroll, payload and vector
+> management, aliases, snapshots, quotas, cluster and sharding. Which Qdrant that is, is one fact the
+> build checks rather than a claim. The public API is stable under SemVer and tracked per target; see
+> [STABILITY.md](STABILITY.md). The plan is on the
 > [board](https://github.com/orgs/NaCode-Studios/projects/4).
 
 ## Why Kdrant
@@ -161,9 +164,10 @@ val qdrant: QdrantClient =
 ```
 
 Every example below reads the same either way. Two differences matter before you switch. The port is
-6334 rather than 6333, and nothing rewrites it for you. And Qdrant serves fourteen operations over HTTP
-only: telemetry, Prometheus metrics, the two issues calls, snapshot recovery, the snapshot and
-storage-snapshot transfers, and the six shard-scope snapshot operations. The gRPC engine refuses each of
+6334 rather than 6333, and nothing rewrites it for you. And Qdrant serves sixteen operations over HTTP
+only: telemetry, Prometheus metrics, the two issues calls, the two quota calls, snapshot recovery, the
+snapshot and storage-snapshot transfers, and the six shard-scope snapshot operations. The gRPC engine
+refuses each of
 them by name rather than degrading quietly.
 
 ### Platforms

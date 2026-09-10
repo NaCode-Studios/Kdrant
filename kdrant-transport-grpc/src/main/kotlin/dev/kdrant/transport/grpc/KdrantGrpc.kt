@@ -16,8 +16,8 @@ import dev.kdrant.transport.QdrantTransport
  *
  * REST stays the recommended engine. Reach for this one when throughput is the bottleneck: HTTP/2
  * multiplexing and protobuf framing win on large upserts and on many concurrent small reads. What it
- * costs is the eleven operations Qdrant serves over HTTP only — telemetry, metrics, issues, snapshot
- * transfer and shard-scope snapshots — which throw here rather than pretending; see
+ * costs is the sixteen operations Qdrant serves over HTTP only — telemetry, metrics, issues, quotas,
+ * snapshot transfer and shard-scope snapshots — which throw here rather than pretending; see
  * [GrpcQdrantTransport].
  *
  * @param port defaults to **6334**, Qdrant's gRPC port. It is not 6333: a config carried over from the
