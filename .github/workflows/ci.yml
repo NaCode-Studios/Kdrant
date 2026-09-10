@@ -74,6 +74,14 @@ jobs:
       - name: Build, test, lint (ktlint + detekt) and verify public API
         run: ./gradlew build --no-daemon --stacktrace
 
+      # The JMH sources are not part of `build`, so nothing compiled them and they rotted: the official
+      # client moved PointId into another generated class at 1.19 and the comparison harness stopped
+      # compiling without anything saying so. A harness that does not build publishes no numbers, which
+      # is a slower way to have no benchmark than not writing one.
+      - name: Compile the benchmark harness
+        if: matrix.java == '17'
+        run: ./gradlew :benchmarks:compileJmhKotlin --no-daemon --stacktrace
+
       - name: Coverage (Kover)
         if: matrix.java == '17'
         run: ./gradlew koverXmlReport koverHtmlReport koverVerify --no-daemon --stacktrace

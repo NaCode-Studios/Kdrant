@@ -10,6 +10,7 @@ import dev.kdrant.model.VectorData
 import dev.kdrant.transport.rest.Kdrant
 import io.qdrant.client.QdrantClient as OfficialClient
 import io.qdrant.client.QdrantGrpcClient
+import io.qdrant.client.grpc.Common
 import io.qdrant.client.grpc.Points
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -154,7 +155,7 @@ open class OfficialClientComparisonBenchmark {
 
     @Benchmark
     fun officialScroll(): Int {
-        var offset: Points.PointId? = null
+        var offset: Common.PointId? = null
         var seen = 0
         while (true) {
             val request = Points.ScrollPoints.newBuilder()
