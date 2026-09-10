@@ -91,9 +91,17 @@ on every change, so the day a dependency starts reflecting, the build fails inst
 quietly becoming false. Nothing is required of you: `kdrant-transport-rest` ships the one reflection
 registration kotlinx-serialization needs, generated from its own classes rather than written by hand.
 
-For raw throughput and long-lived streaming, gRPC still wins, and that case has an answer inside Kdrant:
-`kdrant-transport-grpc` is the same `QdrantClient` behind the same API. For typical RAG and
-embedding-search workloads, REST trades the wire for a fraction of the footprint.
+That table is about footprint. The speed question has an answer too, and it is measured rather than
+argued: [`benchmarks/README.md`](benchmarks/README.md#the-results) runs both clients and both of Kdrant's
+engines against the same server in the same JVM.
+
+**Kdrant over REST is slower than the official client on every operation, by 2.5x on a single search and
+9.3x on a 500-point upsert. Over Kdrant's own gRPC engine that gap collapses to between 8% and 30%.** So
+what a comparison of the two defaults measures is HTTP and JSON against protobuf, not a Kotlin client
+against a Java one, and the suspending functions and typed DSL cost nothing detectable. If a hot path is
+latency-sensitive, `kdrant-transport-grpc` is the same `QdrantClient` behind the same API and the choice
+between libraries stops being about speed. For typical RAG and embedding-search workloads, REST trades
+those milliseconds for a fraction of the footprint.
 
 ## Installation
 

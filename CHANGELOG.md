@@ -103,6 +103,22 @@ All notable changes to this project are documented in this file. The format is b
   bundle through the challenge handler Ktor does expose, and will not until there is a test proving it
   rejects a chain the bundle does not anchor, because custom trust evaluation is the code that is wrong
   in a way nobody notices. No row is left reading as work in progress.
+- **The comparison benchmark has numbers** (M68). The harness shipped in `2.2.0` and had never been run,
+  which mattered because the missing half is the one that contradicts the assumption that ergonomics were
+  bought with throughput. It has been run, and it says Kdrant loses every row: 2.5x slower than the
+  official client on a single search and 9.3x on a 500-point upsert. It also gained a third column,
+  Kdrant over its own gRPC engine, because without one every gap is a gap against protobuf before it is a
+  gap against a library. Over the same protocol the gap is 8% to 30%, and the worst row is partly a
+  round trip rather than serialization: Kdrant splits an upsert at 256 points by default and sent two
+  requests where the official client sent one.
+- **Multi-tenancy is measured** (M64). A tenant-indexed collection and a plainly-indexed one, same points
+  and same filtered search: the tenant index is about 10% faster on the mean and 20% at the 99th
+  percentile, over 20 000 points across 50 tenants. That is close to the floor of what the layout can be
+  worth, because a collection that small has almost nothing to colocate, and it is published anyway so a
+  reader knows what the small end looks like rather than assuming either way.
+- **The JMH harness is compiled by CI.** It had not compiled since the official client moved `PointId`
+  between generated classes at 1.19, and nothing noticed because the benchmark source set is not part of
+  `build`.
 - **The README says Kdrant is a client** (M70). An ARM target, a 37 ms cold start in 42 MB and a 5.7 MB
   static binary read together as a project that could hold an index on a device. It cannot: it talks to
   a Qdrant over a network, and the answer for a device that has to answer offline is Qdrant Edge. The
