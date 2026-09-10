@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 dokka = "2.2.0"
 mavenPublish = "0.37.0"
 coroutines = "1.11.0"
@@ -14,7 +14,7 @@ kotest = "6.2.4"
 springBoot = "4.1.1"
 assertj = "3.27.7"
 springAi = "2.0.1"
-langchain4j = "1.19.0"
+langchain4j = "1.20.0"
 mockk = "1.14.11"
 micrometer = "1.17.1"
 koog = "1.2.0"
@@ -124,4 +124,4 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 jmh = { id = "me.champeau.jmh", version = "0.7.3" }
 protobuf = { id = "com.google.protobuf", version = "0.10.0" }
-graalvm-native = { id = "org.graalvm.buildtools.native", version = "1.1.11" }
+graalvm-native = { id = "org.graalvm.buildtools.native", version = "1.1.12" }

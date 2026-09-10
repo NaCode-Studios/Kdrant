@@ -163,6 +163,13 @@ All notable changes to this project are documented in this file. The format is b
   a Qdrant over a network, and the answer for a device that has to answer offline is Qdrant Edge. The
   Platforms section now draws that line rather than leaving a reader to work it out.
 
+### Internal
+
+- **Kotlin 2.4.20, Gradle 9.7.1, langchain4j 1.20.0 and the GraalVM build tools 1.1.12.** No source change
+  was needed. The public API dump gains one line: `KdrantException.RateLimited` now carries an explicit
+  no-argument constructor, which the 2.4.20 compiler emits where 2.4.10 left only the synthetic one. It is
+  additive to the ABI rather than a change to the class.
+
 ### Deprecated
 
 - **`StrictModeConfig.maxDiskUsagePercent` and `maxResidentMemoryPercent`.** Qdrant 1.19 replaced the
