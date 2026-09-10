@@ -55,6 +55,16 @@ public sealed interface PayloadIndexParams {
     public val memory: Memory?
 
     /**
+     * Whether Qdrant builds the extra HNSW links for this field, which is what makes a filtered search
+     * over it read one tenant's or one category's points instead of walking the collection and
+     * discarding. It needs `payloadM` above zero on the HNSW config to do anything, so a caller who sets
+     * one without the other has asked for half of a multi-tenant layout.
+     *
+     * `null` leaves the server's default, which is on.
+     */
+    public val enableHnsw: Boolean?
+
+    /**
      * A keyword index: exact matches on a string or a list of strings.
      *
      * @property isTenant tells Qdrant this field identifies a tenant, which makes it colocate one
@@ -69,6 +79,7 @@ public sealed interface PayloadIndexParams {
         /** Serves `match.prefix` from this index. `null` leaves the server's default (off). */
         @SerialName("prefix") public val prefix: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /**
@@ -88,6 +99,7 @@ public sealed interface PayloadIndexParams {
         @SerialName("is_principal") public val isPrincipal: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /** A float index. See [Integer.isPrincipal] for what `isPrincipal` decides. */
@@ -97,6 +109,7 @@ public sealed interface PayloadIndexParams {
         @SerialName("is_principal") public val isPrincipal: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /** A geo index, for `geoRadius`, `geoBoundingBox` and `geoPolygon` filters. */
@@ -105,6 +118,7 @@ public sealed interface PayloadIndexParams {
     public data class Geo(
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /**
@@ -126,8 +140,13 @@ public sealed interface PayloadIndexParams {
         @SerialName("max_token_len") public val maxTokenLen: Int? = null,
         @SerialName("lowercase") public val lowercase: Boolean? = null,
         @SerialName("phrase_matching") public val phraseMatching: Boolean? = null,
+        /** Fold accented characters to ASCII, so "ação" and "acao" are the same token. */
+        @SerialName("ascii_folding") public val asciiFolding: Boolean? = null,
+        /** How tokens are reduced to a stem. The server's default is no stemming. */
+        @SerialName("stemmer") public val stemmer: StemmingAlgorithm? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /** A boolean index. */
@@ -136,6 +155,7 @@ public sealed interface PayloadIndexParams {
     public data class Bool(
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /** A datetime index, for `datetimeRange` filters. See [Integer.isPrincipal]. */
@@ -145,6 +165,7 @@ public sealed interface PayloadIndexParams {
         @SerialName("is_principal") public val isPrincipal: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 
     /** A UUID index. See [Keyword.isTenant] for what `isTenant` decides. */
@@ -154,5 +175,6 @@ public sealed interface PayloadIndexParams {
         @SerialName("is_tenant") public val isTenant: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
+        @SerialName("enable_hnsw") override val enableHnsw: Boolean? = null,
     ) : PayloadIndexParams
 }

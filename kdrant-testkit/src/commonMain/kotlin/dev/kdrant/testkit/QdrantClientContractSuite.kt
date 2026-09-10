@@ -7,6 +7,7 @@ import dev.kdrant.dsl.CreateCollectionBuilder
 import dev.kdrant.dsl.payloadOf
 import dev.kdrant.ingest
 import dev.kdrant.model.CollectionStatus
+import dev.kdrant.model.CompressionRatio
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
@@ -19,8 +20,12 @@ import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.QueryInterface
+import dev.kdrant.model.SnowballLanguage
+import dev.kdrant.model.StemmingAlgorithm
 import dev.kdrant.model.Tokenizer
+import dev.kdrant.model.TurboQuantBitSize
 import dev.kdrant.model.VectorData
 import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.VectorsConfig
@@ -123,6 +128,13 @@ public class QdrantClientContractSuite(
         case("relevance feedback reranks the query it was given") { relevanceFeedbackReranks() },
         case("four sliced scrolls read every point exactly once, repeatably") { slicedScrollPartitions() },
         case("4-bit storage and a memory tier per component round-trip") { memoryTiersRoundTrip() },
+        case("a collection's replication and payload placement can change after it exists") {
+            collectionParamsChangeAfterCreation()
+        },
+        case("a stemmed text index matches a word by its stem") { stemmedTextIndex() },
+        case("the quantization families a collection can be created with are accepted") {
+            quantizationFamiliesAreAccepted()
+        },
     )
 
     private fun case(name: String, run: suspend () -> Unit): Pair<String, suspend () -> Unit> = name to run
@@ -1169,6 +1181,103 @@ public class QdrantClientContractSuite(
 
             // A collection that stores only 4-bit vectors still answers, which is the reason to want it.
             assertEquals(PointId.num(1), client.search(name) { query(0.9f, 0.1f, 0.0f, 0.0f); limit = 1 }.single().id)
+        }
+    }
+
+    // --- What could be created and not changed, and what could not be asked for at all ------------
+
+    /**
+     * The reason `updateCollection` grew `params`. Placement and replication could be chosen at creation
+     * and never afterwards, so moving a collection from `cold` to `cached`, which is the whole point of a
+     * memory tier, meant recreating it.
+     */
+    public suspend fun collectionParamsChangeAfterCreation() {
+        withCollection(
+            create = {
+                vector { size = 4; distance = Distance.COSINE }
+                payloadMemory = Memory.COLD
+            },
+        ) { name ->
+            val before = assertNotNull(client.getCollection(name).config?.params)
+            assertEquals(Memory.COLD, before.payload?.memory)
+
+            client.updateCollection(name) {
+                payloadMemory = Memory.CACHED
+                writeConsistencyFactor = 1
+            }
+
+            val after = assertNotNull(client.getCollection(name).config?.params)
+            assertEquals(Memory.CACHED, after.payload?.memory, "the payload tier did not move")
+            // Unchanged, because a field left out of the diff is left alone. Asserting it is what catches a
+            // client that sends a full params object and silently resets what the caller did not mention.
+            assertEquals(before.shardNumber, after.shardNumber)
+        }
+    }
+
+    /**
+     * Stemming is asserted behaviourally because it has to be: `getCollection` reports a payload index's
+     * data type and not the parameters it was built with, so the only way to know the stemmer arrived is
+     * to search for a word the index would not otherwise match.
+     */
+    public suspend fun stemmedTextIndex() {
+        withCollection { name ->
+            client.createPayloadIndex(name, "body", wait = true) {
+                text {
+                    tokenizer = Tokenizer.WORD
+                    lowercase = true
+                    stemmer = StemmingAlgorithm.Snowball(SnowballLanguage.ENGLISH)
+                }
+            }
+            client.upsert(name, wait = true) {
+                point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f); payload("body" to "the engine is running well") }
+                point(2) { vector(0.0f, 1.0f, 0.0f, 0.0f); payload("body" to "a bicycle") }
+            }
+
+            // "run" reaches "running" only through the stemmer: a word index would not match it.
+            assertEquals(
+                1L,
+                client.count(name) { must { matchText("body", "run") } },
+                "the stemmer did not reach the server, so 'run' did not match 'running'",
+            )
+            assertEquals(1L, client.count(name) { must { matchText("body", "running") } })
+            assertEquals(0L, client.count(name) { must { matchText("body", "aeroplane") } })
+        }
+    }
+
+    /**
+     * Product and TurboQuant, which this client could not ask for at all.
+     *
+     * Acceptance rather than a round trip, and the distinction is worth stating: `getCollection` exposes a
+     * collection's vector and sharding parameters and not its quantization, so there is nothing to read
+     * back. What this proves is that the wire shape is one Qdrant accepts and that the collection it built
+     * still answers, which is what would break if the shape were wrong.
+     */
+    public suspend fun quantizationFamiliesAreAccepted() {
+        val families = listOf(
+            QuantizationConfig.Product(CompressionRatio.X16),
+            QuantizationConfig.Turbo(TurboQuantBitSize.BITS_1_5),
+            QuantizationConfig.Turbo(),
+        )
+        families.forEach { family ->
+            withCollection(
+                create = {
+                    vector { size = 4; distance = Distance.COSINE }
+                    quantization = family
+                },
+            ) { name ->
+                client.upsert(name, wait = true) {
+                    point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f) }
+                    point(2) { vector(0.0f, 1.0f, 0.0f, 0.0f) }
+                }
+                // Rescoring against the originals is the read side of quantization, and a search that asks
+                // for it has to come back rather than be refused.
+                val hits = client.search(name) {
+                    query(0.9f, 0.1f, 0.0f, 0.0f)
+                    limit = 1
+                    params { rescore(oversampling = 2.0) }
+                }
+                assertEquals(PointId.num(1), hits.single().id, "$family did not answer a rescored search")
+            }
         }
     }
 

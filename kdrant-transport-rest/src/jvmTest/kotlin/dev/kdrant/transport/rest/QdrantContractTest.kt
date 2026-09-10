@@ -274,6 +274,52 @@ class QdrantContractTest {
                     )
                 }
             }
+            // The three the guard's own name promised and did not cover. updateCollection in particular was
+            // the operation that could not send half of what Qdrant takes until `params` existed.
+            call("updateCollection") { c ->
+                c.updateCollection("docs") {
+                    optimizers = dev.kdrant.model.OptimizersConfig(indexingThreshold = 30_000)
+                    replicationFactor = 2
+                    writeConsistencyFactor = 1
+                    readFanOutFactor = 1
+                    payloadMemory = Memory.CACHED
+                }
+            }
+            // The quantization families and the index options that had no way to be sent, validated against
+            // the same published schema as everything else.
+            call("createCollectionQuantized") { c ->
+                c.createCollection("docs") {
+                    vector { size = 384; distance = Distance.COSINE }
+                    quantization = dev.kdrant.model.QuantizationConfig.Product(
+                        compression = dev.kdrant.model.CompressionRatio.X16,
+                        memory = Memory.PINNED,
+                    )
+                }
+            }
+            call("createPayloadIndexStemmed") { c ->
+                c.createPayloadIndex("docs", "body") {
+                    text {
+                        tokenizer = Tokenizer.WORD
+                        asciiFolding = true
+                        stemmer = dev.kdrant.model.StemmingAlgorithm.Snowball(
+                            dev.kdrant.model.SnowballLanguage.ITALIAN,
+                        )
+                        enableHnsw = false
+                    }
+                }
+            }
+            call("queryRescored") { c ->
+                c.search("docs") {
+                    query(0.1f, 0.2f)
+                    params { rescore(oversampling = 2.0) }
+                }
+            }
+            call("searchMatrixPairs") { c ->
+                c.searchMatrixPairs("docs") { sample = 10; limit = 3; filter { must { "lang" eq "en" } } }
+            }
+            call("searchMatrixOffsets") { c ->
+                c.searchMatrixOffsets("docs") { sample = 10; limit = 3 }
+            }
             call("updateQuotas") { c ->
                 c.updateQuotas(
                     dev.kdrant.model.QuotaConfig(
@@ -315,13 +361,14 @@ class QdrantContractTest {
         // has to be written down.
         assertEquals(
             listOf(
-                "batchUpdate", "clearPayload", "count", "createCollection",
-                "createCollectionWithMemoryTiers", "createPayloadIndex", "createPayloadIndexWithPrefix",
-                "createShardKey", "delete", "deletePayload", "deleteShardKey", "deleteVectors",
-                "facet", "query", "queryBatch", "queryDocument", "queryGroups", "queryWithFormula",
-                "queryWithIdfCorpus", "queryWithMinMax", "queryWithMmr", "queryWithRelevanceFeedback",
-                "queryWithSlice", "recoverSnapshot", "retrieve", "scroll", "scrollSlice", "setPayload",
-                "updateAliases", "updateCollectionCluster", "updateQuotas", "updateVectors", "upsert",
+                "batchUpdate", "clearPayload", "count", "createCollection", "createCollectionQuantized",
+                "createCollectionWithMemoryTiers", "createPayloadIndex", "createPayloadIndexStemmed",
+                "createPayloadIndexWithPrefix", "createShardKey", "delete", "deletePayload", "deleteShardKey",
+                "deleteVectors", "facet", "query", "queryBatch", "queryDocument", "queryGroups",
+                "queryRescored", "queryWithFormula", "queryWithIdfCorpus", "queryWithMinMax", "queryWithMmr",
+                "queryWithRelevanceFeedback", "queryWithSlice", "recoverSnapshot", "retrieve", "scroll",
+                "scrollSlice", "searchMatrixOffsets", "searchMatrixPairs", "setPayload", "updateAliases",
+                "updateCollection", "updateCollectionCluster", "updateQuotas", "updateVectors", "upsert",
                 "upsertDocument",
             ),
             sent.map { it.name }.distinct().sorted(),
@@ -358,6 +405,8 @@ class QdrantContractTest {
             "cluster" to """{"result":true,"status":"ok"}""",
             "shards" to """{"result":true,"status":"ok"}""",
             "quotas" to """{"result":{"config":{"enabled":true},"usage":{}},"status":"ok"}""",
+            "pairs" to """{"result":{"pairs":[]},"status":"ok"}""",
+            "offsets" to """{"result":{"offsets_row":[],"offsets_col":[],"scores":[],"ids":[]},"status":"ok"}""",
         )
     }
 }

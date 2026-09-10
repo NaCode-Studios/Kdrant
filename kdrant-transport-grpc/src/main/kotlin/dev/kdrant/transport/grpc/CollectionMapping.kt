@@ -7,7 +7,9 @@ import dev.kdrant.model.ClusterOperation
 import dev.kdrant.model.CollectionConfig
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.CollectionParams
+import dev.kdrant.model.CollectionParamsDiff
 import dev.kdrant.model.CollectionStatus
+import dev.kdrant.model.CompressionRatio
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.Distance
 import dev.kdrant.model.HnswConfig
@@ -24,6 +26,7 @@ import dev.kdrant.model.ReplicaState
 import dev.kdrant.model.SnapshotDescription
 import dev.kdrant.model.SparseVectorParams
 import dev.kdrant.model.StrictModeConfig
+import dev.kdrant.model.TurboQuantBitSize
 import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.VectorParams
@@ -68,6 +71,21 @@ internal object CollectionMapping {
             request.hnswConfig?.let { hnswConfig = hnswConfig(it) }
             request.quantizationConfig?.let { quantizationConfig = quantizationConfigDiff(it) }
             request.strictModeConfig?.let { strictModeConfig = strictModeConfig(it) }
+            request.params?.let { params = collectionParamsDiff(it) }
+        }.build()
+
+    private fun collectionParamsDiff(diff: CollectionParamsDiff): Collections.CollectionParamsDiff =
+        Collections.CollectionParamsDiff.newBuilder().apply {
+            diff.replicationFactor?.let { replicationFactor = it }
+            diff.writeConsistencyFactor?.let { writeConsistencyFactor = it }
+            diff.readFanOutFactor?.let { readFanOutFactor = it }
+            diff.readFanOutDelayMs?.let { readFanOutDelayMs = it }
+            diff.onDiskPayload?.let { onDiskPayload = it }
+            diff.payload?.memory?.let {
+                payload = Collections.PayloadStorageParams.newBuilder()
+                    .setMemory(RequestMapping.memory(it))
+                    .build()
+            }
         }.build()
 
     fun collectionInfo(info: Collections.CollectionInfo): CollectionInfo = CollectionInfo(
@@ -389,6 +407,8 @@ internal object CollectionMapping {
             when (config) {
                 is QuantizationConfig.Scalar -> scalar = scalarQuantization(config)
                 is QuantizationConfig.Binary -> binary = binaryQuantization(config)
+                is QuantizationConfig.Product -> product = productQuantization(config)
+                is QuantizationConfig.Turbo -> turboquant = turboQuantization(config)
             }
         }.build()
 
@@ -397,7 +417,36 @@ internal object CollectionMapping {
             when (config) {
                 is QuantizationConfig.Scalar -> scalar = scalarQuantization(config)
                 is QuantizationConfig.Binary -> binary = binaryQuantization(config)
+                is QuantizationConfig.Product -> product = productQuantization(config)
+                is QuantizationConfig.Turbo -> turboquant = turboQuantization(config)
             }
+        }.build()
+
+    private fun productQuantization(config: QuantizationConfig.Product): Collections.ProductQuantization =
+        Collections.ProductQuantization.newBuilder().apply {
+            compression = when (config.compression) {
+                CompressionRatio.X4 -> Collections.CompressionRatio.x4
+                CompressionRatio.X8 -> Collections.CompressionRatio.x8
+                CompressionRatio.X16 -> Collections.CompressionRatio.x16
+                CompressionRatio.X32 -> Collections.CompressionRatio.x32
+                CompressionRatio.X64 -> Collections.CompressionRatio.x64
+            }
+            config.alwaysRam?.let { alwaysRam = it }
+            config.memory?.let { memory = RequestMapping.memory(it) }
+        }.build()
+
+    private fun turboQuantization(config: QuantizationConfig.Turbo): Collections.TurboQuantization =
+        Collections.TurboQuantization.newBuilder().apply {
+            config.bits?.let {
+                bits = when (it) {
+                    TurboQuantBitSize.BITS_1 -> Collections.TurboQuantBitSize.Bits1
+                    TurboQuantBitSize.BITS_1_5 -> Collections.TurboQuantBitSize.Bits1_5
+                    TurboQuantBitSize.BITS_2 -> Collections.TurboQuantBitSize.Bits2
+                    TurboQuantBitSize.BITS_4 -> Collections.TurboQuantBitSize.Bits4
+                }
+            }
+            config.alwaysRam?.let { alwaysRam = it }
+            config.memory?.let { memory = RequestMapping.memory(it) }
         }.build()
 
     private fun scalarQuantization(config: QuantizationConfig.Scalar): Collections.ScalarQuantization =

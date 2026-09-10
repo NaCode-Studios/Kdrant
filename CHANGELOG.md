@@ -68,6 +68,27 @@ All notable changes to this project are documented in this file. The format is b
   than merges, which is stated where a caller would look, because a config naming one limit silently
   drops the others. REST only, and the gRPC engine refuses both by name.
 
+- **The parts of a collection that could be created and never changed** (#149). `updateCollection` now
+  carries `params`, so a collection's replication factor, write consistency, read fan-out and payload
+  placement can be changed after it exists. That last one is why it mattered: memory tiers arrived in 1.19
+  and `payloadMemory` set placement at creation, so moving a collection from `cold` to `cached`, which is
+  the whole point of a tier, meant recreating it. A field left out of the diff stays as it was, and the
+  contract asserts that rather than assuming it.
+- **The quantization families this client could not ask for** (#150). `QuantizationConfig.Product` takes a
+  compression ratio and `QuantizationConfig.Turbo` takes one of TurboQuant's four bit sizes, beside the
+  scalar and binary that were already there. And the read side, which is the half that decides recall:
+  `params { rescore(oversampling = 2.0) }` preselects from the quantized index and ranks that larger set
+  against the originals. A collection quantized to a quarter of its size answers from the approximation
+  unless something asks otherwise, so a caller who never set this had traded accuracy they did not choose
+  to trade.
+- **`enableHnsw` on every payload index, and a stemmer on the text index** (#151). `enableHnsw` controls
+  whether Qdrant builds the extra HNSW links for a field, which is what makes a filtered search read the
+  matching points instead of walking the collection: it needs `payloadM` above zero to do anything, so a
+  caller could previously ask for half of a multi-tenant layout. The text index takes a Snowball stemmer
+  for nineteen languages, `StemmingAlgorithm.Disabled` for the explicit off that 1.19 added, and
+  `asciiFolding`. Stemming is asserted by behaviour against a real server, because `getCollection` reports
+  an index's data type and not the parameters it was built with.
+
 ### Changed
 
 - **The Qdrant this client is pinned to is now one fact rather than fourteen** (M60). `qdrantVersion` in
@@ -79,6 +100,15 @@ All notable changes to this project are documented in this file. The format is b
   released tag, so `verifyVendoredQdrant` fetches the pinned tag and compares byte for byte instead, over
   the protobuf definitions as well as the schema. `refreshVendoredQdrant` moves them together, and both
   vendored copies now come from v1.19.1.
+- **The degraded-state classifiers are one implementation rather than two** (#154). Each engine carried
+  its own copy of the matchers that read a downed shard or a read-only node out of an error message, and
+  the copies diverged: one learned `timed out` and not `timeout`. They live in `kdrant-core` now, beside
+  the exception types whose `retryable` flag they decide, and the table of phrasings is asserted once.
+  Adding a phrasing changes both engines without either being edited.
+- **The contract test covers every operation its own name claims** (#152). `searchMatrixPairs`,
+  `searchMatrixOffsets` and `updateCollection` send request bodies and were not in it, which only became
+  visible when the guard started naming its operations instead of counting them. Forty bodies now validate
+  against Qdrant's published schema.
 - **The contract test names the operations it covers rather than counting them.** A count is a check
   somebody eventually lowers to make a build pass. Naming them means dropping one has to be written down.
 - **A release publishes itself, and says whether it resolved** (M67). Every module sets

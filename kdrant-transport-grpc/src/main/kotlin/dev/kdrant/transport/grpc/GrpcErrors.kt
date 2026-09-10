@@ -1,6 +1,10 @@
+@file:OptIn(InternalKdrantApi::class)
+
 package dev.kdrant.transport.grpc
 
 import dev.kdrant.KdrantException
+import dev.kdrant.internal.DegradedState
+import dev.kdrant.internal.InternalKdrantApi
 import io.grpc.Status
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
@@ -46,21 +50,21 @@ internal object GrpcErrors {
             // The gRPC counterpart of HTTP 403: the credential is understood and does not reach this
             // far. A scoped token refused on a write raises the same type over either engine — and so
             // does a node refusing writes, which is a different failure wearing the same code.
-            Status.Code.PERMISSION_DENIED -> if (namesReadOnly(message)) {
+            Status.Code.PERMISSION_DENIED -> if (DegradedState.namesReadOnly(message)) {
                 KdrantException.ReadOnly(collection, message)
             } else {
                 KdrantException.Forbidden(collection, message)
             }
             Status.Code.INVALID_ARGUMENT -> when {
                 collection != null && looksLikeMissingCollection(message) -> notFound(collection, message)
-                namesUnavailableShard(message) -> KdrantException.ShardUnavailable(collection, message)
-                namesReadOnly(message) -> KdrantException.ReadOnly(collection, message)
+                DegradedState.namesUnavailableShard(message) -> KdrantException.ShardUnavailable(collection, message)
+                DegradedState.namesReadOnly(message) -> KdrantException.ReadOnly(collection, message)
                 else -> KdrantException.InvalidRequest(message.ifBlank { "Qdrant rejected the request" })
             }
             Status.Code.ALREADY_EXISTS -> KdrantException.AlreadyExists(message.ifBlank { "Already exists" })
             Status.Code.DEADLINE_EXCEEDED -> KdrantException.Timeout(message.ifBlank { "Deadline exceeded" }, cause)
             Status.Code.RESOURCE_EXHAUSTED -> KdrantException.RateLimited(message = message.ifBlank { RATE_LIMITED })
-            Status.Code.UNAVAILABLE -> if (namesUnavailableShard(message)) {
+            Status.Code.UNAVAILABLE -> if (DegradedState.namesUnavailableShard(message)) {
                 KdrantException.ShardUnavailable(collection, message)
             } else {
                 KdrantException.ServiceUnavailable(message.ifBlank { UNAVAILABLE })
@@ -68,7 +72,7 @@ internal object GrpcErrors {
             Status.Code.UNIMPLEMENTED -> KdrantException.InvalidRequest(
                 "Qdrant does not implement this call over gRPC${if (message.isBlank()) "" else ": $message"}",
             )
-            else -> if (namesUnavailableShard(message)) {
+            else -> if (DegradedState.namesUnavailableShard(message)) {
                 KdrantException.ShardUnavailable(collection, message)
             } else {
                 KdrantException.ServerError(message.ifBlank { "Qdrant returned ${status.code}" })
@@ -100,34 +104,6 @@ internal object GrpcErrors {
      * shared from `kdrant-transport-rest`, because a gRPC engine that depended on the REST one to read
      * an error would be a dependency in the wrong direction.
      */
-    private fun namesReadOnly(message: String): Boolean {
-        val text = message.lowercase()
-        if ("read-only" in text || "read only" in text || "readonly" in text) return true
-        val pressure = "disk usage" in text || "resident memory" in text || "memory usage" in text
-        return pressure && ("exceed" in text || "limit" in text || "above" in text || "too high" in text)
-    }
-
-    private fun namesUnavailableShard(message: String): Boolean {
-        val text = message.lowercase()
-        val unreachable = listOf(
-            "not available", "unavailable", "no active", "not enough", "no replica",
-            "dead", "is down", "failed to", "cannot",
-        ).any { it in text }
-        if (("shard" in text || "replica" in text) && unreachable) return true
-
-        // The fan-out form: some of the peers a request had to reach did not answer, and the message
-        // names the transport failure rather than the shard. "timeout" and "deadline" are in the list
-        // because Qdrant uses both and "timed out" alone missed them, which read a downed shard as an
-        // ordinary server error and therefore as not retryable.
-        //
-        // This list is a copy of the REST engine's, which is how the two came to disagree; see #154.
-        val fanOut = "operations failed" in text || "operation failed" in text
-        val transport = listOf(
-            "unavailable", "dns", "name resolution", "connect", "transport",
-            "timed out", "timeout", "deadline",
-        ).any { it in text }
-        return fanOut && transport
-    }
 
     private const val RATE_LIMITED = "Rate limited by Qdrant"
     private const val UNAVAILABLE = "Qdrant is temporarily unavailable"

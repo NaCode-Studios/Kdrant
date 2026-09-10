@@ -266,6 +266,18 @@ public abstract class QdrantClientContract {
     public fun `4-bit storage and a memory tier per component round-trip through getCollection`(): Unit =
         runBlocking { suite.memoryTiersRoundTrip() }
 
+    @Test
+    public fun `a collection's replication and payload placement can change after it exists`(): Unit =
+        runBlocking { suite.collectionParamsChangeAfterCreation() }
+
+    @Test
+    public fun `a stemmed text index matches a word by its stem`(): Unit =
+        runBlocking { suite.stemmedTextIndex() }
+
+    @Test
+    public fun `the quantization families a collection can be created with are accepted`(): Unit =
+        runBlocking { suite.quantizationFamiliesAreAccepted() }
+
     private companion object {
         /** Overridable so CI can hold every engine to a matrix of Qdrant versions. */
         val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.19.1"

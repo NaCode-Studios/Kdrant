@@ -3,6 +3,7 @@ package dev.kdrant.dsl
 import dev.kdrant.KdrantDsl
 import dev.kdrant.model.Memory
 import dev.kdrant.model.PayloadIndexParams
+import dev.kdrant.model.StemmingAlgorithm
 import dev.kdrant.model.Tokenizer
 
 /**
@@ -92,8 +93,20 @@ public class KeywordIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
     internal fun build(): PayloadIndexParams.Keyword =
-        PayloadIndexParams.Keyword(isTenant, onDisk, prefixMatching, memory)
+        PayloadIndexParams.Keyword(
+            isTenant = isTenant,
+            onDisk = onDisk,
+            prefix = prefixMatching,
+            memory = memory,
+            enableHnsw = enableHnsw,
+        )
 }
 
 /** Parameters of an integer index. */
@@ -114,12 +127,25 @@ public class IntegerIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
     internal fun build(): PayloadIndexParams.Integer {
         require(lookup != false || range != false) {
             "An integer index that answers neither lookups nor ranges answers nothing: leave one of " +
                 "lookup and range unset or true."
         }
-        return PayloadIndexParams.Integer(lookup, range, isPrincipal, onDisk, memory)
+        return PayloadIndexParams.Integer(
+            lookup = lookup,
+            range = range,
+            isPrincipal = isPrincipal,
+            onDisk = onDisk,
+            memory = memory,
+            enableHnsw = enableHnsw,
+        )
     }
 }
 
@@ -135,7 +161,18 @@ public class FloatIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
-    internal fun build(): PayloadIndexParams.Float = PayloadIndexParams.Float(isPrincipal, onDisk, memory)
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
+    internal fun build(): PayloadIndexParams.Float = PayloadIndexParams.Float(
+        isPrincipal = isPrincipal,
+        onDisk = onDisk,
+        memory = memory,
+        enableHnsw = enableHnsw,
+    )
 }
 
 /** Parameters of a geo index. */
@@ -147,7 +184,14 @@ public class GeoIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
-    internal fun build(): PayloadIndexParams.Geo = PayloadIndexParams.Geo(onDisk, memory)
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
+    internal fun build(): PayloadIndexParams.Geo =
+        PayloadIndexParams.Geo(onDisk = onDisk, memory = memory, enableHnsw = enableHnsw)
 }
 
 /** Parameters of a full-text index. */
@@ -168,11 +212,26 @@ public class TextIndexBuilder {
     /** Store token positions so `matchPhrase` works. See [PayloadIndexParams.Text.phraseMatching]. */
     public var phraseMatching: Boolean? = null
 
+    /** Fold accented characters to ASCII, so "ação" and "acao" are the same token. */
+    public var asciiFolding: Boolean? = null
+
+    /**
+     * Reduce tokens to a stem, so "running" matches "run". The server's default is no stemming, and it
+     * is the right default for a field of identifiers or product codes. See [StemmingAlgorithm].
+     */
+    public var stemmer: StemmingAlgorithm? = null
+
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
+
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
 
     internal fun build(): PayloadIndexParams.Text {
         minTokenLen?.let { require(it > 0) { "minTokenLen must be > 0, was $it" } }
@@ -182,7 +241,18 @@ public class TextIndexBuilder {
         if (min != null && max != null) {
             require(min <= max) { "minTokenLen ($min) must be <= maxTokenLen ($max), or nothing is indexed" }
         }
-        return PayloadIndexParams.Text(tokenizer, min, max, lowercase, phraseMatching, onDisk, memory)
+        return PayloadIndexParams.Text(
+            tokenizer = tokenizer,
+            minTokenLen = min,
+            maxTokenLen = max,
+            lowercase = lowercase,
+            phraseMatching = phraseMatching,
+            asciiFolding = asciiFolding,
+            stemmer = stemmer,
+            onDisk = onDisk,
+            memory = memory,
+            enableHnsw = enableHnsw,
+        )
     }
 }
 
@@ -195,7 +265,14 @@ public class BoolIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
-    internal fun build(): PayloadIndexParams.Bool = PayloadIndexParams.Bool(onDisk, memory)
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
+    internal fun build(): PayloadIndexParams.Bool =
+        PayloadIndexParams.Bool(onDisk = onDisk, memory = memory, enableHnsw = enableHnsw)
 }
 
 /** Parameters of a datetime index. */
@@ -210,8 +287,19 @@ public class DatetimeIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
     internal fun build(): PayloadIndexParams.Datetime =
-        PayloadIndexParams.Datetime(isPrincipal, onDisk, memory)
+        PayloadIndexParams.Datetime(
+            isPrincipal = isPrincipal,
+            onDisk = onDisk,
+            memory = memory,
+            enableHnsw = enableHnsw,
+        )
 }
 
 /** Parameters of a UUID index. */
@@ -226,5 +314,16 @@ public class UuidIndexBuilder {
     /** Memory placement of the index. Overrides [onDisk] when both are set. */
     public var memory: Memory? = null
 
-    internal fun build(): PayloadIndexParams.Uuid = PayloadIndexParams.Uuid(isTenant, onDisk, memory)
+    /**
+     * Build the extra HNSW links for this field, so a filtered search over it reads the matching points
+     * rather than walking the collection. Needs `payloadM` above zero on the collection's HNSW config.
+     */
+    public var enableHnsw: Boolean? = null
+
+    internal fun build(): PayloadIndexParams.Uuid = PayloadIndexParams.Uuid(
+        isTenant = isTenant,
+        onDisk = onDisk,
+        memory = memory,
+        enableHnsw = enableHnsw,
+    )
 }

@@ -76,45 +76,31 @@ class DegradedStateMappingTest {
         assertTrue((clientSide as KdrantException).retryable)
     }
 
+    /**
+     * One representative of each shape, because the table of phrasings is asserted once in
+     * `kdrant-core`'s `DegradedStateTest`. What this file is for is the routing: which status code plus
+     * which classification becomes which exception, which is the engine's own decision and differs from
+     * the gRPC engine's.
+     */
     @Test
-    fun `the phrasings a degraded cluster actually uses all reach ShardUnavailable`() {
-        // Both halves are required, so a plain server error that happens to say "failed" does not become
-        // a cluster diagnosis, and a shard key that is malformed does not either.
-        listOf(
-            "Not enough replicas of shard 1 are available",
-            "No replica available for shard 1",
-            "Shard 1 has no active replicas",
-            "Service internal error: shard 1 is dead",
-            "Failed to read from shard 1",
-            "Cannot resolve replica for shard 0",
-            // The one a stopped peer actually produces, which names no shard at all. Taken verbatim
-            // from a CI run against a two-node cluster with the second node stopped.
-            "Service internal error: 1 of 1 read operations failed: Service internal error: Tonic " +
-                "status error: code: 'The service is currently unavailable', message: 'dns error'",
-            // The other thing a stopped peer produces, depending on which check gives up first. Also
-            // verbatim from CI, and the message that cost a release: the matcher knew "timed out" and
-            // not "timeout", so this read as an ordinary server error and therefore as not retryable.
-            "Service internal error: 1 of 1 read operations failed: Timeout error: Deadline Exceeded: " +
-                "code: 'Deadline expired before operation could complete', message: " +
-                "\"Healthcheck timeout 2000ms exceeded\"",
-        ).forEach { error ->
-            assertInstanceOf(
-                KdrantException.ShardUnavailable::class.java,
-                failureOf(HttpStatusCode.InternalServerError, error),
-                "'$error' should have been read as an unavailable shard",
-            )
-        }
-
-        listOf(
-            "Service internal error: failed to flush",
-            "Wrong input: shard key 'eu-west' is not a valid key",
-            "Service internal error: 1 of 1 read operations failed: index out of bounds",
-        ).forEach { error ->
-            assertFalse(
-                failureOf(HttpStatusCode.InternalServerError, error) is KdrantException.ShardUnavailable,
-                "'$error' is not a degraded cluster and must not be read as one",
-            )
-        }
+    fun `a 5xx naming a degraded cluster becomes ShardUnavailable, and an ordinary one does not`() {
+        assertInstanceOf(
+            KdrantException.ShardUnavailable::class.java,
+            failureOf(HttpStatusCode.InternalServerError, "Not enough replicas of shard 1 are available"),
+        )
+        assertInstanceOf(
+            KdrantException.ShardUnavailable::class.java,
+            failureOf(
+                HttpStatusCode.InternalServerError,
+                "Service internal error: 1 of 1 read operations failed: Timeout error: Deadline " +
+                    "Exceeded: code: 'Deadline expired before operation could complete', message: " +
+                    "\"Healthcheck timeout 2000ms exceeded\"",
+            ),
+        )
+        assertFalse(
+            failureOf(HttpStatusCode.InternalServerError, "Service internal error: failed to flush")
+                is KdrantException.ShardUnavailable,
+        )
     }
 
     /**

@@ -1,6 +1,7 @@
 package dev.kdrant.dsl
 
 import dev.kdrant.KdrantDsl
+import dev.kdrant.model.CollectionParamsDiff
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.Distance
 import dev.kdrant.model.HnswConfig
@@ -110,12 +111,43 @@ public class UpdateCollectionBuilder {
     /** Server-enforced limits on what this collection will accept. See [StrictModeConfig]. */
     public var strictMode: StrictModeConfig? = null
 
+    /** Replicas the cluster maintains per shard. */
+    public var replicationFactor: Int? = null
+
+    /** Replicas that have to acknowledge a write for it to count. */
+    public var writeConsistencyFactor: Int? = null
+
+    /** Extra remote nodes every read is also sent to, answering with the first response back. */
+    public var readFanOutFactor: Int? = null
+
+    /**
+     * Memory placement of payload values.
+     *
+     * This is the reason the update request grew `params`: placement could be chosen at creation and not
+     * changed, so moving a collection from `cold` to `cached` meant recreating it.
+     */
+    public var payloadMemory: Memory? = null
+
     internal fun build(): UpdateCollectionRequest = UpdateCollectionRequest(
         optimizersConfig = optimizers,
         hnswConfig = hnsw,
         quantizationConfig = quantization,
         strictModeConfig = strictMode,
+        // Omitted entirely when nothing asked for it: Qdrant leaves a field out of the diff unchanged,
+        // and sending an empty object would be a request to change nothing that still takes the lock.
+        params = collectionParams(),
     )
+
+    private fun collectionParams(): CollectionParamsDiff? {
+        val asked = listOf(replicationFactor, writeConsistencyFactor, readFanOutFactor, payloadMemory)
+        if (asked.all { it == null }) return null
+        return CollectionParamsDiff(
+            replicationFactor = replicationFactor,
+            writeConsistencyFactor = writeConsistencyFactor,
+            readFanOutFactor = readFanOutFactor,
+            payload = payloadMemory?.let(::PayloadStorageParams),
+        )
+    }
 }
 
 /** DSL for a single vector's parameters. */

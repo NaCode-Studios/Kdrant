@@ -5,7 +5,9 @@ package dev.kdrant.transport.grpc
 import dev.kdrant.dsl.filter
 import dev.kdrant.dsl.payloadOf
 import dev.kdrant.kdrantConfig
+import dev.kdrant.model.CollectionParamsDiff
 import dev.kdrant.model.CollectionStatus
+import dev.kdrant.model.CompressionRatio
 import dev.kdrant.model.CreateCollectionRequest
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
@@ -15,16 +17,22 @@ import dev.kdrant.model.Memory
 import dev.kdrant.model.OrderBy
 import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
+import dev.kdrant.model.PayloadStorageParams
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuantizationConfig
 import dev.kdrant.model.QueryInterface
 import dev.kdrant.model.ScrollRequest
 import dev.kdrant.model.SearchGroupsRequest
 import dev.kdrant.model.SearchMatrixRequest
 import dev.kdrant.model.SearchRequest
+import dev.kdrant.model.SnowballLanguage
+import dev.kdrant.model.StemmingAlgorithm
 import dev.kdrant.model.Tokenizer
+import dev.kdrant.model.TurboQuantBitSize
+import dev.kdrant.model.UpdateCollectionRequest
 import dev.kdrant.model.VectorData
 import dev.kdrant.model.VectorParams
 import dev.kdrant.model.VectorsConfig
@@ -429,6 +437,109 @@ class GrpcQdrantTransportTest {
     }
 
     @Test
+    fun `an index declining HNSW links and naming a stemmer sends both`() = runTest {
+        transport.createPayloadIndex(
+            "docs",
+            "body",
+            PayloadIndexParams.Text(
+                tokenizer = Tokenizer.WORD,
+                asciiFolding = true,
+                stemmer = StemmingAlgorithm.Snowball(SnowballLanguage.ITALIAN),
+                enableHnsw = false,
+            ),
+            wait = true,
+        )
+
+        val text = points.indexes.single().fieldIndexParams.textIndexParams
+        assertTrue(text.asciiFolding)
+        assertFalse(text.enableHnsw)
+        assertEquals("italian", text.stemmer.snowball.language)
+    }
+
+    @Test
+    fun `disabling stemming is its own branch of the oneof, not a missing language`() = runTest {
+        transport.createPayloadIndex(
+            "docs",
+            "body",
+            PayloadIndexParams.Text(stemmer = StemmingAlgorithm.Disabled),
+            wait = true,
+        )
+
+        val stemmer = points.indexes.single().fieldIndexParams.textIndexParams.stemmer
+        assertTrue(stemmer.hasDisabled(), "disabled stemming was sent as something else")
+        assertFalse(stemmer.hasSnowball())
+    }
+
+    @Test
+    fun `the quantization families the model grew reach their own branches`() = runTest {
+        transport.createCollection(
+            "docs",
+            CreateCollectionRequest(
+                vectors = VectorsConfig.Single(VectorParams(4, Distance.DOT)),
+                quantizationConfig = QuantizationConfig.Product(CompressionRatio.X16, memory = Memory.PINNED),
+            ),
+        )
+        assertEquals(
+            Collections.CompressionRatio.x16,
+            collections.created.single().quantizationConfig.product.compression,
+        )
+        assertEquals(Collections.Memory.Pinned, collections.created.single().quantizationConfig.product.memory)
+
+        collections.created.clear()
+        transport.createCollection(
+            "turbo",
+            CreateCollectionRequest(
+                vectors = VectorsConfig.Single(VectorParams(4, Distance.DOT)),
+                quantizationConfig = QuantizationConfig.Turbo(TurboQuantBitSize.BITS_1_5),
+            ),
+        )
+        assertEquals(
+            Collections.TurboQuantBitSize.Bits1_5,
+            collections.created.single().quantizationConfig.turboquant.bits,
+        )
+    }
+
+    /**
+     * The read side. A collection quantized to a quarter of its size answers from the approximation unless
+     * a search asks for the originals, so a mapping that drops this is a recall loss with nothing to see.
+     */
+    @Test
+    fun `a search asking to rescore against the originals carries the request`() = runTest {
+        transport.query(
+            "docs",
+            SearchRequest(
+                query = QueryInterface.Vector(listOf(0.1f, 0.2f)),
+                params = dev.kdrant.model.SearchParams(
+                    quantization = dev.kdrant.model.QuantizationSearchParams(rescore = true, oversampling = 2.0),
+                ),
+            ),
+        )
+
+        val quantization = points.queries.single().params.quantization
+        assertTrue(quantization.rescore)
+        assertEquals(2.0, quantization.oversampling)
+    }
+
+    @Test
+    fun `updateCollection carries the params diff that used to have nowhere to go`() = runTest {
+        transport.updateCollection(
+            "docs",
+            UpdateCollectionRequest(
+                params = CollectionParamsDiff(
+                    replicationFactor = 2,
+                    readFanOutFactor = 1,
+                    payload = PayloadStorageParams(Memory.CACHED),
+                ),
+            ),
+        )
+
+        val params = collections.updated.single().params
+        assertEquals(2, params.replicationFactor)
+        assertEquals(1, params.readFanOutFactor)
+        assertEquals(Collections.Memory.Cached, params.payload.memory)
+    }
+
+    @Test
     fun `an index built with parameters sends them on the message beside the type`() = runTest {
         transport.createPayloadIndex(
             "docs",
@@ -647,10 +758,16 @@ class GrpcQdrantTransportTest {
 
     private class RecordingCollections : CollectionsGrpcKt.CollectionsCoroutineImplBase() {
         val created = mutableListOf<Collections.CreateCollection>()
+        val updated = mutableListOf<Collections.UpdateCollection>()
         val aliasChanges = mutableListOf<Collections.ChangeAliases>()
 
         override suspend fun create(request: Collections.CreateCollection): Collections.CollectionOperationResponse {
             created += request
+            return Collections.CollectionOperationResponse.newBuilder().setResult(true).build()
+        }
+
+        override suspend fun update(request: Collections.UpdateCollection): Collections.CollectionOperationResponse {
+            updated += request
             return Collections.CollectionOperationResponse.newBuilder().setResult(true).build()
         }
 
