@@ -66,7 +66,7 @@ public sealed interface PayloadIndexParams {
     public data class Keyword(
         @SerialName("is_tenant") public val isTenant: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
-        /** Enables `match.prefix` on this field. `null` leaves the server's default (disabled). */
+        /** Serves `match.prefix` from this index. `null` leaves the server's default (off). */
         @SerialName("prefix") public val prefix: Boolean? = null,
         @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams

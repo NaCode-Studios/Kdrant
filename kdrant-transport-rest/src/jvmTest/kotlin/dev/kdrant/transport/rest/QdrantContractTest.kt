@@ -274,6 +274,16 @@ class QdrantContractTest {
                     )
                 }
             }
+            call("updateQuotas") { c ->
+                c.updateQuotas(
+                    dev.kdrant.model.QuotaConfig(
+                        enabled = true,
+                        maxResidentMemoryPercent = 90,
+                        maxDiskUsagePercent = 85,
+                        releaseMarginPercent = 5,
+                    ),
+                )
+            }
             call("scrollSlice") { c ->
                 c.scroll("docs", pageSize = 2) {
                     filter { must { slice(index = 3, total = 4) } }
@@ -311,7 +321,8 @@ class QdrantContractTest {
                 "facet", "query", "queryBatch", "queryDocument", "queryGroups", "queryWithFormula",
                 "queryWithIdfCorpus", "queryWithMinMax", "queryWithMmr", "queryWithRelevanceFeedback",
                 "queryWithSlice", "recoverSnapshot", "retrieve", "scroll", "scrollSlice", "setPayload",
-                "updateAliases", "updateCollectionCluster", "updateVectors", "upsert", "upsertDocument",
+                "updateAliases", "updateCollectionCluster", "updateQuotas", "updateVectors", "upsert",
+                "upsertDocument",
             ),
             sent.map { it.name }.distinct().sorted(),
         )
@@ -346,6 +357,7 @@ class QdrantContractTest {
             "recover" to """{"result":true,"status":"ok"}""",
             "cluster" to """{"result":true,"status":"ok"}""",
             "shards" to """{"result":true,"status":"ok"}""",
+            "quotas" to """{"result":{"config":{"enabled":true},"usage":{}},"status":"ok"}""",
         )
     }
 }

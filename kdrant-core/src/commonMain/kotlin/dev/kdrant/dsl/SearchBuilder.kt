@@ -57,6 +57,21 @@ public class SearchBuilder {
     /** Search only the shards holding this key. `null` (default) searches every shard. */
     public var shardKey: ShardKey? = null
 
+    /**
+     * Stable token sent as `X-Qdrant-Route-Affinity`, so reads carrying the same one are served by the
+     * same replica: a user id, a session id, a hashed api key. The thing that should be sticky is one
+     * reader's session rather than the whole application, which is why this is per request and not on
+     * the client.
+     *
+     * It is the light answer to read-your-own-writes. A write replicates asynchronously, so a read
+     * issued straight after one can land on a replica that has not caught up, and the other lever
+     * available is `wait = true` on the write, which blocks the writer to fix a reader.
+     *
+     * Qdrant 1.19 and later; an older server ignores the header. It is a hint rather than a guarantee:
+     * the replica it pins to can go away, and the read is then served by another.
+     */
+    public var routeAffinity: String? = null
+
     /** Search by an explicit dense query vector. */
     public fun query(values: List<Float>) { query = QueryInterface.Vector(values) }
 
@@ -218,6 +233,7 @@ public class SearchBuilder {
             params = params,
             lookupFrom = lookupFrom,
             shardKey = shardKey,
+            routeAffinity = routeAffinity,
         )
     }
 }

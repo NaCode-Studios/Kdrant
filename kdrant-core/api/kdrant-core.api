@@ -204,10 +204,10 @@ public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseabl
 	public static synthetic fun clearPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun collectionClusterInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun count (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun count (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun count (Ljava/lang/String;ZLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun count (Ljava/lang/String;ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createCollection (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -261,13 +261,14 @@ public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseabl
 	public abstract fun metrics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun overwritePayload (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun overwritePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun quotas (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readyz (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun recoverShardSnapshot (Ljava/lang/String;ILjava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun recoverShardSnapshot$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILjava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun recoverSnapshot (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun recoverSnapshot$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun scroll (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun search (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -286,6 +287,7 @@ public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseabl
 	public abstract fun updateCollection (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun updateCollectionCluster (Ljava/lang/String;Ldev/kdrant/model/ClusterOperation;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun updateCollectionCluster$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/ClusterOperation;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun updateQuotas (Ldev/kdrant/model/QuotaConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun updateVectors$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun uploadShardSnapshot (Ljava/lang/String;ILkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -303,8 +305,8 @@ public abstract interface class dev/kdrant/QdrantClient : java/lang/AutoCloseabl
 public final class dev/kdrant/QdrantClient$DefaultImpls {
 	public static synthetic fun batchUpdate$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun clearPayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun count$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun createPayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun createPayloadIndex$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun createShardKey$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ldev/kdrant/model/ShardKey;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -325,7 +327,7 @@ public final class dev/kdrant/QdrantClient$DefaultImpls {
 	public static synthetic fun overwritePayload$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun recoverShardSnapshot$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILjava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun recoverSnapshot$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun retrieve$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun scroll$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun searchGroups$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun searchMatrixOffsets$default (Ldev/kdrant/QdrantClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -645,6 +647,7 @@ public final class dev/kdrant/dsl/RelevanceFeedbackBuilder {
 public final class dev/kdrant/dsl/ScrollBuilder {
 	public final fun filter (Ldev/kdrant/model/Filter;)V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun getRouteAffinity ()Ljava/lang/String;
 	public final fun getShardKey ()Ldev/kdrant/model/ShardKey;
 	public final fun getStartAt ()Ldev/kdrant/model/PointId;
 	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
@@ -653,6 +656,7 @@ public final class dev/kdrant/dsl/ScrollBuilder {
 	public static synthetic fun orderBy$default (Ldev/kdrant/dsl/ScrollBuilder;Ljava/lang/String;Ldev/kdrant/model/Direction;Ljava/lang/Number;ILjava/lang/Object;)V
 	public final fun orderByDatetime (Ljava/lang/String;Ldev/kdrant/model/Direction;Ljava/lang/String;)V
 	public static synthetic fun orderByDatetime$default (Ldev/kdrant/dsl/ScrollBuilder;Ljava/lang/String;Ldev/kdrant/model/Direction;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun setRouteAffinity (Ljava/lang/String;)V
 	public final fun setShardKey (Ldev/kdrant/model/ShardKey;)V
 	public final fun setStartAt (Ldev/kdrant/model/PointId;)V
 	public final fun setWithPayload (Ldev/kdrant/model/WithPayload;)V
@@ -670,6 +674,7 @@ public final class dev/kdrant/dsl/SearchBuilder {
 	public static synthetic fun formula$default (Ldev/kdrant/dsl/SearchBuilder;Ldev/kdrant/model/Expression;Ljava/util/Map;ILjava/lang/Object;)V
 	public final fun getLimit ()I
 	public final fun getOffset ()Ljava/lang/Integer;
+	public final fun getRouteAffinity ()Ljava/lang/String;
 	public final fun getScoreThreshold ()Ljava/lang/Double;
 	public final fun getShardKey ()Ldev/kdrant/model/ShardKey;
 	public final fun getUsing ()Ljava/lang/String;
@@ -698,6 +703,7 @@ public final class dev/kdrant/dsl/SearchBuilder {
 	public final fun sample ()V
 	public final fun setLimit (I)V
 	public final fun setOffset (Ljava/lang/Integer;)V
+	public final fun setRouteAffinity (Ljava/lang/String;)V
 	public final fun setScoreThreshold (Ljava/lang/Double;)V
 	public final fun setShardKey (Ldev/kdrant/model/ShardKey;)V
 	public final fun setUsing (Ljava/lang/String;)V
@@ -2917,6 +2923,38 @@ public final class dev/kdrant/model/PayloadStorageParams$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/kdrant/model/PeerQuotaUsage {
+	public static final field Companion Ldev/kdrant/model/PeerQuotaUsage$Companion;
+	public fun <init> (Ldev/kdrant/model/QuotaExceeded;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ldev/kdrant/model/QuotaExceeded;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/QuotaExceeded;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun copy (Ldev/kdrant/model/QuotaExceeded;Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/kdrant/model/PeerQuotaUsage;
+	public static synthetic fun copy$default (Ldev/kdrant/model/PeerQuotaUsage;Ldev/kdrant/model/QuotaExceeded;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/kdrant/model/PeerQuotaUsage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDiskUsagePercent ()Ljava/lang/Integer;
+	public final fun getExceeded ()Ldev/kdrant/model/QuotaExceeded;
+	public final fun getResidentMemoryPercent ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/PeerQuotaUsage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/PeerQuotaUsage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/PeerQuotaUsage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/PeerQuotaUsage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/PeerQuotaUsage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/kdrant/model/PointGroup {
 	public static final field Companion Ldev/kdrant/model/PointGroup$Companion;
 	public fun <init> (Lkotlinx/serialization/json/JsonPrimitive;Ljava/util/List;Ldev/kdrant/model/Record;)V
@@ -3432,6 +3470,136 @@ public final class dev/kdrant/model/QueryInterface$VectorArray : dev/kdrant/mode
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/kdrant/model/QuotaConfig {
+	public static final field Companion Ldev/kdrant/model/QuotaConfig$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Boolean;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/kdrant/model/QuotaConfig;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QuotaConfig;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/kdrant/model/QuotaConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnabled ()Ljava/lang/Boolean;
+	public final fun getMaxDiskUsagePercent ()Ljava/lang/Integer;
+	public final fun getMaxResidentMemoryPercent ()Ljava/lang/Integer;
+	public final fun getReleaseMarginPercent ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/QuotaConfig$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/QuotaConfig$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/QuotaConfig;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/QuotaConfig;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaConfig$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaExceeded {
+	public static final field Companion Ldev/kdrant/model/QuotaExceeded$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Boolean;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/Boolean;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Boolean;
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/Boolean;Ljava/lang/Boolean;)Ldev/kdrant/model/QuotaExceeded;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QuotaExceeded;Ljava/lang/Boolean;Ljava/lang/Boolean;ILjava/lang/Object;)Ldev/kdrant/model/QuotaExceeded;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAny ()Z
+	public final fun getDiskUsage ()Ljava/lang/Boolean;
+	public final fun getResidentMemory ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/QuotaExceeded$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/QuotaExceeded$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/QuotaExceeded;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/QuotaExceeded;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaExceeded$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaStatus {
+	public static final field Companion Ldev/kdrant/model/QuotaStatus$Companion;
+	public fun <init> (Ldev/kdrant/model/QuotaConfig;Ldev/kdrant/model/QuotaUsage;Ljava/util/Map;)V
+	public synthetic fun <init> (Ldev/kdrant/model/QuotaConfig;Ldev/kdrant/model/QuotaUsage;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/kdrant/model/QuotaConfig;
+	public final fun component2 ()Ldev/kdrant/model/QuotaUsage;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ldev/kdrant/model/QuotaConfig;Ldev/kdrant/model/QuotaUsage;Ljava/util/Map;)Ldev/kdrant/model/QuotaStatus;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QuotaStatus;Ldev/kdrant/model/QuotaConfig;Ldev/kdrant/model/QuotaUsage;Ljava/util/Map;ILjava/lang/Object;)Ldev/kdrant/model/QuotaStatus;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConfig ()Ldev/kdrant/model/QuotaConfig;
+	public final fun getPeers ()Ljava/util/Map;
+	public final fun getUsage ()Ldev/kdrant/model/QuotaUsage;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/QuotaStatus$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/QuotaStatus$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/QuotaStatus;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/QuotaStatus;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaStatus$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaUsage {
+	public static final field Companion Ldev/kdrant/model/QuotaUsage$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/kdrant/model/QuotaUsage;
+	public static synthetic fun copy$default (Ldev/kdrant/model/QuotaUsage;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/kdrant/model/QuotaUsage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDiskUsagePercent ()Ljava/lang/Integer;
+	public final fun getResidentMemoryPercent ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/kdrant/model/QuotaUsage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/kdrant/model/QuotaUsage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/kdrant/model/QuotaUsage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/kdrant/model/QuotaUsage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/kdrant/model/QuotaUsage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/kdrant/model/RecommendStrategy : java/lang/Enum {
 	public static final field AVERAGE_VECTOR Ldev/kdrant/model/RecommendStrategy;
 	public static final field BEST_SCORE Ldev/kdrant/model/RecommendStrategy;
@@ -3600,8 +3768,8 @@ public final class dev/kdrant/model/ScrollPage$Companion {
 
 public final class dev/kdrant/model/ScrollRequest {
 	public static final field Companion Ldev/kdrant/model/ScrollRequest$Companion;
-	public fun <init> (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;)V
-	public synthetic fun <init> (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/kdrant/model/Filter;
 	public final fun component2 ()I
 	public final fun component3 ()Ldev/kdrant/model/PointId;
@@ -3609,13 +3777,15 @@ public final class dev/kdrant/model/ScrollRequest {
 	public final fun component5 ()Ljava/lang/Boolean;
 	public final fun component6 ()Ldev/kdrant/model/OrderBy;
 	public final fun component7 ()Ldev/kdrant/model/ShardKey;
-	public final fun copy (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;)Ldev/kdrant/model/ScrollRequest;
-	public static synthetic fun copy$default (Ldev/kdrant/model/ScrollRequest;Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;ILjava/lang/Object;)Ldev/kdrant/model/ScrollRequest;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;Ljava/lang/String;)Ldev/kdrant/model/ScrollRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/ScrollRequest;Ldev/kdrant/model/Filter;ILdev/kdrant/model/PointId;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/OrderBy;Ldev/kdrant/model/ShardKey;Ljava/lang/String;ILjava/lang/Object;)Ldev/kdrant/model/ScrollRequest;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFilter ()Ldev/kdrant/model/Filter;
 	public final fun getLimit ()I
 	public final fun getOffset ()Ldev/kdrant/model/PointId;
 	public final fun getOrderBy ()Ldev/kdrant/model/OrderBy;
+	public final fun getRouteAffinity ()Ljava/lang/String;
 	public final fun getShardKey ()Ldev/kdrant/model/ShardKey;
 	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
 	public final fun getWithVector ()Ljava/lang/Boolean;
@@ -3640,12 +3810,13 @@ public final class dev/kdrant/model/ScrollRequest$Companion {
 
 public final class dev/kdrant/model/SearchGroupsRequest {
 	public static final field Companion Ldev/kdrant/model/SearchGroupsRequest$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Ldev/kdrant/model/WithPayload;
 	public final fun component11 ()Ljava/lang/Boolean;
 	public final fun component12 ()Ldev/kdrant/model/LookupLocation;
+	public final fun component13 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/Integer;
 	public final fun component3 ()Ljava/lang/Integer;
 	public final fun component4 ()Ljava/util/List;
@@ -3654,8 +3825,8 @@ public final class dev/kdrant/model/SearchGroupsRequest {
 	public final fun component7 ()Ldev/kdrant/model/Filter;
 	public final fun component8 ()Ldev/kdrant/model/SearchParams;
 	public final fun component9 ()Ljava/lang/Double;
-	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;)Ldev/kdrant/model/SearchGroupsRequest;
-	public static synthetic fun copy$default (Ldev/kdrant/model/SearchGroupsRequest;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;ILjava/lang/Object;)Ldev/kdrant/model/SearchGroupsRequest;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;Ljava/lang/String;)Ldev/kdrant/model/SearchGroupsRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/SearchGroupsRequest;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ldev/kdrant/model/SearchParams;Ljava/lang/Double;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ldev/kdrant/model/LookupLocation;Ljava/lang/String;ILjava/lang/Object;)Ldev/kdrant/model/SearchGroupsRequest;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFilter ()Ldev/kdrant/model/Filter;
 	public final fun getGroupBy ()Ljava/lang/String;
@@ -3665,6 +3836,7 @@ public final class dev/kdrant/model/SearchGroupsRequest {
 	public final fun getParams ()Ldev/kdrant/model/SearchParams;
 	public final fun getPrefetch ()Ljava/util/List;
 	public final fun getQuery ()Ldev/kdrant/model/QueryInterface;
+	public final fun getRouteAffinity ()Ljava/lang/String;
 	public final fun getScoreThreshold ()Ljava/lang/Double;
 	public final fun getUsing ()Ljava/lang/String;
 	public final fun getWithPayload ()Ldev/kdrant/model/WithPayload;
@@ -3852,12 +4024,13 @@ public final class dev/kdrant/model/SearchParams$Companion {
 public final class dev/kdrant/model/SearchRequest {
 	public static final field Companion Ldev/kdrant/model/SearchRequest$Companion;
 	public fun <init> ()V
-	public fun <init> (Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;)V
-	public synthetic fun <init> (Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun component10 ()Ldev/kdrant/model/SearchParams;
 	public final fun component11 ()Ldev/kdrant/model/LookupLocation;
 	public final fun component12 ()Ldev/kdrant/model/ShardKey;
+	public final fun component13 ()Ljava/lang/String;
 	public final fun component2 ()Ldev/kdrant/model/QueryInterface;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ldev/kdrant/model/Filter;
@@ -3866,8 +4039,8 @@ public final class dev/kdrant/model/SearchRequest {
 	public final fun component7 ()Ldev/kdrant/model/WithPayload;
 	public final fun component8 ()Ljava/lang/Boolean;
 	public final fun component9 ()Ljava/lang/Double;
-	public final fun copy (Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;)Ldev/kdrant/model/SearchRequest;
-	public static synthetic fun copy$default (Ldev/kdrant/model/SearchRequest;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;ILjava/lang/Object;)Ldev/kdrant/model/SearchRequest;
+	public final fun copy (Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;Ljava/lang/String;)Ldev/kdrant/model/SearchRequest;
+	public static synthetic fun copy$default (Ldev/kdrant/model/SearchRequest;Ljava/util/List;Ldev/kdrant/model/QueryInterface;Ljava/lang/String;Ldev/kdrant/model/Filter;Ljava/lang/Integer;Ljava/lang/Integer;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/Double;Ldev/kdrant/model/SearchParams;Ldev/kdrant/model/LookupLocation;Ldev/kdrant/model/ShardKey;Ljava/lang/String;ILjava/lang/Object;)Ldev/kdrant/model/SearchRequest;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFilter ()Ldev/kdrant/model/Filter;
 	public final fun getLimit ()Ljava/lang/Integer;
@@ -3876,6 +4049,7 @@ public final class dev/kdrant/model/SearchRequest {
 	public final fun getParams ()Ldev/kdrant/model/SearchParams;
 	public final fun getPrefetch ()Ljava/util/List;
 	public final fun getQuery ()Ldev/kdrant/model/QueryInterface;
+	public final fun getRouteAffinity ()Ljava/lang/String;
 	public final fun getScoreThreshold ()Ljava/lang/Double;
 	public final fun getShardKey ()Ldev/kdrant/model/ShardKey;
 	public final fun getUsing ()Ljava/lang/String;
@@ -4379,7 +4553,8 @@ public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang
 	public abstract fun clearPayload (Ljava/lang/String;Ldev/kdrant/model/DeleteSelector;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun collectionClusterInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun collectionExists (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun count (Ljava/lang/String;Ldev/kdrant/model/Filter;ZLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun count$default (Ldev/kdrant/transport/QdrantTransport;Ljava/lang/String;Ldev/kdrant/model/Filter;ZLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createCollection (Ljava/lang/String;Ldev/kdrant/model/CreateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadIndexParams;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createPayloadIndex (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/PayloadSchemaType;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -4415,10 +4590,12 @@ public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang
 	public abstract fun query (Ljava/lang/String;Ldev/kdrant/model/SearchRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun queryBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun queryGroups (Ljava/lang/String;Ldev/kdrant/model/SearchGroupsRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun quotas (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readyz (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun recoverShardSnapshot (Ljava/lang/String;ILjava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun recoverSnapshot (Ljava/lang/String;Ljava/lang/String;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun retrieve (Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun retrieve$default (Ldev/kdrant/transport/QdrantTransport;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun scroll (Ljava/lang/String;Ldev/kdrant/model/ScrollRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun searchMatrixOffsets (Ljava/lang/String;Ldev/kdrant/model/SearchMatrixRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun searchMatrixPairs (Ljava/lang/String;Ldev/kdrant/model/SearchMatrixRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -4427,10 +4604,16 @@ public abstract interface class dev/kdrant/transport/QdrantTransport : java/lang
 	public abstract fun updateAliases (Ljava/util/List;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun updateCollection (Ljava/lang/String;Ldev/kdrant/model/UpdateCollectionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun updateCollectionCluster (Ljava/lang/String;Ldev/kdrant/model/ClusterOperation;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateQuotas (Ldev/kdrant/model/QuotaConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun updateVectors (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun uploadShardSnapshot (Ljava/lang/String;ILkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun uploadSnapshot (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ldev/kdrant/model/SnapshotPriority;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun upsert (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/kdrant/transport/QdrantTransport$DefaultImpls {
+	public static synthetic fun count$default (Ldev/kdrant/transport/QdrantTransport;Ljava/lang/String;Ldev/kdrant/model/Filter;ZLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun retrieve$default (Ldev/kdrant/transport/QdrantTransport;Ljava/lang/String;Ljava/util/List;Ldev/kdrant/model/WithPayload;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

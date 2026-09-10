@@ -86,7 +86,7 @@ public class KeywordIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    /** Enable `matchPrefix` filters on this keyword index. */
+    /** Serve `matchPrefix` from this index instead of scanning. See [ClauseBuilder.matchPrefix]. */
     public var prefixMatching: Boolean? = null
 
     /** Memory placement of the index. Overrides [onDisk] when both are set. */

@@ -25,6 +25,8 @@ import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchMatrixOffsets
@@ -264,12 +266,14 @@ public interface QdrantClient : AutoCloseable {
      * Count the points in a collection.
      *
      * @param exact an exact count (default) vs a faster approximate one.
+     * @param routeAffinity a stable token pinning this read to one replica; see
+     *   [dev.kdrant.dsl.SearchBuilder.routeAffinity].
      * @throws KdrantException.CollectionNotFound if the collection does not exist.
      * @throws KdrantException.Unauthorized if the API key is missing or wrong.
      * @throws KdrantException.Timeout if the request exceeds the configured timeout.
      * @throws KdrantException.Transport on a connection failure or server error.
      */
-    public suspend fun count(name: String, exact: Boolean = true): Long
+    public suspend fun count(name: String, exact: Boolean = true, routeAffinity: String? = null): Long
 
     /**
      * Count the points in a collection that match a filter.
@@ -278,9 +282,16 @@ public interface QdrantClient : AutoCloseable {
      * val n = qdrant.count("docs") { must { "lang" eq "en" } }
      * ```
      *
+     * @param routeAffinity a stable token pinning this read to one replica; see
+     *   [dev.kdrant.dsl.SearchBuilder.routeAffinity].
      * @throws KdrantException.CollectionNotFound if the collection does not exist.
      */
-    public suspend fun count(name: String, exact: Boolean = true, filter: FilterBuilder.() -> Unit): Long
+    public suspend fun count(
+        name: String,
+        exact: Boolean = true,
+        routeAffinity: String? = null,
+        filter: FilterBuilder.() -> Unit,
+    ): Long
 
     /**
      * Retrieve points by id.
@@ -296,6 +307,7 @@ public interface QdrantClient : AutoCloseable {
         ids: List<PointId>,
         withPayload: WithPayload? = null,
         withVector: Boolean? = null,
+        routeAffinity: String? = null,
     ): List<Record>
 
     /**
@@ -504,6 +516,30 @@ public interface QdrantClient : AutoCloseable {
 
     /** List all collection names on the server. */
     public suspend fun listCollections(): List<CollectionDescription>
+
+    /**
+     * The cluster-wide resource quota and how close this node is to it.
+     *
+     * A quota is worth reading rather than discovering. Once it is enforced, an update that would take
+     * a node past a limit is refused, and a client that only finds out by being refused is a client
+     * that retries into the same wall: [KdrantException.RateLimited] says waiting is worth it and
+     * cannot say how much room is left. This says.
+     *
+     * The configuration is cluster-wide; the utilization is not. [QuotaStatus.usage] is the node that
+     * answered and [QuotaStatus.peers] is what the others report about themselves, because memory and
+     * disk are node-local.
+     *
+     * Qdrant 1.19 and later, over the REST engine. The gRPC engine throws, naming REST.
+     */
+    public suspend fun quotas(): QuotaStatus
+
+    /**
+     * Replace the cluster-wide resource quota, returning the status that is now in force.
+     *
+     * Replaces rather than merges: a field left null in [config] unsets that limit rather than keeping
+     * the one already there. Read [quotas] first and copy if that is not what you want.
+     */
+    public suspend fun updateQuotas(config: QuotaConfig): QuotaStatus
 
     /** The server's telemetry as a raw JSON object (shape is server-version-specific). */
     public suspend fun telemetry(): JsonObject

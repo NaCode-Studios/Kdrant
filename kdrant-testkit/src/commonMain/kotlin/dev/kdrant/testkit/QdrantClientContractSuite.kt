@@ -11,6 +11,7 @@ import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
 import dev.kdrant.model.FacetValue
+import dev.kdrant.model.Memory
 import dev.kdrant.model.Modifier
 import dev.kdrant.model.MultiVectorComparator
 import dev.kdrant.model.OptimizersConfig
@@ -18,8 +19,10 @@ import dev.kdrant.model.PayloadSchemaType
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.QueryInterface
 import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.VectorData
+import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.VectorsConfig
 import dev.kdrant.model.WithPayload
 import kotlinx.coroutines.flow.Flow
@@ -116,6 +119,10 @@ public class QdrantClientContractSuite(
         case("a collection snapshot can be created, listed and deleted") { collectionSnapshotLifecycle() },
         case("a whole-storage snapshot can be created, listed and deleted") { storageSnapshotLifecycle() },
         case("an operation on a missing collection reports it as such") { missingCollectionIsReported() },
+        case("a prefix filter is correct with and without the index that serves it") { prefixMatching() },
+        case("relevance feedback reranks the query it was given") { relevanceFeedbackReranks() },
+        case("four sliced scrolls read every point exactly once, repeatably") { slicedScrollPartitions() },
+        case("4-bit storage and a memory tier per component round-trip") { memoryTiersRoundTrip() },
     )
 
     private fun case(name: String, run: suspend () -> Unit): Pair<String, suspend () -> Unit> = name to run
@@ -1014,6 +1021,143 @@ public class QdrantClientContractSuite(
         client.retrieve(name, listOf(PointId.num(id)), WithPayload.All).single().payload?.keys.orEmpty()
 
     private fun denseOf(vector: VectorData?): List<Float>? = (vector as? VectorData.Dense)?.values
+
+    // --- Qdrant 1.19 -------------------------------------------------------------------------
+
+    /**
+     * Prefix matching is an accelerator rather than a precondition, which is the opposite of the phrase
+     * matching this contract already covers, so both halves are asserted: the same filter returns the
+     * same points before the index exists and after it does. A client that sent the option in a shape
+     * the server ignores would pass the first assertion and fail nothing, so the index is also read back
+     * from the schema.
+     */
+    public suspend fun prefixMatching() {
+        withCollection { name ->
+            client.upsert(name, wait = true) {
+                point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f); payload("sku" to "AB-100") }
+                point(2) { vector(0.0f, 1.0f, 0.0f, 0.0f); payload("sku" to "AB-200") }
+                point(3) { vector(0.0f, 0.0f, 1.0f, 0.0f); payload("sku" to "CD-300") }
+                point(4) { vector(0.0f, 0.0f, 0.0f, 1.0f); payload("sku" to "ab-400") }
+            }
+
+            val scanned = client.scroll(name, pageSize = 10) { filter { must { matchPrefix("sku", "AB-") } } }
+                .map { it.id }
+                .toList()
+                .toSet()
+            assertEquals(setOf(PointId.num(1), PointId.num(2)), scanned, "prefix matching before the index")
+
+            client.createPayloadIndex(name, "sku", wait = true) { keyword { prefixMatching = true } }
+
+            assertEquals("keyword", client.getCollection(name).payloadSchema["sku"]?.dataType)
+            assertEquals(2L, client.count(name) { must { matchPrefix("sku", "AB-") } }, "served by the index")
+            assertEquals(0L, client.count(name) { must { matchPrefix("sku", "ZZ") } })
+            assertEquals(
+                1L,
+                client.count(name) { must { matchPrefix("sku", "ab-") } },
+                "prefix matching is case-sensitive, like exact keyword matching",
+            )
+        }
+    }
+
+    /**
+     * The assertion that matters is that the server did something with the feedback, so the same target
+     * is searched twice and the rankings are compared. Grading the runner-up up and the leader down is
+     * the arrangement most likely to move the top of the list, which is what makes a null result here a
+     * real failure rather than a coefficient that happened not to bite.
+     */
+    public suspend fun relevanceFeedbackReranks() {
+        withCollection { name ->
+            client.upsert(name, wait = true) {
+                point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f) }
+                point(2) { vector(0.9f, 0.4f, 0.0f, 0.0f) }
+                point(3) { vector(0.0f, 1.0f, 0.0f, 0.0f) }
+                point(4) { vector(0.0f, 0.0f, 1.0f, 0.0f) }
+            }
+            val target = listOf(1.0f, 0.1f, 0.0f, 0.0f)
+
+            val plain = client.search(name) { query(target); limit = 4 }.map { it.id }
+
+            val fedBack = client.search(name) {
+                relevanceFeedback {
+                    target(target)
+                    feedback(QueryInterface.ById(PointId.num(3)), 1.0f)
+                    feedback(QueryInterface.ById(PointId.num(1)), -1.0f)
+                    naive(a = 1.0f, b = 1.0f, c = 1.0f)
+                }
+                limit = 4
+            }.map { it.id }
+
+            assertEquals(plain.toSet(), fedBack.toSet(), "feedback reranks the candidates, it does not filter them")
+            assertTrue(
+                plain != fedBack,
+                "the same query with graded feedback came back in the same order: $plain",
+            )
+        }
+    }
+
+    /**
+     * Both halves of what a slice promises. Disjoint and total, so four slices read the collection once
+     * between them and a worker per slice is a safe way to split a scan; and deterministic, so an
+     * evaluation set built from a slice is the same set the next run reads.
+     */
+    public suspend fun slicedScrollPartitions() {
+        withCollection { name ->
+            client.upsert(name, wait = true) {
+                for (id in 1L..40L) point(id) { vector(0.1f, 0.2f, 0.3f, id / 100f) }
+            }
+
+            suspend fun readSlice(index: Int): List<PointId> =
+                client.scroll(name, pageSize = 7) { filter { must { slice(index, total = 4) } } }
+                    .map { it.id }
+                    .toList()
+
+            val slices = (0 until 4).map { readSlice(it) }
+
+            slices.forEachIndexed { index, ids ->
+                assertEquals(ids.size, ids.toSet().size, "slice $index emitted a point twice")
+            }
+            val union = slices.flatten()
+            assertEquals(40, union.size, "the four slices did not cover the collection exactly once: $union")
+            assertEquals(40, union.toSet().size, "two slices returned the same point")
+
+            assertEquals(slices[0], readSlice(0), "a second pass over one slice read different points")
+        }
+    }
+
+    /**
+     * The storage decisions Qdrant 1.19 made expressible, read back from the server rather than from the
+     * request that set them. Both are placements rather than answers, so a round trip through
+     * `getCollection` is the strongest assertion available: what a caller cannot verify is what quietly
+     * stops being sent.
+     */
+    public suspend fun memoryTiersRoundTrip() {
+        withCollection(
+            create = {
+                vector {
+                    size = 4
+                    distance = Distance.COSINE
+                    datatype = VectorDatatype.TURBO4
+                    memory = Memory.CACHED
+                }
+                payloadMemory = Memory.COLD
+            },
+        ) { name ->
+            client.upsert(name, wait = true) {
+                point(1) { vector(1.0f, 0.0f, 0.0f, 0.0f); payload("lang" to "it") }
+                point(2) { vector(0.0f, 1.0f, 0.0f, 0.0f); payload("lang" to "en") }
+            }
+
+            val params = assertNotNull(client.getCollection(name).config?.params, "the collection reported no params")
+            val vectors = assertNotNull(params.vectors as? VectorsConfig.Single, "expected a single unnamed vector")
+
+            assertEquals(VectorDatatype.TURBO4, vectors.params.datatype, "4-bit storage was not kept")
+            assertEquals(Memory.CACHED, vectors.params.memory, "the vector memory tier was not kept")
+            assertEquals(Memory.COLD, params.payload?.memory, "the payload memory tier was not kept")
+
+            // A collection that stores only 4-bit vectors still answers, which is the reason to want it.
+            assertEquals(PointId.num(1), client.search(name) { query(0.9f, 0.1f, 0.0f, 0.0f); limit = 1 }.single().id)
+        }
+    }
 
     private fun nextName(): String = "$namePrefix-${++created}"
 

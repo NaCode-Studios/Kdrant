@@ -12,7 +12,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.assertThrows
 
 /**
- * The eleven operations `QdrantTransport` carries that Qdrant serves over HTTP only.
+ * The operations `QdrantTransport` carries that Qdrant serves over HTTP only.
  *
  * The seam was shaped by the REST API, so it is wider than the gRPC protocol, and the interesting
  * question is not whether these work — they cannot — but what happens when one is called. Each fails
@@ -33,6 +33,8 @@ class RestOnlyOperationsTest {
     @TestFactory
     fun `every operation gRPC does not carry fails by naming itself and REST`(): List<DynamicTest> {
         val operations: Map<String, suspend () -> Unit> = mapOf(
+            "quotas" to { transport.quotas() },
+            "updateQuotas" to { transport.updateQuotas(dev.kdrant.model.QuotaConfig(enabled = true)) },
             "telemetry" to { transport.telemetry() },
             "metrics" to { transport.metrics() },
             "listIssues" to { transport.listIssues() },

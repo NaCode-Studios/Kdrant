@@ -2,6 +2,7 @@ package dev.kdrant.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Request body for `POST /collections/{name}/points/query`.
@@ -51,6 +52,13 @@ public data class SearchRequest(
     /** Restrict the search to the shards holding this key. `null` searches every shard. */
     @SerialName("shard_key")
     public val shardKey: ShardKey? = null,
+
+    /**
+     * Stable token sent as the `X-Qdrant-Route-Affinity` header rather than in the body, which is why it
+     * is [Transient]. See [dev.kdrant.dsl.SearchBuilder.routeAffinity].
+     */
+    @Transient
+    public val routeAffinity: String? = null,
 )
 
 /**

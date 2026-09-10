@@ -29,6 +29,8 @@ import dev.kdrant.model.PointGroup
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.SearchGroupsRequest
@@ -181,6 +183,7 @@ internal class DefaultQdrantClient(
                 withPayload = sr.withPayload,
                 withVector = sr.withVector,
                 lookupFrom = sr.lookupFrom,
+                routeAffinity = sr.routeAffinity,
             ),
         )
     }
@@ -265,20 +268,25 @@ internal class DefaultQdrantClient(
     override suspend fun getCollection(name: String): CollectionInfo =
         transport.getCollection(name)
 
-    override suspend fun count(name: String, exact: Boolean): Long =
-        transport.count(name, filter = null, exact = exact)
+    override suspend fun count(name: String, exact: Boolean, routeAffinity: String?): Long =
+        transport.count(name, filter = null, exact = exact, routeAffinity = routeAffinity)
 
-    override suspend fun count(name: String, exact: Boolean, filter: FilterBuilder.() -> Unit): Long =
-        transport.count(name, FilterBuilder().apply(filter).build(), exact)
+    override suspend fun count(
+        name: String,
+        exact: Boolean,
+        routeAffinity: String?,
+        filter: FilterBuilder.() -> Unit,
+    ): Long = transport.count(name, FilterBuilder().apply(filter).build(), exact, routeAffinity)
 
     override suspend fun retrieve(
         name: String,
         ids: List<PointId>,
         withPayload: WithPayload?,
         withVector: Boolean?,
+        routeAffinity: String?,
     ): List<Record> {
         require(ids.isNotEmpty()) { "retrieve needs at least one id" }
-        return transport.retrieve(name, ids, withPayload, withVector)
+        return transport.retrieve(name, ids, withPayload, withVector, routeAffinity)
     }
 
     override suspend fun createPayloadIndex(
@@ -385,6 +393,10 @@ internal class DefaultQdrantClient(
     override suspend fun livez(): Boolean = transport.livez()
 
     override suspend fun listCollections(): List<CollectionDescription> = transport.listCollections()
+
+    override suspend fun quotas(): QuotaStatus = transport.quotas()
+
+    override suspend fun updateQuotas(config: QuotaConfig): QuotaStatus = transport.updateQuotas(config)
 
     override suspend fun telemetry(): JsonObject = transport.telemetry()
 

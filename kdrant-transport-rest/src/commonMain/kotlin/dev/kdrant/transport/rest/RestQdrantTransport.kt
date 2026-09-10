@@ -25,6 +25,8 @@ import dev.kdrant.model.PointId
 import dev.kdrant.model.PointStruct
 import dev.kdrant.model.PointVectors
 import dev.kdrant.model.PointsUpdateOperation
+import dev.kdrant.model.QuotaConfig
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -52,11 +54,13 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.ChannelProvider
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
@@ -293,21 +297,38 @@ internal class RestQdrantTransport(
 
     override suspend fun query(name: String, request: SearchRequest): List<ScoredPoint> {
         val response = execute(name) {
-            client.post("/collections/${encode(name)}/points/query") { setBody(request) }
+            client.post("/collections/${encode(name)}/points/query") {
+                routeAffinity(request.routeAffinity)
+                setBody(request)
+            }
         }
         return decodeBody(response) { it.body<QueryResponse>().result.points }
     }
 
     override suspend fun queryBatch(name: String, requests: List<SearchRequest>): List<List<ScoredPoint>> {
+        // A batch is one HTTP request, so it carries one affinity token. Two searches asking to be
+        // pinned to different replicas cannot both be honoured here, and silently dropping one is the
+        // way a caller ends up debugging a stale read that has nothing to do with their code.
+        val tokens = requests.mapNotNull { it.routeAffinity }.distinct()
+        require(tokens.size <= 1) {
+            "a batch is one request and carries one routeAffinity, but its searches asked for $tokens. " +
+                "Send them as separate searches, or give them the same token."
+        }
         val response = execute(name) {
-            client.post("/collections/${encode(name)}/points/query/batch") { setBody(BatchQueryRequest(requests)) }
+            client.post("/collections/${encode(name)}/points/query/batch") {
+                routeAffinity(tokens.firstOrNull())
+                setBody(BatchQueryRequest(requests))
+            }
         }
         return decodeBody(response) { resp -> resp.body<BatchQueryResponse>().result.map { it.points } }
     }
 
     override suspend fun queryGroups(name: String, request: SearchGroupsRequest): List<PointGroup> {
         val response = execute(name) {
-            client.post("/collections/${encode(name)}/points/query/groups") { setBody(request) }
+            client.post("/collections/${encode(name)}/points/query/groups") {
+                routeAffinity(request.routeAffinity)
+                setBody(request)
+            }
         }
         return decodeBody(response) { it.body<GroupsResponse>().result.groups }
     }
@@ -443,7 +464,10 @@ internal class RestQdrantTransport(
 
     override suspend fun scroll(name: String, request: ScrollRequest): ScrollPage {
         val response = execute(name) {
-            client.post("/collections/${encode(name)}/points/scroll") { setBody(request) }
+            client.post("/collections/${encode(name)}/points/scroll") {
+                routeAffinity(request.routeAffinity)
+                setBody(request)
+            }
         }
         return decodeBody(response) { it.body<ScrollResponse>().result }
     }
@@ -480,9 +504,12 @@ internal class RestQdrantTransport(
         return decodeBody(response) { it.body<CollectionInfoResponse>().result }
     }
 
-    override suspend fun count(name: String, filter: Filter?, exact: Boolean): Long {
+    override suspend fun count(name: String, filter: Filter?, exact: Boolean, routeAffinity: String?): Long {
         val response = execute(name) {
-            client.post("/collections/${encode(name)}/points/count") { setBody(CountRequest(filter, exact)) }
+            client.post("/collections/${encode(name)}/points/count") {
+                routeAffinity(routeAffinity)
+                setBody(CountRequest(filter, exact))
+            }
         }
         return decodeBody(response) { it.body<CountResponse>().result.count }
     }
@@ -492,9 +519,11 @@ internal class RestQdrantTransport(
         ids: List<PointId>,
         withPayload: WithPayload?,
         withVector: Boolean?,
+        routeAffinity: String?,
     ): List<Record> {
         val response = execute(name) {
             client.post("/collections/${encode(name)}/points") {
+                routeAffinity(routeAffinity)
                 setBody(PointRequest(ids, withPayload, withVector))
             }
         }
@@ -529,6 +558,16 @@ internal class RestQdrantTransport(
     override suspend fun listCollections(): List<CollectionDescription> {
         val response = execute { client.get("/collections") }
         return decodeBody(response) { it.body<CollectionsListResponse>().result.collections }
+    }
+
+    override suspend fun quotas(): QuotaStatus {
+        val response = execute { client.get("/quotas") }
+        return decodeBody(response) { it.body<QuotaStatusResponse>().result }
+    }
+
+    override suspend fun updateQuotas(config: QuotaConfig): QuotaStatus {
+        val response = execute { client.put("/quotas") { setBody(config) } }
+        return decodeBody(response) { it.body<QuotaStatusResponse>().result }
     }
 
     override suspend fun telemetry(): JsonObject {
@@ -1001,6 +1040,14 @@ internal const val DEFAULT_MAX_UPSERT_BYTES: Int = 30 * 1024 * 1024
 
 /** Correlation header, the spelling Qdrant and the common proxies in front of it log. */
 private const val REQUEST_ID_HEADER: String = "X-Request-Id"
+
+/** Qdrant's read-affinity hint. Absent means the server routes the read however it likes. */
+private const val ROUTE_AFFINITY_HEADER: String = "X-Qdrant-Route-Affinity"
+
+/** Sends [token] as the read-affinity header, or nothing at all when there is none to send. */
+private fun HttpRequestBuilder.routeAffinity(token: String?) {
+    token?.let { header(ROUTE_AFFINITY_HEADER, it) }
+}
 
 /** Qdrant's own header for the master key. */
 private const val API_KEY_HEADER: String = "api-key"

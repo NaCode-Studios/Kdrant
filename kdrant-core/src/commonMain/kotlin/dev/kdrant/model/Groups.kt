@@ -2,6 +2,7 @@ package dev.kdrant.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonPrimitive
 
 /** A group of hits sharing the same `group_by` value, returned by `searchGroups`. */
@@ -58,4 +59,11 @@ public data class SearchGroupsRequest(
 
     @SerialName("lookup_from")
     public val lookupFrom: LookupLocation? = null,
+
+    /**
+     * Stable token sent as the `X-Qdrant-Route-Affinity` header rather than in the body, which is why it
+     * is [Transient]. See [dev.kdrant.dsl.SearchBuilder.routeAffinity].
+     */
+    @Transient
+    public val routeAffinity: String? = null,
 )

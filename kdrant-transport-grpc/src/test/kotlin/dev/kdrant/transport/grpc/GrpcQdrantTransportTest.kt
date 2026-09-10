@@ -383,8 +383,8 @@ class GrpcQdrantTransportTest {
     /**
      * The two transports disagree about how this option is spelled: REST takes a boolean, gRPC takes an
      * empty message whose presence enables the feature. The core model carries the boolean, so this is
-     * the assertion that the gRPC side renders it rather than dropping it, which would leave a filter
-     * that works over one engine and matches nothing over the other.
+     * the assertion that the gRPC side renders it rather than dropping it, which would leave one engine
+     * building the index a caller asked for and the other quietly scanning instead.
      */
     @Test
     fun `a keyword index asking for prefix matching sends the message whose presence enables it`() = runTest {

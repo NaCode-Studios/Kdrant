@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION") // Sets the strict-mode disk ceiling on purpose: it is what 1.18 enforces.
+
 package dev.kdrant.testkit
 
 import dev.kdrant.KdrantException

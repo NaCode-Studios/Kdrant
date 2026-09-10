@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 /**
  * The wire shapes Qdrant 1.19 added. Each is asserted against the spelling in that release's own
  * OpenAPI document, because three of them are close enough to an existing shape to be got wrong
- * silently: a prefix option serialized as an object is accepted and enables nothing, a slice with
+ * silently: a prefix option serialized as an object is accepted and builds no index, a slice with
  * index and total transposed reads a different part of the collection, and a memory tier written
  * beside an `on_disk` flag only means something if the caller knows which of the two wins.
  */
@@ -63,10 +63,10 @@ class Qdrant119SurfaceTest {
     }
 
     /**
-     * REST spells the option as a boolean and gRPC as an empty message whose presence enables it, so
-     * the core model carries the boolean and each engine renders it. This is the half of the feature a
-     * caller can get wrong: an index created without it accepts a `matchPrefix` filter and matches
-     * nothing.
+     * REST spells the option as a boolean and gRPC as an empty message whose presence enables it, so the
+     * core model carries the boolean and each engine renders it. Serialized as an object it is accepted
+     * and builds no index, which costs a scan rather than an answer: unlike phrase matching, a prefix
+     * condition is correct without the index and only refused under strict mode.
      */
     @Test
     fun `a keyword index asks for prefix matching with a boolean`() {

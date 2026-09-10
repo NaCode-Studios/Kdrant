@@ -6,6 +6,7 @@ import dev.kdrant.model.CollectionDescription
 import dev.kdrant.model.CollectionInfo
 import dev.kdrant.model.FacetHit
 import dev.kdrant.model.PointGroup
+import dev.kdrant.model.QuotaStatus
 import dev.kdrant.model.Record
 import dev.kdrant.model.ScoredPoint
 import dev.kdrant.model.ScrollPage
@@ -55,6 +56,11 @@ internal data class ExistsResponse(
 @Serializable
 internal data class ExistsResult(
     @SerialName("exists") val exists: Boolean,
+)
+
+@Serializable
+internal data class QuotaStatusResponse(
+    @SerialName("result") val result: QuotaStatus,
 )
 
 @Serializable

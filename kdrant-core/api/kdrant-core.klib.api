@@ -248,7 +248,7 @@ abstract interface dev.kdrant.transport/QdrantTransport : kotlin/AutoCloseable {
     abstract suspend fun clearPayload(kotlin/String, dev.kdrant.model/DeleteSelector, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.clearPayload|clearPayload(kotlin.String;dev.kdrant.model.DeleteSelector;kotlin.Boolean){}[0]
     abstract suspend fun collectionClusterInfo(kotlin/String): dev.kdrant.model/CollectionClusterInfo // dev.kdrant.transport/QdrantTransport.collectionClusterInfo|collectionClusterInfo(kotlin.String){}[0]
     abstract suspend fun collectionExists(kotlin/String): kotlin/Boolean // dev.kdrant.transport/QdrantTransport.collectionExists|collectionExists(kotlin.String){}[0]
-    abstract suspend fun count(kotlin/String, dev.kdrant.model/Filter?, kotlin/Boolean): kotlin/Long // dev.kdrant.transport/QdrantTransport.count|count(kotlin.String;dev.kdrant.model.Filter?;kotlin.Boolean){}[0]
+    abstract suspend fun count(kotlin/String, dev.kdrant.model/Filter?, kotlin/Boolean, kotlin/String? = ...): kotlin/Long // dev.kdrant.transport/QdrantTransport.count|count(kotlin.String;dev.kdrant.model.Filter?;kotlin.Boolean;kotlin.String?){}[0]
     abstract suspend fun createCollection(kotlin/String, dev.kdrant.model/CreateCollectionRequest) // dev.kdrant.transport/QdrantTransport.createCollection|createCollection(kotlin.String;dev.kdrant.model.CreateCollectionRequest){}[0]
     abstract suspend fun createPayloadIndex(kotlin/String, kotlin/String, dev.kdrant.model/PayloadIndexParams, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.createPayloadIndex|createPayloadIndex(kotlin.String;kotlin.String;dev.kdrant.model.PayloadIndexParams;kotlin.Boolean){}[0]
     abstract suspend fun createPayloadIndex(kotlin/String, kotlin/String, dev.kdrant.model/PayloadSchemaType, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.createPayloadIndex|createPayloadIndex(kotlin.String;kotlin.String;dev.kdrant.model.PayloadSchemaType;kotlin.Boolean){}[0]
@@ -281,10 +281,11 @@ abstract interface dev.kdrant.transport/QdrantTransport : kotlin/AutoCloseable {
     abstract suspend fun query(kotlin/String, dev.kdrant.model/SearchRequest): kotlin.collections/List<dev.kdrant.model/ScoredPoint> // dev.kdrant.transport/QdrantTransport.query|query(kotlin.String;dev.kdrant.model.SearchRequest){}[0]
     abstract suspend fun queryBatch(kotlin/String, kotlin.collections/List<dev.kdrant.model/SearchRequest>): kotlin.collections/List<kotlin.collections/List<dev.kdrant.model/ScoredPoint>> // dev.kdrant.transport/QdrantTransport.queryBatch|queryBatch(kotlin.String;kotlin.collections.List<dev.kdrant.model.SearchRequest>){}[0]
     abstract suspend fun queryGroups(kotlin/String, dev.kdrant.model/SearchGroupsRequest): kotlin.collections/List<dev.kdrant.model/PointGroup> // dev.kdrant.transport/QdrantTransport.queryGroups|queryGroups(kotlin.String;dev.kdrant.model.SearchGroupsRequest){}[0]
+    abstract suspend fun quotas(): dev.kdrant.model/QuotaStatus // dev.kdrant.transport/QdrantTransport.quotas|quotas(){}[0]
     abstract suspend fun readyz(): kotlin/Boolean // dev.kdrant.transport/QdrantTransport.readyz|readyz(){}[0]
     abstract suspend fun recoverShardSnapshot(kotlin/String, kotlin/Int, kotlin/String, dev.kdrant.model/SnapshotPriority?, kotlin/String?, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.recoverShardSnapshot|recoverShardSnapshot(kotlin.String;kotlin.Int;kotlin.String;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
     abstract suspend fun recoverSnapshot(kotlin/String, kotlin/String, dev.kdrant.model/SnapshotPriority?, kotlin/String?, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.recoverSnapshot|recoverSnapshot(kotlin.String;kotlin.String;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
-    abstract suspend fun retrieve(kotlin/String, kotlin.collections/List<dev.kdrant.model/PointId>, dev.kdrant.model/WithPayload?, kotlin/Boolean?): kotlin.collections/List<dev.kdrant.model/Record> // dev.kdrant.transport/QdrantTransport.retrieve|retrieve(kotlin.String;kotlin.collections.List<dev.kdrant.model.PointId>;dev.kdrant.model.WithPayload?;kotlin.Boolean?){}[0]
+    abstract suspend fun retrieve(kotlin/String, kotlin.collections/List<dev.kdrant.model/PointId>, dev.kdrant.model/WithPayload?, kotlin/Boolean?, kotlin/String? = ...): kotlin.collections/List<dev.kdrant.model/Record> // dev.kdrant.transport/QdrantTransport.retrieve|retrieve(kotlin.String;kotlin.collections.List<dev.kdrant.model.PointId>;dev.kdrant.model.WithPayload?;kotlin.Boolean?;kotlin.String?){}[0]
     abstract suspend fun scroll(kotlin/String, dev.kdrant.model/ScrollRequest): dev.kdrant.model/ScrollPage // dev.kdrant.transport/QdrantTransport.scroll|scroll(kotlin.String;dev.kdrant.model.ScrollRequest){}[0]
     abstract suspend fun searchMatrixOffsets(kotlin/String, dev.kdrant.model/SearchMatrixRequest): dev.kdrant.model/SearchMatrixOffsets // dev.kdrant.transport/QdrantTransport.searchMatrixOffsets|searchMatrixOffsets(kotlin.String;dev.kdrant.model.SearchMatrixRequest){}[0]
     abstract suspend fun searchMatrixPairs(kotlin/String, dev.kdrant.model/SearchMatrixRequest): dev.kdrant.model/SearchMatrixPairs // dev.kdrant.transport/QdrantTransport.searchMatrixPairs|searchMatrixPairs(kotlin.String;dev.kdrant.model.SearchMatrixRequest){}[0]
@@ -293,6 +294,7 @@ abstract interface dev.kdrant.transport/QdrantTransport : kotlin/AutoCloseable {
     abstract suspend fun updateAliases(kotlin.collections/List<dev.kdrant.model/AliasOperation>, kotlin/Int?) // dev.kdrant.transport/QdrantTransport.updateAliases|updateAliases(kotlin.collections.List<dev.kdrant.model.AliasOperation>;kotlin.Int?){}[0]
     abstract suspend fun updateCollection(kotlin/String, dev.kdrant.model/UpdateCollectionRequest) // dev.kdrant.transport/QdrantTransport.updateCollection|updateCollection(kotlin.String;dev.kdrant.model.UpdateCollectionRequest){}[0]
     abstract suspend fun updateCollectionCluster(kotlin/String, dev.kdrant.model/ClusterOperation, kotlin/Int?) // dev.kdrant.transport/QdrantTransport.updateCollectionCluster|updateCollectionCluster(kotlin.String;dev.kdrant.model.ClusterOperation;kotlin.Int?){}[0]
+    abstract suspend fun updateQuotas(dev.kdrant.model/QuotaConfig): dev.kdrant.model/QuotaStatus // dev.kdrant.transport/QdrantTransport.updateQuotas|updateQuotas(dev.kdrant.model.QuotaConfig){}[0]
     abstract suspend fun updateVectors(kotlin/String, kotlin.collections/List<dev.kdrant.model/PointVectors>, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.updateVectors|updateVectors(kotlin.String;kotlin.collections.List<dev.kdrant.model.PointVectors>;kotlin.Boolean){}[0]
     abstract suspend fun uploadShardSnapshot(kotlin/String, kotlin/Int, kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, dev.kdrant.model/SnapshotPriority?, kotlin/String?, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.uploadShardSnapshot|uploadShardSnapshot(kotlin.String;kotlin.Int;kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
     abstract suspend fun uploadSnapshot(kotlin/String, kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, dev.kdrant.model/SnapshotPriority?, kotlin/String?, kotlin/Boolean) // dev.kdrant.transport/QdrantTransport.uploadSnapshot|uploadSnapshot(kotlin.String;kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
@@ -310,8 +312,8 @@ abstract interface dev.kdrant/QdrantClient : kotlin/AutoCloseable { // dev.kdran
     abstract suspend fun clearPayload(kotlin/String, dev.kdrant.model/DeleteSelector, kotlin/Boolean = ...) // dev.kdrant/QdrantClient.clearPayload|clearPayload(kotlin.String;dev.kdrant.model.DeleteSelector;kotlin.Boolean){}[0]
     abstract suspend fun collectionClusterInfo(kotlin/String): dev.kdrant.model/CollectionClusterInfo // dev.kdrant/QdrantClient.collectionClusterInfo|collectionClusterInfo(kotlin.String){}[0]
     abstract suspend fun collectionExists(kotlin/String): kotlin/Boolean // dev.kdrant/QdrantClient.collectionExists|collectionExists(kotlin.String){}[0]
-    abstract suspend fun count(kotlin/String, kotlin/Boolean = ...): kotlin/Long // dev.kdrant/QdrantClient.count|count(kotlin.String;kotlin.Boolean){}[0]
-    abstract suspend fun count(kotlin/String, kotlin/Boolean = ..., kotlin/Function1<dev.kdrant.dsl/FilterBuilder, kotlin/Unit>): kotlin/Long // dev.kdrant/QdrantClient.count|count(kotlin.String;kotlin.Boolean;kotlin.Function1<dev.kdrant.dsl.FilterBuilder,kotlin.Unit>){}[0]
+    abstract suspend fun count(kotlin/String, kotlin/Boolean = ..., kotlin/String? = ...): kotlin/Long // dev.kdrant/QdrantClient.count|count(kotlin.String;kotlin.Boolean;kotlin.String?){}[0]
+    abstract suspend fun count(kotlin/String, kotlin/Boolean = ..., kotlin/String? = ..., kotlin/Function1<dev.kdrant.dsl/FilterBuilder, kotlin/Unit>): kotlin/Long // dev.kdrant/QdrantClient.count|count(kotlin.String;kotlin.Boolean;kotlin.String?;kotlin.Function1<dev.kdrant.dsl.FilterBuilder,kotlin.Unit>){}[0]
     abstract suspend fun createCollection(kotlin/String, kotlin/Function1<dev.kdrant.dsl/CreateCollectionBuilder, kotlin/Unit>) // dev.kdrant/QdrantClient.createCollection|createCollection(kotlin.String;kotlin.Function1<dev.kdrant.dsl.CreateCollectionBuilder,kotlin.Unit>){}[0]
     abstract suspend fun createPayloadIndex(kotlin/String, kotlin/String, dev.kdrant.model/PayloadSchemaType, kotlin/Boolean = ...) // dev.kdrant/QdrantClient.createPayloadIndex|createPayloadIndex(kotlin.String;kotlin.String;dev.kdrant.model.PayloadSchemaType;kotlin.Boolean){}[0]
     abstract suspend fun createPayloadIndex(kotlin/String, kotlin/String, kotlin/Boolean = ..., kotlin/Function1<dev.kdrant.dsl/PayloadIndexBuilder, kotlin/Unit>) // dev.kdrant/QdrantClient.createPayloadIndex|createPayloadIndex(kotlin.String;kotlin.String;kotlin.Boolean;kotlin.Function1<dev.kdrant.dsl.PayloadIndexBuilder,kotlin.Unit>){}[0]
@@ -344,10 +346,11 @@ abstract interface dev.kdrant/QdrantClient : kotlin/AutoCloseable { // dev.kdran
     abstract suspend fun livez(): kotlin/Boolean // dev.kdrant/QdrantClient.livez|livez(){}[0]
     abstract suspend fun metrics(): kotlin/String // dev.kdrant/QdrantClient.metrics|metrics(){}[0]
     abstract suspend fun overwritePayload(kotlin/String, kotlinx.serialization.json/JsonObject, dev.kdrant.model/DeleteSelector, kotlin/Boolean = ...) // dev.kdrant/QdrantClient.overwritePayload|overwritePayload(kotlin.String;kotlinx.serialization.json.JsonObject;dev.kdrant.model.DeleteSelector;kotlin.Boolean){}[0]
+    abstract suspend fun quotas(): dev.kdrant.model/QuotaStatus // dev.kdrant/QdrantClient.quotas|quotas(){}[0]
     abstract suspend fun readyz(): kotlin/Boolean // dev.kdrant/QdrantClient.readyz|readyz(){}[0]
     abstract suspend fun recoverShardSnapshot(kotlin/String, kotlin/Int, kotlin/String, dev.kdrant.model/SnapshotPriority? = ..., kotlin/String? = ..., kotlin/Boolean = ...) // dev.kdrant/QdrantClient.recoverShardSnapshot|recoverShardSnapshot(kotlin.String;kotlin.Int;kotlin.String;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
     abstract suspend fun recoverSnapshot(kotlin/String, kotlin/String, dev.kdrant.model/SnapshotPriority? = ..., kotlin/String? = ..., kotlin/Boolean = ...) // dev.kdrant/QdrantClient.recoverSnapshot|recoverSnapshot(kotlin.String;kotlin.String;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
-    abstract suspend fun retrieve(kotlin/String, kotlin.collections/List<dev.kdrant.model/PointId>, dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ...): kotlin.collections/List<dev.kdrant.model/Record> // dev.kdrant/QdrantClient.retrieve|retrieve(kotlin.String;kotlin.collections.List<dev.kdrant.model.PointId>;dev.kdrant.model.WithPayload?;kotlin.Boolean?){}[0]
+    abstract suspend fun retrieve(kotlin/String, kotlin.collections/List<dev.kdrant.model/PointId>, dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., kotlin/String? = ...): kotlin.collections/List<dev.kdrant.model/Record> // dev.kdrant/QdrantClient.retrieve|retrieve(kotlin.String;kotlin.collections.List<dev.kdrant.model.PointId>;dev.kdrant.model.WithPayload?;kotlin.Boolean?;kotlin.String?){}[0]
     abstract suspend fun search(kotlin/String, kotlin/Function1<dev.kdrant.dsl/SearchBuilder, kotlin/Unit>): kotlin.collections/List<dev.kdrant.model/ScoredPoint> // dev.kdrant/QdrantClient.search|search(kotlin.String;kotlin.Function1<dev.kdrant.dsl.SearchBuilder,kotlin.Unit>){}[0]
     abstract suspend fun searchBatch(kotlin/String, kotlin/Function1<dev.kdrant.dsl/BatchSearchBuilder, kotlin/Unit>): kotlin.collections/List<kotlin.collections/List<dev.kdrant.model/ScoredPoint>> // dev.kdrant/QdrantClient.searchBatch|searchBatch(kotlin.String;kotlin.Function1<dev.kdrant.dsl.BatchSearchBuilder,kotlin.Unit>){}[0]
     abstract suspend fun searchGroups(kotlin/String, kotlin/String, kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Function1<dev.kdrant.dsl/SearchBuilder, kotlin/Unit>): kotlin.collections/List<dev.kdrant.model/PointGroup> // dev.kdrant/QdrantClient.searchGroups|searchGroups(kotlin.String;kotlin.String;kotlin.Int?;kotlin.Int?;kotlin.Function1<dev.kdrant.dsl.SearchBuilder,kotlin.Unit>){}[0]
@@ -358,6 +361,7 @@ abstract interface dev.kdrant/QdrantClient : kotlin/AutoCloseable { // dev.kdran
     abstract suspend fun updateAliases(kotlin/Int? = ..., kotlin/Function1<dev.kdrant.dsl/UpdateAliasesBuilder, kotlin/Unit>) // dev.kdrant/QdrantClient.updateAliases|updateAliases(kotlin.Int?;kotlin.Function1<dev.kdrant.dsl.UpdateAliasesBuilder,kotlin.Unit>){}[0]
     abstract suspend fun updateCollection(kotlin/String, kotlin/Function1<dev.kdrant.dsl/UpdateCollectionBuilder, kotlin/Unit>) // dev.kdrant/QdrantClient.updateCollection|updateCollection(kotlin.String;kotlin.Function1<dev.kdrant.dsl.UpdateCollectionBuilder,kotlin.Unit>){}[0]
     abstract suspend fun updateCollectionCluster(kotlin/String, dev.kdrant.model/ClusterOperation, kotlin/Int? = ...) // dev.kdrant/QdrantClient.updateCollectionCluster|updateCollectionCluster(kotlin.String;dev.kdrant.model.ClusterOperation;kotlin.Int?){}[0]
+    abstract suspend fun updateQuotas(dev.kdrant.model/QuotaConfig): dev.kdrant.model/QuotaStatus // dev.kdrant/QdrantClient.updateQuotas|updateQuotas(dev.kdrant.model.QuotaConfig){}[0]
     abstract suspend fun updateVectors(kotlin/String, kotlin.collections/List<dev.kdrant.model/PointVectors>, kotlin/Boolean = ...) // dev.kdrant/QdrantClient.updateVectors|updateVectors(kotlin.String;kotlin.collections.List<dev.kdrant.model.PointVectors>;kotlin.Boolean){}[0]
     abstract suspend fun uploadShardSnapshot(kotlin/String, kotlin/Int, kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, dev.kdrant.model/SnapshotPriority? = ..., kotlin/String? = ..., kotlin/Boolean = ...) // dev.kdrant/QdrantClient.uploadShardSnapshot|uploadShardSnapshot(kotlin.String;kotlin.Int;kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
     abstract suspend fun uploadSnapshot(kotlin/String, kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, dev.kdrant.model/SnapshotPriority? = ..., kotlin/String? = ..., kotlin/Boolean = ...) // dev.kdrant/QdrantClient.uploadSnapshot|uploadSnapshot(kotlin.String;kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;dev.kdrant.model.SnapshotPriority?;kotlin.String?;kotlin.Boolean){}[0]
@@ -2712,6 +2716,9 @@ final class dev.kdrant.dsl/RelevanceFeedbackBuilder { // dev.kdrant.dsl/Relevanc
 }
 
 final class dev.kdrant.dsl/ScrollBuilder { // dev.kdrant.dsl/ScrollBuilder|null[0]
+    final var routeAffinity // dev.kdrant.dsl/ScrollBuilder.routeAffinity|{}routeAffinity[0]
+        final fun <get-routeAffinity>(): kotlin/String? // dev.kdrant.dsl/ScrollBuilder.routeAffinity.<get-routeAffinity>|<get-routeAffinity>(){}[0]
+        final fun <set-routeAffinity>(kotlin/String?) // dev.kdrant.dsl/ScrollBuilder.routeAffinity.<set-routeAffinity>|<set-routeAffinity>(kotlin.String?){}[0]
     final var shardKey // dev.kdrant.dsl/ScrollBuilder.shardKey|{}shardKey[0]
         final fun <get-shardKey>(): dev.kdrant.model/ShardKey? // dev.kdrant.dsl/ScrollBuilder.shardKey.<get-shardKey>|<get-shardKey>(){}[0]
         final fun <set-shardKey>(dev.kdrant.model/ShardKey?) // dev.kdrant.dsl/ScrollBuilder.shardKey.<set-shardKey>|<set-shardKey>(dev.kdrant.model.ShardKey?){}[0]
@@ -2740,6 +2747,9 @@ final class dev.kdrant.dsl/SearchBuilder { // dev.kdrant.dsl/SearchBuilder|null[
     final var offset // dev.kdrant.dsl/SearchBuilder.offset|{}offset[0]
         final fun <get-offset>(): kotlin/Int? // dev.kdrant.dsl/SearchBuilder.offset.<get-offset>|<get-offset>(){}[0]
         final fun <set-offset>(kotlin/Int?) // dev.kdrant.dsl/SearchBuilder.offset.<set-offset>|<set-offset>(kotlin.Int?){}[0]
+    final var routeAffinity // dev.kdrant.dsl/SearchBuilder.routeAffinity|{}routeAffinity[0]
+        final fun <get-routeAffinity>(): kotlin/String? // dev.kdrant.dsl/SearchBuilder.routeAffinity.<get-routeAffinity>|<get-routeAffinity>(){}[0]
+        final fun <set-routeAffinity>(kotlin/String?) // dev.kdrant.dsl/SearchBuilder.routeAffinity.<set-routeAffinity>|<set-routeAffinity>(kotlin.String?){}[0]
     final var scoreThreshold // dev.kdrant.dsl/SearchBuilder.scoreThreshold|{}scoreThreshold[0]
         final fun <get-scoreThreshold>(): kotlin/Double? // dev.kdrant.dsl/SearchBuilder.scoreThreshold.<get-scoreThreshold>|<get-scoreThreshold>(){}[0]
         final fun <set-scoreThreshold>(kotlin/Double?) // dev.kdrant.dsl/SearchBuilder.scoreThreshold.<set-scoreThreshold>|<set-scoreThreshold>(kotlin.Double?){}[0]
@@ -3738,6 +3748,38 @@ final class dev.kdrant.model/PayloadStorageParams { // dev.kdrant.model/PayloadS
     }
 }
 
+final class dev.kdrant.model/PeerQuotaUsage { // dev.kdrant.model/PeerQuotaUsage|null[0]
+    constructor <init>(dev.kdrant.model/QuotaExceeded, kotlin/Int? = ..., kotlin/Int? = ...) // dev.kdrant.model/PeerQuotaUsage.<init>|<init>(dev.kdrant.model.QuotaExceeded;kotlin.Int?;kotlin.Int?){}[0]
+
+    final val diskUsagePercent // dev.kdrant.model/PeerQuotaUsage.diskUsagePercent|{}diskUsagePercent[0]
+        final fun <get-diskUsagePercent>(): kotlin/Int? // dev.kdrant.model/PeerQuotaUsage.diskUsagePercent.<get-diskUsagePercent>|<get-diskUsagePercent>(){}[0]
+    final val exceeded // dev.kdrant.model/PeerQuotaUsage.exceeded|{}exceeded[0]
+        final fun <get-exceeded>(): dev.kdrant.model/QuotaExceeded // dev.kdrant.model/PeerQuotaUsage.exceeded.<get-exceeded>|<get-exceeded>(){}[0]
+    final val residentMemoryPercent // dev.kdrant.model/PeerQuotaUsage.residentMemoryPercent|{}residentMemoryPercent[0]
+        final fun <get-residentMemoryPercent>(): kotlin/Int? // dev.kdrant.model/PeerQuotaUsage.residentMemoryPercent.<get-residentMemoryPercent>|<get-residentMemoryPercent>(){}[0]
+
+    final fun component1(): dev.kdrant.model/QuotaExceeded // dev.kdrant.model/PeerQuotaUsage.component1|component1(){}[0]
+    final fun component2(): kotlin/Int? // dev.kdrant.model/PeerQuotaUsage.component2|component2(){}[0]
+    final fun component3(): kotlin/Int? // dev.kdrant.model/PeerQuotaUsage.component3|component3(){}[0]
+    final fun copy(dev.kdrant.model/QuotaExceeded = ..., kotlin/Int? = ..., kotlin/Int? = ...): dev.kdrant.model/PeerQuotaUsage // dev.kdrant.model/PeerQuotaUsage.copy|copy(dev.kdrant.model.QuotaExceeded;kotlin.Int?;kotlin.Int?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PeerQuotaUsage.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/PeerQuotaUsage.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/PeerQuotaUsage.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/PeerQuotaUsage> { // dev.kdrant.model/PeerQuotaUsage.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/PeerQuotaUsage.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/PeerQuotaUsage.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/PeerQuotaUsage.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/PeerQuotaUsage // dev.kdrant.model/PeerQuotaUsage.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/PeerQuotaUsage) // dev.kdrant.model/PeerQuotaUsage.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.PeerQuotaUsage){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/PeerQuotaUsage.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PeerQuotaUsage> // dev.kdrant.model/PeerQuotaUsage.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final class dev.kdrant.model/PointGroup { // dev.kdrant.model/PointGroup|null[0]
     constructor <init>(kotlinx.serialization.json/JsonPrimitive, kotlin.collections/List<dev.kdrant.model/ScoredPoint>, dev.kdrant.model/Record? = ...) // dev.kdrant.model/PointGroup.<init>|<init>(kotlinx.serialization.json.JsonPrimitive;kotlin.collections.List<dev.kdrant.model.ScoredPoint>;dev.kdrant.model.Record?){}[0]
 
@@ -3882,6 +3924,135 @@ final class dev.kdrant.model/Prefetch { // dev.kdrant.model/Prefetch|null[0]
     }
 }
 
+final class dev.kdrant.model/QuotaConfig { // dev.kdrant.model/QuotaConfig|null[0]
+    constructor <init>(kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ...) // dev.kdrant.model/QuotaConfig.<init>|<init>(kotlin.Boolean?;kotlin.Int?;kotlin.Int?;kotlin.Int?){}[0]
+
+    final val enabled // dev.kdrant.model/QuotaConfig.enabled|{}enabled[0]
+        final fun <get-enabled>(): kotlin/Boolean? // dev.kdrant.model/QuotaConfig.enabled.<get-enabled>|<get-enabled>(){}[0]
+    final val maxDiskUsagePercent // dev.kdrant.model/QuotaConfig.maxDiskUsagePercent|{}maxDiskUsagePercent[0]
+        final fun <get-maxDiskUsagePercent>(): kotlin/Int? // dev.kdrant.model/QuotaConfig.maxDiskUsagePercent.<get-maxDiskUsagePercent>|<get-maxDiskUsagePercent>(){}[0]
+    final val maxResidentMemoryPercent // dev.kdrant.model/QuotaConfig.maxResidentMemoryPercent|{}maxResidentMemoryPercent[0]
+        final fun <get-maxResidentMemoryPercent>(): kotlin/Int? // dev.kdrant.model/QuotaConfig.maxResidentMemoryPercent.<get-maxResidentMemoryPercent>|<get-maxResidentMemoryPercent>(){}[0]
+    final val releaseMarginPercent // dev.kdrant.model/QuotaConfig.releaseMarginPercent|{}releaseMarginPercent[0]
+        final fun <get-releaseMarginPercent>(): kotlin/Int? // dev.kdrant.model/QuotaConfig.releaseMarginPercent.<get-releaseMarginPercent>|<get-releaseMarginPercent>(){}[0]
+
+    final fun component1(): kotlin/Boolean? // dev.kdrant.model/QuotaConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/Int? // dev.kdrant.model/QuotaConfig.component2|component2(){}[0]
+    final fun component3(): kotlin/Int? // dev.kdrant.model/QuotaConfig.component3|component3(){}[0]
+    final fun component4(): kotlin/Int? // dev.kdrant.model/QuotaConfig.component4|component4(){}[0]
+    final fun copy(kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ...): dev.kdrant.model/QuotaConfig // dev.kdrant.model/QuotaConfig.copy|copy(kotlin.Boolean?;kotlin.Int?;kotlin.Int?;kotlin.Int?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QuotaConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/QuotaConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/QuotaConfig.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/QuotaConfig> { // dev.kdrant.model/QuotaConfig.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/QuotaConfig.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/QuotaConfig.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/QuotaConfig.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/QuotaConfig // dev.kdrant.model/QuotaConfig.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/QuotaConfig) // dev.kdrant.model/QuotaConfig.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.QuotaConfig){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/QuotaConfig.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/QuotaConfig> // dev.kdrant.model/QuotaConfig.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class dev.kdrant.model/QuotaExceeded { // dev.kdrant.model/QuotaExceeded|null[0]
+    constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/QuotaExceeded.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?){}[0]
+
+    final val any // dev.kdrant.model/QuotaExceeded.any|{}any[0]
+        final fun <get-any>(): kotlin/Boolean // dev.kdrant.model/QuotaExceeded.any.<get-any>|<get-any>(){}[0]
+    final val diskUsage // dev.kdrant.model/QuotaExceeded.diskUsage|{}diskUsage[0]
+        final fun <get-diskUsage>(): kotlin/Boolean? // dev.kdrant.model/QuotaExceeded.diskUsage.<get-diskUsage>|<get-diskUsage>(){}[0]
+    final val residentMemory // dev.kdrant.model/QuotaExceeded.residentMemory|{}residentMemory[0]
+        final fun <get-residentMemory>(): kotlin/Boolean? // dev.kdrant.model/QuotaExceeded.residentMemory.<get-residentMemory>|<get-residentMemory>(){}[0]
+
+    final fun component1(): kotlin/Boolean? // dev.kdrant.model/QuotaExceeded.component1|component1(){}[0]
+    final fun component2(): kotlin/Boolean? // dev.kdrant.model/QuotaExceeded.component2|component2(){}[0]
+    final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/QuotaExceeded // dev.kdrant.model/QuotaExceeded.copy|copy(kotlin.Boolean?;kotlin.Boolean?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QuotaExceeded.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/QuotaExceeded.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/QuotaExceeded.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/QuotaExceeded> { // dev.kdrant.model/QuotaExceeded.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/QuotaExceeded.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/QuotaExceeded.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/QuotaExceeded.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/QuotaExceeded // dev.kdrant.model/QuotaExceeded.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/QuotaExceeded) // dev.kdrant.model/QuotaExceeded.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.QuotaExceeded){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/QuotaExceeded.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/QuotaExceeded> // dev.kdrant.model/QuotaExceeded.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class dev.kdrant.model/QuotaStatus { // dev.kdrant.model/QuotaStatus|null[0]
+    constructor <init>(dev.kdrant.model/QuotaConfig, dev.kdrant.model/QuotaUsage, kotlin.collections/Map<kotlin/String, dev.kdrant.model/PeerQuotaUsage>? = ...) // dev.kdrant.model/QuotaStatus.<init>|<init>(dev.kdrant.model.QuotaConfig;dev.kdrant.model.QuotaUsage;kotlin.collections.Map<kotlin.String,dev.kdrant.model.PeerQuotaUsage>?){}[0]
+
+    final val config // dev.kdrant.model/QuotaStatus.config|{}config[0]
+        final fun <get-config>(): dev.kdrant.model/QuotaConfig // dev.kdrant.model/QuotaStatus.config.<get-config>|<get-config>(){}[0]
+    final val peers // dev.kdrant.model/QuotaStatus.peers|{}peers[0]
+        final fun <get-peers>(): kotlin.collections/Map<kotlin/String, dev.kdrant.model/PeerQuotaUsage>? // dev.kdrant.model/QuotaStatus.peers.<get-peers>|<get-peers>(){}[0]
+    final val usage // dev.kdrant.model/QuotaStatus.usage|{}usage[0]
+        final fun <get-usage>(): dev.kdrant.model/QuotaUsage // dev.kdrant.model/QuotaStatus.usage.<get-usage>|<get-usage>(){}[0]
+
+    final fun component1(): dev.kdrant.model/QuotaConfig // dev.kdrant.model/QuotaStatus.component1|component1(){}[0]
+    final fun component2(): dev.kdrant.model/QuotaUsage // dev.kdrant.model/QuotaStatus.component2|component2(){}[0]
+    final fun component3(): kotlin.collections/Map<kotlin/String, dev.kdrant.model/PeerQuotaUsage>? // dev.kdrant.model/QuotaStatus.component3|component3(){}[0]
+    final fun copy(dev.kdrant.model/QuotaConfig = ..., dev.kdrant.model/QuotaUsage = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/PeerQuotaUsage>? = ...): dev.kdrant.model/QuotaStatus // dev.kdrant.model/QuotaStatus.copy|copy(dev.kdrant.model.QuotaConfig;dev.kdrant.model.QuotaUsage;kotlin.collections.Map<kotlin.String,dev.kdrant.model.PeerQuotaUsage>?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QuotaStatus.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/QuotaStatus.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/QuotaStatus.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/QuotaStatus> { // dev.kdrant.model/QuotaStatus.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/QuotaStatus.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/QuotaStatus.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/QuotaStatus.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/QuotaStatus // dev.kdrant.model/QuotaStatus.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/QuotaStatus) // dev.kdrant.model/QuotaStatus.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.QuotaStatus){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/QuotaStatus.Companion|null[0]
+        final val $childSerializers // dev.kdrant.model/QuotaStatus.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/QuotaStatus> // dev.kdrant.model/QuotaStatus.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class dev.kdrant.model/QuotaUsage { // dev.kdrant.model/QuotaUsage|null[0]
+    constructor <init>(kotlin/Int? = ..., kotlin/Int? = ...) // dev.kdrant.model/QuotaUsage.<init>|<init>(kotlin.Int?;kotlin.Int?){}[0]
+
+    final val diskUsagePercent // dev.kdrant.model/QuotaUsage.diskUsagePercent|{}diskUsagePercent[0]
+        final fun <get-diskUsagePercent>(): kotlin/Int? // dev.kdrant.model/QuotaUsage.diskUsagePercent.<get-diskUsagePercent>|<get-diskUsagePercent>(){}[0]
+    final val residentMemoryPercent // dev.kdrant.model/QuotaUsage.residentMemoryPercent|{}residentMemoryPercent[0]
+        final fun <get-residentMemoryPercent>(): kotlin/Int? // dev.kdrant.model/QuotaUsage.residentMemoryPercent.<get-residentMemoryPercent>|<get-residentMemoryPercent>(){}[0]
+
+    final fun component1(): kotlin/Int? // dev.kdrant.model/QuotaUsage.component1|component1(){}[0]
+    final fun component2(): kotlin/Int? // dev.kdrant.model/QuotaUsage.component2|component2(){}[0]
+    final fun copy(kotlin/Int? = ..., kotlin/Int? = ...): dev.kdrant.model/QuotaUsage // dev.kdrant.model/QuotaUsage.copy|copy(kotlin.Int?;kotlin.Int?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QuotaUsage.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/QuotaUsage.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/QuotaUsage.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/QuotaUsage> { // dev.kdrant.model/QuotaUsage.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/QuotaUsage.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/QuotaUsage.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/QuotaUsage.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/QuotaUsage // dev.kdrant.model/QuotaUsage.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/QuotaUsage) // dev.kdrant.model/QuotaUsage.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.QuotaUsage){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/QuotaUsage.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/QuotaUsage> // dev.kdrant.model/QuotaUsage.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final class dev.kdrant.model/Record { // dev.kdrant.model/Record|null[0]
     constructor <init>(dev.kdrant.model/PointId, kotlinx.serialization.json/JsonObject? = ..., dev.kdrant.model/VectorData? = ..., kotlinx.serialization.json/JsonPrimitive? = ...) // dev.kdrant.model/Record.<init>|<init>(dev.kdrant.model.PointId;kotlinx.serialization.json.JsonObject?;dev.kdrant.model.VectorData?;kotlinx.serialization.json.JsonPrimitive?){}[0]
 
@@ -4022,7 +4193,7 @@ final class dev.kdrant.model/ScrollPage { // dev.kdrant.model/ScrollPage|null[0]
 }
 
 final class dev.kdrant.model/ScrollRequest { // dev.kdrant.model/ScrollRequest|null[0]
-    constructor <init>(dev.kdrant.model/Filter? = ..., kotlin/Int, dev.kdrant.model/PointId? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/OrderBy? = ..., dev.kdrant.model/ShardKey? = ...) // dev.kdrant.model/ScrollRequest.<init>|<init>(dev.kdrant.model.Filter?;kotlin.Int;dev.kdrant.model.PointId?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.OrderBy?;dev.kdrant.model.ShardKey?){}[0]
+    constructor <init>(dev.kdrant.model/Filter? = ..., kotlin/Int, dev.kdrant.model/PointId? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/OrderBy? = ..., dev.kdrant.model/ShardKey? = ..., kotlin/String? = ...) // dev.kdrant.model/ScrollRequest.<init>|<init>(dev.kdrant.model.Filter?;kotlin.Int;dev.kdrant.model.PointId?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.OrderBy?;dev.kdrant.model.ShardKey?;kotlin.String?){}[0]
 
     final val filter // dev.kdrant.model/ScrollRequest.filter|{}filter[0]
         final fun <get-filter>(): dev.kdrant.model/Filter? // dev.kdrant.model/ScrollRequest.filter.<get-filter>|<get-filter>(){}[0]
@@ -4032,6 +4203,8 @@ final class dev.kdrant.model/ScrollRequest { // dev.kdrant.model/ScrollRequest|n
         final fun <get-offset>(): dev.kdrant.model/PointId? // dev.kdrant.model/ScrollRequest.offset.<get-offset>|<get-offset>(){}[0]
     final val orderBy // dev.kdrant.model/ScrollRequest.orderBy|{}orderBy[0]
         final fun <get-orderBy>(): dev.kdrant.model/OrderBy? // dev.kdrant.model/ScrollRequest.orderBy.<get-orderBy>|<get-orderBy>(){}[0]
+    final val routeAffinity // dev.kdrant.model/ScrollRequest.routeAffinity|{}routeAffinity[0]
+        final fun <get-routeAffinity>(): kotlin/String? // dev.kdrant.model/ScrollRequest.routeAffinity.<get-routeAffinity>|<get-routeAffinity>(){}[0]
     final val shardKey // dev.kdrant.model/ScrollRequest.shardKey|{}shardKey[0]
         final fun <get-shardKey>(): dev.kdrant.model/ShardKey? // dev.kdrant.model/ScrollRequest.shardKey.<get-shardKey>|<get-shardKey>(){}[0]
     final val withPayload // dev.kdrant.model/ScrollRequest.withPayload|{}withPayload[0]
@@ -4046,7 +4219,8 @@ final class dev.kdrant.model/ScrollRequest { // dev.kdrant.model/ScrollRequest|n
     final fun component5(): kotlin/Boolean? // dev.kdrant.model/ScrollRequest.component5|component5(){}[0]
     final fun component6(): dev.kdrant.model/OrderBy? // dev.kdrant.model/ScrollRequest.component6|component6(){}[0]
     final fun component7(): dev.kdrant.model/ShardKey? // dev.kdrant.model/ScrollRequest.component7|component7(){}[0]
-    final fun copy(dev.kdrant.model/Filter? = ..., kotlin/Int = ..., dev.kdrant.model/PointId? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/OrderBy? = ..., dev.kdrant.model/ShardKey? = ...): dev.kdrant.model/ScrollRequest // dev.kdrant.model/ScrollRequest.copy|copy(dev.kdrant.model.Filter?;kotlin.Int;dev.kdrant.model.PointId?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.OrderBy?;dev.kdrant.model.ShardKey?){}[0]
+    final fun component8(): kotlin/String? // dev.kdrant.model/ScrollRequest.component8|component8(){}[0]
+    final fun copy(dev.kdrant.model/Filter? = ..., kotlin/Int = ..., dev.kdrant.model/PointId? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/OrderBy? = ..., dev.kdrant.model/ShardKey? = ..., kotlin/String? = ...): dev.kdrant.model/ScrollRequest // dev.kdrant.model/ScrollRequest.copy|copy(dev.kdrant.model.Filter?;kotlin.Int;dev.kdrant.model.PointId?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.OrderBy?;dev.kdrant.model.ShardKey?;kotlin.String?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/ScrollRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/ScrollRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/ScrollRequest.toString|toString(){}[0]
@@ -4066,7 +4240,7 @@ final class dev.kdrant.model/ScrollRequest { // dev.kdrant.model/ScrollRequest|n
 }
 
 final class dev.kdrant.model/SearchGroupsRequest { // dev.kdrant.model/SearchGroupsRequest|null[0]
-    constructor <init>(kotlin/String, kotlin/Int? = ..., kotlin/Int? = ..., kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., dev.kdrant.model/SearchParams? = ..., kotlin/Double? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/LookupLocation? = ...) // dev.kdrant.model/SearchGroupsRequest.<init>|<init>(kotlin.String;kotlin.Int?;kotlin.Int?;kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;dev.kdrant.model.SearchParams?;kotlin.Double?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.LookupLocation?){}[0]
+    constructor <init>(kotlin/String, kotlin/Int? = ..., kotlin/Int? = ..., kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., dev.kdrant.model/SearchParams? = ..., kotlin/Double? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/LookupLocation? = ..., kotlin/String? = ...) // dev.kdrant.model/SearchGroupsRequest.<init>|<init>(kotlin.String;kotlin.Int?;kotlin.Int?;kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;dev.kdrant.model.SearchParams?;kotlin.Double?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.LookupLocation?;kotlin.String?){}[0]
 
     final val filter // dev.kdrant.model/SearchGroupsRequest.filter|{}filter[0]
         final fun <get-filter>(): dev.kdrant.model/Filter? // dev.kdrant.model/SearchGroupsRequest.filter.<get-filter>|<get-filter>(){}[0]
@@ -4084,6 +4258,8 @@ final class dev.kdrant.model/SearchGroupsRequest { // dev.kdrant.model/SearchGro
         final fun <get-prefetch>(): kotlin.collections/List<dev.kdrant.model/Prefetch>? // dev.kdrant.model/SearchGroupsRequest.prefetch.<get-prefetch>|<get-prefetch>(){}[0]
     final val query // dev.kdrant.model/SearchGroupsRequest.query|{}query[0]
         final fun <get-query>(): dev.kdrant.model/QueryInterface? // dev.kdrant.model/SearchGroupsRequest.query.<get-query>|<get-query>(){}[0]
+    final val routeAffinity // dev.kdrant.model/SearchGroupsRequest.routeAffinity|{}routeAffinity[0]
+        final fun <get-routeAffinity>(): kotlin/String? // dev.kdrant.model/SearchGroupsRequest.routeAffinity.<get-routeAffinity>|<get-routeAffinity>(){}[0]
     final val scoreThreshold // dev.kdrant.model/SearchGroupsRequest.scoreThreshold|{}scoreThreshold[0]
         final fun <get-scoreThreshold>(): kotlin/Double? // dev.kdrant.model/SearchGroupsRequest.scoreThreshold.<get-scoreThreshold>|<get-scoreThreshold>(){}[0]
     final val using // dev.kdrant.model/SearchGroupsRequest.using|{}using[0]
@@ -4097,6 +4273,7 @@ final class dev.kdrant.model/SearchGroupsRequest { // dev.kdrant.model/SearchGro
     final fun component10(): dev.kdrant.model/WithPayload? // dev.kdrant.model/SearchGroupsRequest.component10|component10(){}[0]
     final fun component11(): kotlin/Boolean? // dev.kdrant.model/SearchGroupsRequest.component11|component11(){}[0]
     final fun component12(): dev.kdrant.model/LookupLocation? // dev.kdrant.model/SearchGroupsRequest.component12|component12(){}[0]
+    final fun component13(): kotlin/String? // dev.kdrant.model/SearchGroupsRequest.component13|component13(){}[0]
     final fun component2(): kotlin/Int? // dev.kdrant.model/SearchGroupsRequest.component2|component2(){}[0]
     final fun component3(): kotlin/Int? // dev.kdrant.model/SearchGroupsRequest.component3|component3(){}[0]
     final fun component4(): kotlin.collections/List<dev.kdrant.model/Prefetch>? // dev.kdrant.model/SearchGroupsRequest.component4|component4(){}[0]
@@ -4105,7 +4282,7 @@ final class dev.kdrant.model/SearchGroupsRequest { // dev.kdrant.model/SearchGro
     final fun component7(): dev.kdrant.model/Filter? // dev.kdrant.model/SearchGroupsRequest.component7|component7(){}[0]
     final fun component8(): dev.kdrant.model/SearchParams? // dev.kdrant.model/SearchGroupsRequest.component8|component8(){}[0]
     final fun component9(): kotlin/Double? // dev.kdrant.model/SearchGroupsRequest.component9|component9(){}[0]
-    final fun copy(kotlin/String = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., dev.kdrant.model/SearchParams? = ..., kotlin/Double? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/LookupLocation? = ...): dev.kdrant.model/SearchGroupsRequest // dev.kdrant.model/SearchGroupsRequest.copy|copy(kotlin.String;kotlin.Int?;kotlin.Int?;kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;dev.kdrant.model.SearchParams?;kotlin.Double?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.LookupLocation?){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., dev.kdrant.model/SearchParams? = ..., kotlin/Double? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., dev.kdrant.model/LookupLocation? = ..., kotlin/String? = ...): dev.kdrant.model/SearchGroupsRequest // dev.kdrant.model/SearchGroupsRequest.copy|copy(kotlin.String;kotlin.Int?;kotlin.Int?;kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;dev.kdrant.model.SearchParams?;kotlin.Double?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;dev.kdrant.model.LookupLocation?;kotlin.String?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/SearchGroupsRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/SearchGroupsRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/SearchGroupsRequest.toString|toString(){}[0]
@@ -4294,7 +4471,7 @@ final class dev.kdrant.model/SearchParams { // dev.kdrant.model/SearchParams|nul
 }
 
 final class dev.kdrant.model/SearchRequest { // dev.kdrant.model/SearchRequest|null[0]
-    constructor <init>(kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., dev.kdrant.model/SearchParams? = ..., dev.kdrant.model/LookupLocation? = ..., dev.kdrant.model/ShardKey? = ...) // dev.kdrant.model/SearchRequest.<init>|<init>(kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;kotlin.Double?;dev.kdrant.model.SearchParams?;dev.kdrant.model.LookupLocation?;dev.kdrant.model.ShardKey?){}[0]
+    constructor <init>(kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., dev.kdrant.model/SearchParams? = ..., dev.kdrant.model/LookupLocation? = ..., dev.kdrant.model/ShardKey? = ..., kotlin/String? = ...) // dev.kdrant.model/SearchRequest.<init>|<init>(kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;kotlin.Double?;dev.kdrant.model.SearchParams?;dev.kdrant.model.LookupLocation?;dev.kdrant.model.ShardKey?;kotlin.String?){}[0]
 
     final val filter // dev.kdrant.model/SearchRequest.filter|{}filter[0]
         final fun <get-filter>(): dev.kdrant.model/Filter? // dev.kdrant.model/SearchRequest.filter.<get-filter>|<get-filter>(){}[0]
@@ -4310,6 +4487,8 @@ final class dev.kdrant.model/SearchRequest { // dev.kdrant.model/SearchRequest|n
         final fun <get-prefetch>(): kotlin.collections/List<dev.kdrant.model/Prefetch>? // dev.kdrant.model/SearchRequest.prefetch.<get-prefetch>|<get-prefetch>(){}[0]
     final val query // dev.kdrant.model/SearchRequest.query|{}query[0]
         final fun <get-query>(): dev.kdrant.model/QueryInterface? // dev.kdrant.model/SearchRequest.query.<get-query>|<get-query>(){}[0]
+    final val routeAffinity // dev.kdrant.model/SearchRequest.routeAffinity|{}routeAffinity[0]
+        final fun <get-routeAffinity>(): kotlin/String? // dev.kdrant.model/SearchRequest.routeAffinity.<get-routeAffinity>|<get-routeAffinity>(){}[0]
     final val scoreThreshold // dev.kdrant.model/SearchRequest.scoreThreshold|{}scoreThreshold[0]
         final fun <get-scoreThreshold>(): kotlin/Double? // dev.kdrant.model/SearchRequest.scoreThreshold.<get-scoreThreshold>|<get-scoreThreshold>(){}[0]
     final val shardKey // dev.kdrant.model/SearchRequest.shardKey|{}shardKey[0]
@@ -4325,6 +4504,7 @@ final class dev.kdrant.model/SearchRequest { // dev.kdrant.model/SearchRequest|n
     final fun component10(): dev.kdrant.model/SearchParams? // dev.kdrant.model/SearchRequest.component10|component10(){}[0]
     final fun component11(): dev.kdrant.model/LookupLocation? // dev.kdrant.model/SearchRequest.component11|component11(){}[0]
     final fun component12(): dev.kdrant.model/ShardKey? // dev.kdrant.model/SearchRequest.component12|component12(){}[0]
+    final fun component13(): kotlin/String? // dev.kdrant.model/SearchRequest.component13|component13(){}[0]
     final fun component2(): dev.kdrant.model/QueryInterface? // dev.kdrant.model/SearchRequest.component2|component2(){}[0]
     final fun component3(): kotlin/String? // dev.kdrant.model/SearchRequest.component3|component3(){}[0]
     final fun component4(): dev.kdrant.model/Filter? // dev.kdrant.model/SearchRequest.component4|component4(){}[0]
@@ -4333,7 +4513,7 @@ final class dev.kdrant.model/SearchRequest { // dev.kdrant.model/SearchRequest|n
     final fun component7(): dev.kdrant.model/WithPayload? // dev.kdrant.model/SearchRequest.component7|component7(){}[0]
     final fun component8(): kotlin/Boolean? // dev.kdrant.model/SearchRequest.component8|component8(){}[0]
     final fun component9(): kotlin/Double? // dev.kdrant.model/SearchRequest.component9|component9(){}[0]
-    final fun copy(kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., dev.kdrant.model/SearchParams? = ..., dev.kdrant.model/LookupLocation? = ..., dev.kdrant.model/ShardKey? = ...): dev.kdrant.model/SearchRequest // dev.kdrant.model/SearchRequest.copy|copy(kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;kotlin.Double?;dev.kdrant.model.SearchParams?;dev.kdrant.model.LookupLocation?;dev.kdrant.model.ShardKey?){}[0]
+    final fun copy(kotlin.collections/List<dev.kdrant.model/Prefetch>? = ..., dev.kdrant.model/QueryInterface? = ..., kotlin/String? = ..., dev.kdrant.model/Filter? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/WithPayload? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., dev.kdrant.model/SearchParams? = ..., dev.kdrant.model/LookupLocation? = ..., dev.kdrant.model/ShardKey? = ..., kotlin/String? = ...): dev.kdrant.model/SearchRequest // dev.kdrant.model/SearchRequest.copy|copy(kotlin.collections.List<dev.kdrant.model.Prefetch>?;dev.kdrant.model.QueryInterface?;kotlin.String?;dev.kdrant.model.Filter?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.WithPayload?;kotlin.Boolean?;kotlin.Double?;dev.kdrant.model.SearchParams?;dev.kdrant.model.LookupLocation?;dev.kdrant.model.ShardKey?;kotlin.String?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/SearchRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/SearchRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/SearchRequest.toString|toString(){}[0]

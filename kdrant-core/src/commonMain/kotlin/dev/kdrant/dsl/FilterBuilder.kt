@@ -120,7 +120,14 @@ public class ClauseBuilder {
         add(Condition.Field(key, FieldMatcher.MatchPhrase(text)))
     }
 
-    /** Keyword prefix match. Create the keyword index with `prefixMatching = true` first. */
+    /**
+     * Keyword prefix match. Byte-wise and case-sensitive, like exact keyword matching.
+     *
+     * A keyword index built with `prefixMatching = true` serves this from the index; without one the
+     * condition is still correct and is checked point by point. Strict mode is the exception: with
+     * `unindexedFilteringRetrieve` or `unindexedFilteringUpdate` off, a prefix condition on a field
+     * with no prefix-enabled index is refused rather than run.
+     */
     public fun matchPrefix(key: String, prefix: String) {
         require(prefix.isNotEmpty()) { "matchPrefix on '$key' needs a non-empty prefix" }
         add(Condition.Field(key, FieldMatcher.MatchPrefix(prefix)))

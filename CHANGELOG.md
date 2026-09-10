@@ -8,11 +8,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
-- **Prefix matching, and the keyword index that has to allow it** (M56). `matchPrefix(key, prefix)`
-  joins the filter DSL, and `keyword { prefixMatching = true }` is the half of the feature without which
-  the filter is accepted and matches nothing. The two transports spell the option differently, which is
-  the trap this shipped with: REST takes a boolean and gRPC takes an empty message whose presence
-  enables it. The model carries the boolean and each engine renders it, asserted on both sides.
+- **Prefix matching, and the keyword index that serves it** (M56). `matchPrefix(key, prefix)` joins the
+  filter DSL, and `keyword { prefixMatching = true }` builds the index that answers it without scanning.
+  The index is an accelerator rather than a precondition, unlike the one `matchPhrase` needs: without it
+  the condition is still correct and is checked point by point, and only strict mode with unindexed
+  filtering off refuses it outright. The two transports spell the option differently, which is the trap
+  this shipped with: REST takes a boolean and gRPC an empty message whose presence enables it. The model
+  carries the boolean and each engine renders it, asserted on both sides.
 - **Relevance feedback, the eleventh query variant** (M57). `relevanceFeedback { }` takes the vector or
   point the original query used, the results a downstream evaluator graded and the score it gave each
   one, and Qdrant's linear strategy with its coefficients. `recommend` was the closest thing available
@@ -33,6 +35,19 @@ All notable changes to this project are documented in this file. The format is b
   is the gap the release watch below exists to close.
 - **`min`, `max` and `acosh` in formula expressions.** Three variants Qdrant 1.19 added to its
   expression language, absent here for the same reason.
+- **Deterministic read routing** (M61). `routeAffinity` on the search, scroll, count and retrieve paths
+  sends Qdrant's `X-Qdrant-Route-Affinity` hint, so reads carrying the same token are served by the same
+  replica. It is the light answer to read-your-own-writes on a replicated collection: the lever available
+  before it was `wait = true` on the write, which blocks the writer to fix a reader. Per request rather
+  than per client, because the thing that should be sticky is one reader's session. The token travels as
+  a header over REST and as gRPC metadata under the same key, so a batch, which is one call either way,
+  is refused rather than half-honoured when its searches ask for different replicas.
+- **The cluster-wide quota, read rather than discovered** (M62). `quotas()` returns the limits in force
+  and the utilization each peer reports against them; `updateQuotas(config)` replaces them. A quota a
+  caller can only learn about by being refused is a caller that retries into the same wall:
+  `RateLimited` says waiting is worth it and cannot say how much room is left. The update replaces rather
+  than merges, which is stated where a caller would look, because a config naming one limit silently
+  drops the others. REST only, and the gRPC engine refuses both by name.
 
 ### Changed
 
@@ -47,6 +62,21 @@ All notable changes to this project are documented in this file. The format is b
   vendored copies now come from v1.19.1.
 - **The contract test names the operations it covers rather than counting them.** A count is a check
   somebody eventually lowers to make a build pass. Naming them means dropping one has to be written down.
+- **The shared client contract covers the 1.19 surface against a real server.** Prefix matching before
+  and after the index that serves it, relevance feedback reranking a query it was given, four sliced
+  scrolls reading a collection exactly once between them and repeatably, and 4-bit storage with a memory
+  tier per component round-tripping through `getCollection`. All four run over both engines.
+
+### Deprecated
+
+- **`StrictModeConfig.maxDiskUsagePercent` and `maxResidentMemoryPercent`.** Qdrant 1.19 replaced the
+  per-collection ceilings with the cluster-wide quota API: it removed the disk one from the REST schema
+  and reserved its gRPC field, so a 1.19 server accepts the setting and never enforces it, and it
+  deprecated the memory one, which it still enforces and plans to remove in 1.21. Two minors from
+  introduction to deprecation is short enough to look like churn, so: they were added in `2.2.0` because
+  a node refusing writes while still serving reads is the degraded state a client most needs to be
+  predictable in, and that argument still holds. What changed is where the limit is set. Both stay until
+  `3.0` on the same policy as everything else.
 
 ### Fixed
 

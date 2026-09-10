@@ -24,14 +24,18 @@ import kotlinx.serialization.Serializable
  * a bare 403 would otherwise look like.
  *
  * Which server versions enforce those two is worth knowing before relying on them. Qdrant 1.18 refuses
- * writes over the ceiling. Qdrant 1.19 deprecated the family in favour of a global quota API and does
- * not, so a collection configured this way on 1.19 accepts the setting and keeps accepting writes. The
- * rate limits below are enforced by both.
+ * writes over either ceiling. Qdrant 1.19 replaced the family with a cluster-wide quota API: it removed
+ * [maxDiskUsagePercent] outright, so a collection configured with it on 1.19 accepts the setting and
+ * keeps accepting writes, and it deprecated [maxResidentMemoryPercent], which it still enforces and
+ * plans to remove in 1.21. Both are deprecated here, and
+ * [quotas][dev.kdrant.QdrantClient.quotas] is what replaces them. The rate limits below are unaffected
+ * and are enforced by every version.
  *
  * Qdrant takes further limits this does not model — the per-vector multivector and sparse sub-configs,
  * and the payload-index count. They are additions to this class rather than a different shape, which is
  * why it is a data class with every field defaulted to the server's own choice.
  */
+@Suppress("DEPRECATION") // This class validates its own deprecated properties; the warning is for callers.
 @Serializable
 public data class StrictModeConfig(
     /** Whether the limits below are enforced at all. */
@@ -89,11 +93,30 @@ public data class StrictModeConfig(
     /**
      * Disk usage, as a percentage, past which the node refuses writes and keeps serving reads. This is
      * the read-only state [dev.kdrant.KdrantException.ReadOnly] names.
+     *
+     * Qdrant 1.19 removed this from strict mode and reserved its gRPC field, so a 1.19 server neither
+     * enforces it nor reports it back. It is kept because a 1.18 server does, and because removing it
+     * would break callers to no purpose; it will go in `3.0`.
      */
+    @Deprecated(
+        "Qdrant 1.19 replaced the per-collection disk ceiling with the cluster-wide quota API. " +
+            "Set QuotaConfig.maxDiskUsagePercent through updateQuotas instead.",
+        ReplaceWith("QuotaConfig(maxDiskUsagePercent = ...)", "dev.kdrant.model.QuotaConfig"),
+    )
     @SerialName("max_disk_usage_percent")
     public val maxDiskUsagePercent: Int? = null,
 
-    /** Resident memory, as a percentage, past which memory-consuming writes are refused. */
+    /**
+     * Resident memory, as a percentage, past which memory-consuming writes are refused.
+     *
+     * Deprecated by Qdrant 1.19 in favour of the quota API, and still accepted and enforced there; the
+     * proto says removal is planned for 1.21.
+     */
+    @Deprecated(
+        "Qdrant 1.19 replaced this with the cluster-wide quota API and plans to remove it in 1.21. " +
+            "Set QuotaConfig.maxResidentMemoryPercent through updateQuotas instead.",
+        ReplaceWith("QuotaConfig(maxResidentMemoryPercent = ...)", "dev.kdrant.model.QuotaConfig"),
+    )
     @SerialName("max_resident_memory_percent")
     public val maxResidentMemoryPercent: Int? = null,
 ) {
