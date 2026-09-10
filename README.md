@@ -235,7 +235,10 @@ val qdrant = Kdrant(host = "qdrant.internal", port = 6333) {
 Every target honours `TrustAnchors.System`. The JVM honours all three; Linux honours a PEM bundle;
 on iOS, macOS and Windows the trust store belongs to the platform, so a private CA goes into the
 keychain or the machine store and Kdrant refuses the configuration rather than falling back to system
-trust and looking like it complied. `TrustAnchors` names the store each engine reads.
+trust and looking like it complied. `TrustAnchors` names the store each engine reads, and says why each
+empty cell is empty: Windows has no per-handle root override and never will, Linux cannot pin until
+Ktor's Curl engine exposes libcurl's pinning option, and Darwin could take a bundle through a challenge
+handler but will not until there is a test proving it rejects a chain the bundle does not anchor.
 
 ### Collections
 

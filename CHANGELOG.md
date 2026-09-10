@@ -19,7 +19,8 @@ All notable changes to this project are documented in this file. The format is b
   point the original query used, the results a downstream evaluator graded and the score it gave each
   one, and Qdrant's linear strategy with its coefficients. `recommend` was the closest thing available
   and it is not the same: it treats examples as a target, where this takes a graded response to a query
-  that already happened.
+  that already happened. The points named in the feedback do not come back, which suits the loop it
+  belongs to and is not what "rerank" suggests, so both the KDoc and the contract say so.
 - **Slice filtering** (M58). `slice(index, total)` selects one of `total` deterministic partitions of
   the id space, so a scroll can be split across workers without guessing how the ids are distributed
   and a sample can be reproduced. Qdrant hashes the id with SipHash-2-4, so the split is uniform for
@@ -88,6 +89,20 @@ All notable changes to this project are documented in this file. The format is b
   scrolls reading a collection exactly once between them and repeatably, and 4-bit storage with a memory
   tier per component round-tripping through `getCollection`. All four run over both engines.
 
+- **The RAG example uses what the library became** (M71). It was written for the `1.x` line and had
+  stayed there: `upsert` in a loop, a dense-only search, no index parameters, and a catch that treated
+  every failure the same. It now ingests through `ingest` with the resume token on disk, retrieves over
+  a dense and a sparse ranking fused by reciprocal rank with the sparse vector weighted by the server's
+  own IDF, creates its payload indexes with the parameters its filters need, and answers `503` or `502`
+  from `retryable`. Its README says which release each of those arrived in, so the next reader can tell
+  what is current. It did not grow a second purpose: there is still nothing to configure.
+- **Every `TrustAnchors` row says why it is empty** (M63). Windows offers no per-handle root override
+  and never will, so a private CA goes in the machine store and that is the answer rather than a gap.
+  Linux cannot pin because Ktor's Curl engine exposes `caInfo`, `caPath` and `sslVerify` and nothing
+  else, so libcurl's pinning option is unreachable without an upstream change. Darwin could take a
+  bundle through the challenge handler Ktor does expose, and will not until there is a test proving it
+  rejects a chain the bundle does not anchor, because custom trust evaluation is the code that is wrong
+  in a way nobody notices. No row is left reading as work in progress.
 - **The README says Kdrant is a client** (M70). An ARM target, a 37 ms cold start in 42 MB and a 5.7 MB
   static binary read together as a project that could hold an index on a device. It cannot: it talks to
   a Qdrant over a network, and the answer for a device that has to answer offline is Qdrant Edge. The

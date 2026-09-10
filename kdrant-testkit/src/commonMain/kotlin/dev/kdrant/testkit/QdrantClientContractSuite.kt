@@ -1060,10 +1060,14 @@ public class QdrantClientContractSuite(
     }
 
     /**
-     * The assertion that matters is that the server did something with the feedback, so the same target
-     * is searched twice and the rankings are compared. Grading the runner-up up and the leader down is
-     * the arrangement most likely to move the top of the list, which is what makes a null result here a
-     * real failure rather than a coefficient that happened not to bite.
+     * Relevance feedback does two things, and the second is the one a caller has to know about: the
+     * points it was given feedback on do not come back. That is right for the loop it exists in, where
+     * the judged results have already been shown, and it is not what "rerank" suggests, so it is
+     * asserted here rather than left to be discovered.
+     *
+     * The other half is that the survivors are ordered differently from the same query without
+     * feedback, which is what proves the server used the grades rather than only excluding their
+     * subjects.
      */
     public suspend fun relevanceFeedbackReranks() {
         withCollection { name ->
@@ -1087,10 +1091,19 @@ public class QdrantClientContractSuite(
                 limit = 4
             }.map { it.id }
 
-            assertEquals(plain.toSet(), fedBack.toSet(), "feedback reranks the candidates, it does not filter them")
+            val judged = setOf(PointId.num(1), PointId.num(3))
             assertTrue(
-                plain != fedBack,
-                "the same query with graded feedback came back in the same order: $plain",
+                fedBack.none { it in judged },
+                "the points feedback was given on came back anyway: $fedBack",
+            )
+            assertEquals(
+                plain.filterNot { it in judged }.toSet(),
+                fedBack.toSet(),
+                "feedback should drop what it was given and keep the rest",
+            )
+            assertTrue(
+                plain.filterNot { it in judged } != fedBack,
+                "the survivors came back in the order the plain query gave them, so the grades did nothing: $fedBack",
             )
         }
     }

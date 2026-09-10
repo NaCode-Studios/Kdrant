@@ -166,7 +166,13 @@ public class SearchBuilder {
         query = ContextBuilder().apply(configure).build()
     }
 
-    /** Rerank an original query from scored relevance feedback supplied by a downstream evaluator. */
+    /**
+     * Rerank an original query from scored relevance feedback supplied by a downstream evaluator.
+     *
+     * The points named in the feedback are **not** returned. That suits the loop this exists in, where
+     * the judged results have already been shown to whoever judged them, and it is not what "rerank"
+     * suggests, so it is worth knowing before wiring this into a pager.
+     */
     public fun relevanceFeedback(configure: RelevanceFeedbackBuilder.() -> Unit) {
         query = RelevanceFeedbackBuilder().apply(configure).build()
     }
