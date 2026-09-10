@@ -116,10 +116,16 @@ internal object GrpcErrors {
         if (("shard" in text || "replica" in text) && unreachable) return true
 
         // The fan-out form: some of the peers a request had to reach did not answer, and the message
-        // names the transport failure rather than the shard.
+        // names the transport failure rather than the shard. "timeout" and "deadline" are in the list
+        // because Qdrant uses both and "timed out" alone missed them, which read a downed shard as an
+        // ordinary server error and therefore as not retryable.
+        //
+        // This list is a copy of the REST engine's, which is how the two came to disagree; see #154.
         val fanOut = "operations failed" in text || "operation failed" in text
-        val transport = listOf("unavailable", "dns", "name resolution", "connect", "transport", "timed out")
-            .any { it in text }
+        val transport = listOf(
+            "unavailable", "dns", "name resolution", "connect", "transport",
+            "timed out", "timeout", "deadline",
+        ).any { it in text }
         return fanOut && transport
     }
 

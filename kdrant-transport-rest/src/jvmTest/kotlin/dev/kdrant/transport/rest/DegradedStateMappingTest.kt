@@ -91,6 +91,12 @@ class DegradedStateMappingTest {
             // from a CI run against a two-node cluster with the second node stopped.
             "Service internal error: 1 of 1 read operations failed: Service internal error: Tonic " +
                 "status error: code: 'The service is currently unavailable', message: 'dns error'",
+            // The other thing a stopped peer produces, depending on which check gives up first. Also
+            // verbatim from CI, and the message that cost a release: the matcher knew "timed out" and
+            // not "timeout", so this read as an ordinary server error and therefore as not retryable.
+            "Service internal error: 1 of 1 read operations failed: Timeout error: Deadline Exceeded: " +
+                "code: 'Deadline expired before operation could complete', message: " +
+                "\"Healthcheck timeout 2000ms exceeded\"",
         ).forEach { error ->
             assertInstanceOf(
                 KdrantException.ShardUnavailable::class.java,
@@ -107,6 +113,29 @@ class DegradedStateMappingTest {
             assertFalse(
                 failureOf(HttpStatusCode.InternalServerError, error) is KdrantException.ShardUnavailable,
                 "'$error' is not a degraded cluster and must not be read as one",
+            )
+        }
+    }
+
+    /**
+     * The classification is only worth anything if it changes `retryable`, which is what a caller reads
+     * to decide between backing off and paging somebody. Asserting the type without the flag would let a
+     * future refactor keep the name and lose the meaning.
+     */
+    @Test
+    fun `a downed shard reports itself retryable whichever way the message is worded`() {
+        listOf(
+            "Service internal error: 1 of 1 read operations failed: Service internal error: Tonic " +
+                "status error: code: 'The service is currently unavailable', message: 'dns error'",
+            "Service internal error: 1 of 1 read operations failed: Timeout error: Deadline Exceeded: " +
+                "code: 'Deadline expired before operation could complete', message: " +
+                "\"Healthcheck timeout 2000ms exceeded\"",
+            "Not enough replicas of shard 1 are available",
+        ).forEach { error ->
+            val failure = failureOf(HttpStatusCode.InternalServerError, error)
+            assertTrue(
+                (failure as KdrantException).retryable,
+                "a shard that is down comes back, so '$error' has to be retryable",
             )
         }
     }

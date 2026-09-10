@@ -991,10 +991,19 @@ internal fun namesUnavailableShard(message: String?): Boolean {
     ).any { it in text }
     if (("shard" in text || "replica" in text) && unreachable) return true
 
-    // The fan-out form: some of the peers a request had to reach did not answer.
+    // The fan-out form: some of the peers a request had to reach did not answer. Qdrant words the reason
+    // several ways, and "timeout" and "deadline" are the two that cost a release: a node whose shard is
+    // gone answers with
+    //   Service internal error: 1 of 1 read operations failed: Timeout error: Deadline Exceeded ...
+    //     "Healthcheck timeout 2000ms exceeded"
+    // which names no shard and no replica, and which this matcher read as an ordinary server error
+    // because the list had "timed out" and not "timeout". A transient cluster state reported as not
+    // retryable is the one classification mistake that changes what a caller does.
     val fanOut = "operations failed" in text || "operation failed" in text
-    val transport = listOf("unavailable", "dns", "name resolution", "connect", "transport", "timed out")
-        .any { it in text }
+    val transport = listOf(
+        "unavailable", "dns", "name resolution", "connect", "transport",
+        "timed out", "timeout", "deadline",
+    ).any { it in text }
     return fanOut && transport
 }
 

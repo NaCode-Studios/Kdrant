@@ -137,6 +137,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Fixed
 
+- **A downed shard is reported as retryable whichever way Qdrant words it.** A node whose only replica for
+  a shard is gone answers `1 of 1 read operations failed: Timeout error: Deadline Exceeded ... "Healthcheck
+  timeout 2000ms exceeded"`, depending on which check gives up first. The matcher that reads a degraded
+  cluster out of a message knew `timed out` and not `timeout`, so that one fell through to a plain server
+  error and told the caller not to retry a condition that clears in seconds. Both engines carry their own
+  copy of that matcher, which is how they came to disagree; both are fixed, and the duplication is filed.
+  Caught by the `:latest` cell of the integration matrix, which is what it is for.
 - **An ingest whose source dies now hands out the checkpoint it earned.** The batches still in flight
   when the source threw were cancelled where they stood, so whether a run reported any checkpoint at
   all depended on which request happened to come back first, and a run killed early enough could report
