@@ -36,6 +36,15 @@ All notable changes to this project are documented in this file. The format is b
   is the gap the release watch below exists to close.
 - **`min`, `max` and `acosh` in formula expressions.** Three variants Qdrant 1.19 added to its
   expression language, absent here for the same reason.
+- **`kdrant-mcp`, an MCP server for Qdrant that is a binary** (M72). The only MCP server for Qdrant is
+  written in Python, so every agent that searches a collection reaches it through an interpreter and a
+  dependency tree. For a process an agent spawns and kills repeatedly that is most of what distinguishes
+  one server from another, which is why this one is native: 7.9 MB on macOS, 9.1 MB on Windows, and
+  published for Linux x64 and arm64 beside the CLI by the same release job. Six read tools are on by
+  default and `upsert_points` and `delete_points` are off unless the operator passes `--allow-writes`,
+  because letting a model write to an index is a different risk class from letting it read one. Nothing
+  reaches stdout but JSON-RPC, which took work: the MCP SDK logs through a library whose default prints a
+  banner there before the handshake, and a client would have seen a parse error and disconnected.
 - **Deterministic read routing** (M61). `routeAffinity` on the search, scroll, count and retrieve paths
   sends Qdrant's `X-Qdrant-Route-Affinity` hint, so reads carrying the same token are served by the same
   replica. It is the light answer to read-your-own-writes on a replicated collection: the lever available

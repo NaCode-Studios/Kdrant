@@ -111,6 +111,9 @@ apiValidation {
     // A command-line tool has users, not callers: its artifacts are binaries attached to the release
     // rather than a jar anyone compiles against, so there is no public API to promise.
     ignoredProjects.add("kdrant-cli")
+    // The same for the MCP server. Its interface is a protocol rather than a type, and what it promises
+    // is the tool list, which `prove-mcp.sh` checks by speaking to it.
+    ignoredProjects.add("kdrant-mcp")
     // The gRPC engine's protobuf and stub classes are generated from Qdrant's own .proto files, so
     // their surface is Qdrant's to change, not ours to promise. Tracking them would bury the module's
     // real API — the transport factory — under thousands of generated lines. Everything hand-written

@@ -294,7 +294,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   cli:
-    name: kdrant-cli against a real Qdrant
+    name: The binaries against a real Qdrant
     runs-on: ubuntu-latest
     # Linux only, and on purpose. This job exists to catch a defect before a tag, and every defect that
     # stopped 2.2.0 three times was in the tool rather than in a platform: the Linux runner has Docker,
@@ -320,9 +320,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build the binary
+      - name: Build the binaries
         run: >
           ./gradlew :kdrant-cli:linkKdrantReleaseExecutableLinuxX64
+          :kdrant-mcp:linkKdrant-mcpReleaseExecutableLinuxX64
           --no-daemon --no-configuration-cache --stacktrace
 
       - name: Wait for Qdrant
@@ -333,9 +334,16 @@ jobs:
           done
           echo "::error::Qdrant did not become ready"; exit 1
 
-      # The same script the release runs, so the release is the second time these commands execute.
+      # The same scripts the release runs, so the release is the second time these execute.
       - name: Run every subcommand
         run: bash .github/scripts/prove-cli.sh linuxX64
+
+      # The MCP server is a protocol rather than a command line, so it is proven by speaking to it: a
+      # client initializes, lists the tools and completes a search. It also checks that nothing but
+      # JSON-RPC reaches stdout, which is how this nearly shipped broken: the SDK's logging library
+      # prints a banner there, before the handshake, and a client sees a parse error and disconnects.
+      - name: Speak MCP to the server
+        run: bash .github/scripts/prove-mcp.sh linuxX64
 
   qdrant-compat:
     name: Integration (${{ matrix.qdrant }})

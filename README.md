@@ -542,6 +542,29 @@ thing that goes stale quietly and then tells somebody the current version is the
 ago. A `curl` from the release URL above has no such copy in it. If enough people ask, the tap is worth
 the obligation; until then the download is one line.
 
+### An MCP server for agents
+
+The way a model reaches a tool is MCP, and the only MCP server for Qdrant is written in Python, so every
+agent that searches a collection does it through an interpreter, a virtual environment and a dependency
+tree. `kdrant-mcp` is the same thing as one static binary with no runtime to install, published for Linux,
+macOS and Windows beside the CLI.
+
+```json
+{
+  "mcpServers": {
+    "qdrant": { "command": "/usr/local/bin/kdrant-mcp", "args": ["--host", "localhost", "--port", "6333"] }
+  }
+}
+```
+
+Six read tools are on by default: `list_collections`, `describe_collection`, `search_points`,
+`scroll_points`, `retrieve_points` and `count_points`. `upsert_points` and `delete_points` exist and are off
+unless you pass `--allow-writes`, because letting a model write to somebody's index is a different risk
+class from letting it read one. There is no tool that creates or drops a collection.
+
+See [`kdrant-mcp`](kdrant-mcp/) for what it exposes and how it is tested: a client initializes, lists the
+tools and completes a search against a real Qdrant on every push.
+
 ## Architecture
 
 The wire lives behind one interface, `QdrantTransport`, and everything above it is protocol-neutral:
