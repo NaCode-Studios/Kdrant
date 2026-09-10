@@ -1,20 +1,22 @@
 # Vendored Qdrant OpenAPI schema
 
-`qdrant-openapi.json` is Qdrant's own OpenAPI document, copied verbatim from the tag Kdrant's contract
-tests are pinned to. It is the input to `QdrantContractTest`, which validates every request body the
-REST engine builds against the schema Qdrant publishes for that endpoint.
+`qdrant-openapi.json` is Qdrant's own OpenAPI document, copied verbatim from the tag this client is
+pinned to. It is the input to `QdrantContractTest`, which validates every request body the REST engine
+builds against the schema Qdrant publishes for that endpoint.
 
-Currently pinned to **v1.18.2**, the same version the integration matrix in
-[`ci.yml`](../../../../.github/workflows/ci.yml) runs against.
+The tag is `qdrantVersion` in `gradle.properties`. It is deliberately not restated here, and it cannot
+be recovered from the document: Qdrant ships `"version": "master"` under `info` at every released tag,
+v1.19.1 included, so the file carries no evidence of where it came from. That is how this copy came to
+be a `master` snapshot taken before 1.19.0 shipped while the line above it claimed v1.18.2, and it left
+the contract test validating against fields no released server has. `verifyVendoredQdrant` supplies the
+evidence the document lacks, by fetching the pinned tag and comparing byte for byte.
 
-To move to a newer Qdrant, refresh the file and run the contract tests:
+To move to a newer Qdrant, raise `qdrantVersion` and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/qdrant/qdrant/v<VERSION>/docs/redoc/master/openapi.json \
-  -o kdrant-transport-rest/src/test/resources/qdrant-openapi.json
-./gradlew :kdrant-transport-rest:test --tests '*QdrantContractTest*'
+./gradlew refreshVendoredQdrant
+./gradlew :kdrant-transport-rest:jvmTest --tests '*QdrantContractTest*'
 ```
 
-A failure means Qdrant changed a wire format Kdrant relies on. Fix the engine, then update the pinned
-version here and the image list in `ci.yml` in the same change, so the two never disagree about which
-Qdrant this client is known to speak to.
+A contract failure means Qdrant changed a wire format this client relies on. Fix the engine in the same
+change as the refresh, so the pinned schema and the engine never disagree about what the server accepts.

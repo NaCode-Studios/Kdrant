@@ -25,4 +25,8 @@ public data class VectorParams(
     /** Enable multi-vector (late-interaction / ColBERT) storage. */
     @SerialName("multivector_config")
     public val multivectorConfig: MultiVectorConfig? = null,
+
+    /** Memory placement of original vector storage. Overrides [onDisk] when both are set. */
+    @SerialName("memory")
+    public val memory: Memory? = null,
 )

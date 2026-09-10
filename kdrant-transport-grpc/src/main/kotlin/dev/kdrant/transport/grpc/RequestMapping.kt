@@ -1,7 +1,10 @@
+@file:Suppress("DEPRECATION") // Legacy `on_disk` stays writable while callers migrate to memory tiers.
+
 package dev.kdrant.transport.grpc
 
 import dev.kdrant.model.DeleteSelector
 import dev.kdrant.model.Direction
+import dev.kdrant.model.Memory
 import dev.kdrant.model.OrderBy
 import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.PayloadSchemaType
@@ -87,6 +90,11 @@ internal object RequestMapping {
             it.hnswEf?.let { ef -> hnswEf = ef.toLong() }
             it.exact?.let { value -> exact = value }
             it.indexedOnly?.let { value -> indexedOnly = value }
+            it.idf?.let { idf ->
+                this.idf = Points.IdfParams.newBuilder()
+                    .setCorpus(FilterMapping.toProto(idf.corpus))
+                    .build()
+            }
         }.build()
     }
 
@@ -210,6 +218,9 @@ internal object RequestMapping {
         Collections.KeywordIndexParams.newBuilder().apply {
             params.isTenant?.let { isTenant = it }
             params.onDisk?.let { onDisk = it }
+            // REST spells this as a boolean; gRPC as an empty message whose presence enables it.
+            if (params.prefix == true) prefix = Collections.KeywordPrefixParams.newBuilder().build()
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun integer(params: PayloadIndexParams.Integer): Collections.IntegerIndexParams =
@@ -218,17 +229,20 @@ internal object RequestMapping {
             params.range?.let { range = it }
             params.isPrincipal?.let { isPrincipal = it }
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun float(params: PayloadIndexParams.Float): Collections.FloatIndexParams =
         Collections.FloatIndexParams.newBuilder().apply {
             params.isPrincipal?.let { isPrincipal = it }
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun geo(params: PayloadIndexParams.Geo): Collections.GeoIndexParams =
         Collections.GeoIndexParams.newBuilder().apply {
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun text(params: PayloadIndexParams.Text): Collections.TextIndexParams =
@@ -242,23 +256,27 @@ internal object RequestMapping {
             params.maxTokenLen?.let { maxTokenLen = it.toLong() }
             params.phraseMatching?.let { phraseMatching = it }
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun bool(params: PayloadIndexParams.Bool): Collections.BoolIndexParams =
         Collections.BoolIndexParams.newBuilder().apply {
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun datetime(params: PayloadIndexParams.Datetime): Collections.DatetimeIndexParams =
         Collections.DatetimeIndexParams.newBuilder().apply {
             params.isPrincipal?.let { isPrincipal = it }
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun uuid(params: PayloadIndexParams.Uuid): Collections.UuidIndexParams =
         Collections.UuidIndexParams.newBuilder().apply {
             params.isTenant?.let { isTenant = it }
             params.onDisk?.let { onDisk = it }
+            params.memory?.let { memory = memory(it) }
         }.build()
 
     private fun tokenizer(value: Tokenizer?): Collections.TokenizerType = when (value) {
@@ -267,6 +285,12 @@ internal object RequestMapping {
         Tokenizer.WHITESPACE -> Collections.TokenizerType.Whitespace
         Tokenizer.WORD -> Collections.TokenizerType.Word
         Tokenizer.MULTILINGUAL -> Collections.TokenizerType.Multilingual
+    }
+
+    fun memory(memory: Memory): Collections.Memory = when (memory) {
+        Memory.COLD -> Collections.Memory.Cold
+        Memory.CACHED -> Collections.Memory.Cached
+        Memory.PINNED -> Collections.Memory.Pinned
     }
 
     /**

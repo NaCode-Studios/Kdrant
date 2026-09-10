@@ -29,6 +29,9 @@ public sealed interface FieldMatcher {
     /** Exact phrase match (`match.phrase`). */
     public data class MatchPhrase(public val text: String) : FieldMatcher
 
+    /** Keyword prefix match (`match.prefix`); requires a keyword index with [KeywordPrefixParams]. */
+    public data class MatchPrefix(public val prefix: String) : FieldMatcher
+
     /** Numeric range (`range`). */
     @Serializable
     public data class Range(

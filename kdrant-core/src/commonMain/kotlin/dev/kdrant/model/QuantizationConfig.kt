@@ -22,11 +22,15 @@ public sealed interface QuantizationConfig {
         public val quantile: Float? = null,
         /** Keep quantized vectors in RAM regardless of the main storage config. */
         public val alwaysRam: Boolean? = null,
+        /** Memory placement of the quantized vectors. Overrides [alwaysRam] when both are set. */
+        public val memory: Memory? = null,
     ) : QuantizationConfig
 
     /** Binary quantization (1 bit per dimension) — the smallest footprint. */
     public data class Binary(
         public val alwaysRam: Boolean? = null,
+        /** Memory placement of the quantized vectors. Overrides [alwaysRam] when both are set. */
+        public val memory: Memory? = null,
     ) : QuantizationConfig
 }
 
@@ -44,11 +48,13 @@ internal object QuantizationConfigSerializer : KSerializer<QuantizationConfig> {
                     put("type", "int8")
                     value.quantile?.let { put("quantile", it) }
                     value.alwaysRam?.let { put("always_ram", it) }
+                    value.memory?.let { put("memory", json.json.encodeToJsonElement(Memory.serializer(), it)) }
                 }
             }
             is QuantizationConfig.Binary -> buildJsonObject {
                 putJsonObject("binary") {
                     value.alwaysRam?.let { put("always_ram", it) }
+                    value.memory?.let { put("memory", json.json.encodeToJsonElement(Memory.serializer(), it)) }
                 }
             }
         }

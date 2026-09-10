@@ -6,6 +6,48 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- **Prefix matching, and the keyword index that has to allow it** (M56). `matchPrefix(key, prefix)`
+  joins the filter DSL, and `keyword { prefixMatching = true }` is the half of the feature without which
+  the filter is accepted and matches nothing. The two transports spell the option differently, which is
+  the trap this shipped with: REST takes a boolean and gRPC takes an empty message whose presence
+  enables it. The model carries the boolean and each engine renders it, asserted on both sides.
+- **Relevance feedback, the eleventh query variant** (M57). `relevanceFeedback { }` takes the vector or
+  point the original query used, the results a downstream evaluator graded and the score it gave each
+  one, and Qdrant's linear strategy with its coefficients. `recommend` was the closest thing available
+  and it is not the same: it treats examples as a target, where this takes a graded response to a query
+  that already happened.
+- **Slice filtering** (M58). `slice(index, total)` selects one of `total` deterministic partitions of
+  the id space, so a scroll can be split across workers without guessing how the ids are distributed
+  and a sample can be reproduced. Qdrant hashes the id with SipHash-2-4, so the split is uniform for
+  UUIDs from an upstream system, and slices of different totals nest: slice 0 of 4 is inside slice 0 of 2.
+- **Memory tiers and 4-bit primary storage** (M59). Every component that took an `onDisk` or `alwaysRam`
+  flag now also takes `memory`, which is `cold`, `cached` or `pinned`, and a collection places its
+  payload with `payloadMemory`. `VectorDatatype.TURBO4` stores only 4-bit quantized vectors and keeps no
+  originals. Where a caller sets both a tier and a flag the tier wins, which is Qdrant's rule and is
+  stated in [STABILITY.md](STABILITY.md) and on every `memory` property.
+- **Per-query IDF corpus.** `params { idfCorpus { ... } }` computes sparse-vector IDF statistics over
+  the points matching a filter rather than over the whole collection, which is what a per-tenant BM25
+  score needs. This arrived in Qdrant 1.19 with the four milestones above and had no board item, which
+  is the gap the release watch below exists to close.
+- **`min`, `max` and `acosh` in formula expressions.** Three variants Qdrant 1.19 added to its
+  expression language, absent here for the same reason.
+
+### Changed
+
+- **The Qdrant this client is pinned to is now one fact rather than fourteen** (M60). `qdrantVersion` in
+  `gradle.properties` is the pin, and `verifyQdrantPin` fails the build when anything else in the
+  repository names a newer Qdrant. The version had drifted where it mattered least visibly: the vendored
+  OpenAPI document said v1.18.2 in its README and was a `master` snapshot taken before 1.19.0 shipped,
+  so the contract test validated request bodies against fields no released server had. The document
+  cannot say where it came from, because Qdrant ships `"version": "master"` under `info` at every
+  released tag, so `verifyVendoredQdrant` fetches the pinned tag and compares byte for byte instead, over
+  the protobuf definitions as well as the schema. `refreshVendoredQdrant` moves them together, and both
+  vendored copies now come from v1.19.1.
+- **The contract test names the operations it covers rather than counting them.** A count is a check
+  somebody eventually lowers to make a build pass. Naming them means dropping one has to be written down.
+
 ### Fixed
 
 - **An ingest whose source dies now hands out the checkpoint it earned.** The batches still in flight

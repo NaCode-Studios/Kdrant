@@ -41,6 +41,9 @@ public sealed interface Condition {
     /** `{"has_vector": "name"}` — the named vector is present (`""` for the anonymous vector). */
     public data class HasVector(public val name: String) : Condition
 
+    /** One deterministic partition of the point-id space, for parallel scrolls and reproducible samples. */
+    public data class Slice(public val index: Int, public val total: Int) : Condition
+
     /** `{"nested": {"key": ..., "filter": {...}}}` — sub-filter evaluated per array element. */
     public data class Nested(public val key: String, public val filter: Filter) : Condition
 
@@ -81,6 +84,15 @@ internal object ConditionSerializer : KSerializer<Condition> {
         is Condition.HasVector -> buildJsonObject {
             put("has_vector", condition.name)
         }
+        is Condition.Slice -> buildJsonObject {
+            put(
+                "slice",
+                buildJsonObject {
+                    put("index", condition.index)
+                    put("total", condition.total)
+                },
+            )
+        }
         is Condition.Nested -> buildJsonObject {
             put(
                 "nested",
@@ -107,6 +119,8 @@ internal object ConditionSerializer : KSerializer<Condition> {
                 put("match", buildJsonObject { put("text_any", matcher.text) })
             is FieldMatcher.MatchPhrase ->
                 put("match", buildJsonObject { put("phrase", matcher.text) })
+            is FieldMatcher.MatchPrefix ->
+                put("match", buildJsonObject { put("prefix", matcher.prefix) })
             is FieldMatcher.Range ->
                 put("range", json.encodeToJsonElement(FieldMatcher.Range.serializer(), matcher))
             is FieldMatcher.DatetimeRange ->

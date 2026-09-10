@@ -1,6 +1,7 @@
 package dev.kdrant.dsl
 
 import dev.kdrant.KdrantDsl
+import dev.kdrant.model.Memory
 import dev.kdrant.model.PayloadIndexParams
 import dev.kdrant.model.Tokenizer
 
@@ -85,7 +86,14 @@ public class KeywordIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    internal fun build(): PayloadIndexParams.Keyword = PayloadIndexParams.Keyword(isTenant, onDisk)
+    /** Enable `matchPrefix` filters on this keyword index. */
+    public var prefixMatching: Boolean? = null
+
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
+    internal fun build(): PayloadIndexParams.Keyword =
+        PayloadIndexParams.Keyword(isTenant, onDisk, prefixMatching, memory)
 }
 
 /** Parameters of an integer index. */
@@ -103,12 +111,15 @@ public class IntegerIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
     internal fun build(): PayloadIndexParams.Integer {
         require(lookup != false || range != false) {
             "An integer index that answers neither lookups nor ranges answers nothing: leave one of " +
                 "lookup and range unset or true."
         }
-        return PayloadIndexParams.Integer(lookup, range, isPrincipal, onDisk)
+        return PayloadIndexParams.Integer(lookup, range, isPrincipal, onDisk, memory)
     }
 }
 
@@ -121,7 +132,10 @@ public class FloatIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    internal fun build(): PayloadIndexParams.Float = PayloadIndexParams.Float(isPrincipal, onDisk)
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
+    internal fun build(): PayloadIndexParams.Float = PayloadIndexParams.Float(isPrincipal, onDisk, memory)
 }
 
 /** Parameters of a geo index. */
@@ -130,7 +144,10 @@ public class GeoIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    internal fun build(): PayloadIndexParams.Geo = PayloadIndexParams.Geo(onDisk)
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
+    internal fun build(): PayloadIndexParams.Geo = PayloadIndexParams.Geo(onDisk, memory)
 }
 
 /** Parameters of a full-text index. */
@@ -154,6 +171,9 @@ public class TextIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
     internal fun build(): PayloadIndexParams.Text {
         minTokenLen?.let { require(it > 0) { "minTokenLen must be > 0, was $it" } }
         maxTokenLen?.let { require(it > 0) { "maxTokenLen must be > 0, was $it" } }
@@ -162,7 +182,7 @@ public class TextIndexBuilder {
         if (min != null && max != null) {
             require(min <= max) { "minTokenLen ($min) must be <= maxTokenLen ($max), or nothing is indexed" }
         }
-        return PayloadIndexParams.Text(tokenizer, min, max, lowercase, phraseMatching, onDisk)
+        return PayloadIndexParams.Text(tokenizer, min, max, lowercase, phraseMatching, onDisk, memory)
     }
 }
 
@@ -172,7 +192,10 @@ public class BoolIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    internal fun build(): PayloadIndexParams.Bool = PayloadIndexParams.Bool(onDisk)
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
+    internal fun build(): PayloadIndexParams.Bool = PayloadIndexParams.Bool(onDisk, memory)
 }
 
 /** Parameters of a datetime index. */
@@ -184,7 +207,11 @@ public class DatetimeIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    internal fun build(): PayloadIndexParams.Datetime = PayloadIndexParams.Datetime(isPrincipal, onDisk)
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
+    internal fun build(): PayloadIndexParams.Datetime =
+        PayloadIndexParams.Datetime(isPrincipal, onDisk, memory)
 }
 
 /** Parameters of a UUID index. */
@@ -196,5 +223,8 @@ public class UuidIndexBuilder {
     /** Keep the index on disk instead of in RAM. */
     public var onDisk: Boolean? = null
 
-    internal fun build(): PayloadIndexParams.Uuid = PayloadIndexParams.Uuid(isTenant, onDisk)
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public var memory: Memory? = null
+
+    internal fun build(): PayloadIndexParams.Uuid = PayloadIndexParams.Uuid(isTenant, onDisk, memory)
 }

@@ -140,6 +140,6 @@ class QdrantVersionMatrixIntegrationTest {
             ?.split(',')
             ?.map { it.trim() }
             ?.filter { it.isNotEmpty() }
-            ?: listOf("v1.19.0", "v1.18.3", "v1.17.1", "v1.16.3")
+            ?: listOf("v1.19.1", "v1.18.3", "v1.17.1", "v1.16.3")
     }
 }

@@ -250,6 +250,6 @@ public abstract class QdrantClientContract {
 
     private companion object {
         /** Overridable so CI can hold every engine to a matrix of Qdrant versions. */
-        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.18.2"
+        val IMAGE: String = System.getenv("QDRANT_IMAGE") ?: "qdrant/qdrant:v1.19.1"
     }
 }

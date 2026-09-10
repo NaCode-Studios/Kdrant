@@ -51,6 +51,9 @@ public sealed interface PayloadIndexParams {
     /** Whether Qdrant keeps this index on disk instead of in RAM. `null` leaves the server's default. */
     public val onDisk: Boolean?
 
+    /** Memory placement of the index. Overrides [onDisk] when both are set. */
+    public val memory: Memory?
+
     /**
      * A keyword index: exact matches on a string or a list of strings.
      *
@@ -63,6 +66,9 @@ public sealed interface PayloadIndexParams {
     public data class Keyword(
         @SerialName("is_tenant") public val isTenant: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        /** Enables `match.prefix` on this field. `null` leaves the server's default (disabled). */
+        @SerialName("prefix") public val prefix: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /**
@@ -81,6 +87,7 @@ public sealed interface PayloadIndexParams {
         @SerialName("range") public val range: Boolean? = null,
         @SerialName("is_principal") public val isPrincipal: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /** A float index. See [Integer.isPrincipal] for what `isPrincipal` decides. */
@@ -89,6 +96,7 @@ public sealed interface PayloadIndexParams {
     public data class Float(
         @SerialName("is_principal") public val isPrincipal: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /** A geo index, for `geoRadius`, `geoBoundingBox` and `geoPolygon` filters. */
@@ -96,6 +104,7 @@ public sealed interface PayloadIndexParams {
     @SerialName("geo")
     public data class Geo(
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /**
@@ -118,6 +127,7 @@ public sealed interface PayloadIndexParams {
         @SerialName("lowercase") public val lowercase: Boolean? = null,
         @SerialName("phrase_matching") public val phraseMatching: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /** A boolean index. */
@@ -125,6 +135,7 @@ public sealed interface PayloadIndexParams {
     @SerialName("bool")
     public data class Bool(
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /** A datetime index, for `datetimeRange` filters. See [Integer.isPrincipal]. */
@@ -133,6 +144,7 @@ public sealed interface PayloadIndexParams {
     public data class Datetime(
         @SerialName("is_principal") public val isPrincipal: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 
     /** A UUID index. See [Keyword.isTenant] for what `isTenant` decides. */
@@ -141,5 +153,6 @@ public sealed interface PayloadIndexParams {
     public data class Uuid(
         @SerialName("is_tenant") public val isTenant: Boolean? = null,
         @SerialName("on_disk") override val onDisk: Boolean? = null,
+        @SerialName("memory") override val memory: Memory? = null,
     ) : PayloadIndexParams
 }

@@ -120,6 +120,12 @@ public class ClauseBuilder {
         add(Condition.Field(key, FieldMatcher.MatchPhrase(text)))
     }
 
+    /** Keyword prefix match. Create the keyword index with `prefixMatching = true` first. */
+    public fun matchPrefix(key: String, prefix: String) {
+        require(prefix.isNotEmpty()) { "matchPrefix on '$key' needs a non-empty prefix" }
+        add(Condition.Field(key, FieldMatcher.MatchPrefix(prefix)))
+    }
+
     // --- Numeric range -------------------------------------------------------------------------
 
     /** Numeric range condition; provide any subset of bounds. */
@@ -222,6 +228,13 @@ public class ClauseBuilder {
 
     /** The named vector is present (`""` for the anonymous vector). */
     public fun hasVector(name: String): Unit = add(Condition.HasVector(name))
+
+    /** Select one of [total] deterministic point-id slices, for parallel scrolls or reproducible samples. */
+    public fun slice(index: Int, total: Int) {
+        require(total > 0) { "slice total must be > 0, was $total" }
+        require(index in 0 until total) { "slice index must be in 0 until $total, was $index" }
+        add(Condition.Slice(index, total))
+    }
 
     /** Sub-filter evaluated per element of the array field [key]. */
     public fun nested(key: String, configure: FilterBuilder.() -> Unit): Unit =

@@ -78,6 +78,23 @@ final enum class dev.kdrant.model/FusionAlgorithm : kotlin/Enum<dev.kdrant.model
     final fun values(): kotlin/Array<dev.kdrant.model/FusionAlgorithm> // dev.kdrant.model/FusionAlgorithm.values|values#static(){}[0]
 }
 
+final enum class dev.kdrant.model/Memory : kotlin/Enum<dev.kdrant.model/Memory> { // dev.kdrant.model/Memory|null[0]
+    enum entry CACHED // dev.kdrant.model/Memory.CACHED|null[0]
+    enum entry COLD // dev.kdrant.model/Memory.COLD|null[0]
+    enum entry PINNED // dev.kdrant.model/Memory.PINNED|null[0]
+
+    final val entries // dev.kdrant.model/Memory.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<dev.kdrant.model/Memory> // dev.kdrant.model/Memory.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): dev.kdrant.model/Memory // dev.kdrant.model/Memory.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<dev.kdrant.model/Memory> // dev.kdrant.model/Memory.values|values#static(){}[0]
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // dev.kdrant.model/Memory.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/Memory> // dev.kdrant.model/Memory.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // dev.kdrant.model/Memory.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+}
+
 final enum class dev.kdrant.model/Modifier : kotlin/Enum<dev.kdrant.model/Modifier> { // dev.kdrant.model/Modifier|null[0]
     enum entry IDF // dev.kdrant.model/Modifier.IDF|null[0]
     enum entry NONE // dev.kdrant.model/Modifier.NONE|null[0]
@@ -207,6 +224,7 @@ final enum class dev.kdrant.model/Tokenizer : kotlin/Enum<dev.kdrant.model/Token
 final enum class dev.kdrant.model/VectorDatatype : kotlin/Enum<dev.kdrant.model/VectorDatatype> { // dev.kdrant.model/VectorDatatype|null[0]
     enum entry FLOAT16 // dev.kdrant.model/VectorDatatype.FLOAT16|null[0]
     enum entry FLOAT32 // dev.kdrant.model/VectorDatatype.FLOAT32|null[0]
+    enum entry TURBO4 // dev.kdrant.model/VectorDatatype.TURBO4|null[0]
     enum entry UINT8 // dev.kdrant.model/VectorDatatype.UINT8|null[0]
 
     final val entries // dev.kdrant.model/VectorDatatype.entries|#static{}entries[0]
@@ -565,6 +583,22 @@ sealed interface dev.kdrant.model/Condition { // dev.kdrant.model/Condition|null
         final fun toString(): kotlin/String // dev.kdrant.model/Condition.Nested.toString|toString(){}[0]
     }
 
+    final class Slice : dev.kdrant.model/Condition { // dev.kdrant.model/Condition.Slice|null[0]
+        constructor <init>(kotlin/Int, kotlin/Int) // dev.kdrant.model/Condition.Slice.<init>|<init>(kotlin.Int;kotlin.Int){}[0]
+
+        final val index // dev.kdrant.model/Condition.Slice.index|{}index[0]
+            final fun <get-index>(): kotlin/Int // dev.kdrant.model/Condition.Slice.index.<get-index>|<get-index>(){}[0]
+        final val total // dev.kdrant.model/Condition.Slice.total|{}total[0]
+            final fun <get-total>(): kotlin/Int // dev.kdrant.model/Condition.Slice.total.<get-total>|<get-total>(){}[0]
+
+        final fun component1(): kotlin/Int // dev.kdrant.model/Condition.Slice.component1|component1(){}[0]
+        final fun component2(): kotlin/Int // dev.kdrant.model/Condition.Slice.component2|component2(){}[0]
+        final fun copy(kotlin/Int = ..., kotlin/Int = ...): dev.kdrant.model/Condition.Slice // dev.kdrant.model/Condition.Slice.copy|copy(kotlin.Int;kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/Condition.Slice.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/Condition.Slice.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/Condition.Slice.toString|toString(){}[0]
+    }
+
     final class Sub : dev.kdrant.model/Condition { // dev.kdrant.model/Condition.Sub|null[0]
         constructor <init>(dev.kdrant.model/Filter) // dev.kdrant.model/Condition.Sub.<init>|<init>(dev.kdrant.model.Filter){}[0]
 
@@ -624,6 +658,19 @@ sealed interface dev.kdrant.model/Expression { // dev.kdrant.model/Expression|nu
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/Expression.Abs.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/Expression.Abs.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/Expression.Abs.toString|toString(){}[0]
+    }
+
+    final class Acosh : dev.kdrant.model/Expression { // dev.kdrant.model/Expression.Acosh|null[0]
+        constructor <init>(dev.kdrant.model/Expression) // dev.kdrant.model/Expression.Acosh.<init>|<init>(dev.kdrant.model.Expression){}[0]
+
+        final val operand // dev.kdrant.model/Expression.Acosh.operand|{}operand[0]
+            final fun <get-operand>(): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Acosh.operand.<get-operand>|<get-operand>(){}[0]
+
+        final fun component1(): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Acosh.component1|component1(){}[0]
+        final fun copy(dev.kdrant.model/Expression = ...): dev.kdrant.model/Expression.Acosh // dev.kdrant.model/Expression.Acosh.copy|copy(dev.kdrant.model.Expression){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/Expression.Acosh.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/Expression.Acosh.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/Expression.Acosh.toString|toString(){}[0]
     }
 
     final class Condition : dev.kdrant.model/Expression { // dev.kdrant.model/Expression.Condition|null[0]
@@ -778,6 +825,32 @@ sealed interface dev.kdrant.model/Expression { // dev.kdrant.model/Expression|nu
         final fun toString(): kotlin/String // dev.kdrant.model/Expression.Log10.toString|toString(){}[0]
     }
 
+    final class Max : dev.kdrant.model/Expression { // dev.kdrant.model/Expression.Max|null[0]
+        constructor <init>(kotlin.collections/List<dev.kdrant.model/Expression>) // dev.kdrant.model/Expression.Max.<init>|<init>(kotlin.collections.List<dev.kdrant.model.Expression>){}[0]
+
+        final val operands // dev.kdrant.model/Expression.Max.operands|{}operands[0]
+            final fun <get-operands>(): kotlin.collections/List<dev.kdrant.model/Expression> // dev.kdrant.model/Expression.Max.operands.<get-operands>|<get-operands>(){}[0]
+
+        final fun component1(): kotlin.collections/List<dev.kdrant.model/Expression> // dev.kdrant.model/Expression.Max.component1|component1(){}[0]
+        final fun copy(kotlin.collections/List<dev.kdrant.model/Expression> = ...): dev.kdrant.model/Expression.Max // dev.kdrant.model/Expression.Max.copy|copy(kotlin.collections.List<dev.kdrant.model.Expression>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/Expression.Max.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/Expression.Max.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/Expression.Max.toString|toString(){}[0]
+    }
+
+    final class Min : dev.kdrant.model/Expression { // dev.kdrant.model/Expression.Min|null[0]
+        constructor <init>(kotlin.collections/List<dev.kdrant.model/Expression>) // dev.kdrant.model/Expression.Min.<init>|<init>(kotlin.collections.List<dev.kdrant.model.Expression>){}[0]
+
+        final val operands // dev.kdrant.model/Expression.Min.operands|{}operands[0]
+            final fun <get-operands>(): kotlin.collections/List<dev.kdrant.model/Expression> // dev.kdrant.model/Expression.Min.operands.<get-operands>|<get-operands>(){}[0]
+
+        final fun component1(): kotlin.collections/List<dev.kdrant.model/Expression> // dev.kdrant.model/Expression.Min.component1|component1(){}[0]
+        final fun copy(kotlin.collections/List<dev.kdrant.model/Expression> = ...): dev.kdrant.model/Expression.Min // dev.kdrant.model/Expression.Min.copy|copy(kotlin.collections.List<dev.kdrant.model.Expression>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/Expression.Min.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/Expression.Min.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/Expression.Min.toString|toString(){}[0]
+    }
+
     final class Mult : dev.kdrant.model/Expression { // dev.kdrant.model/Expression.Mult|null[0]
         constructor <init>(kotlin.collections/List<dev.kdrant.model/Expression>) // dev.kdrant.model/Expression.Mult.<init>|<init>(kotlin.collections.List<dev.kdrant.model.Expression>){}[0]
 
@@ -882,6 +955,8 @@ sealed interface dev.kdrant.model/Expression { // dev.kdrant.model/Expression|nu
         final fun geoDistance(dev.kdrant.model/GeoPoint, kotlin/String): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.geoDistance|geoDistance(dev.kdrant.model.GeoPoint;kotlin.String){}[0]
         final fun key(kotlin/String): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.key|key(kotlin.String){}[0]
         final fun linDecay(dev.kdrant.model/Expression, dev.kdrant.model/Expression? = ..., kotlin/Double? = ..., kotlin/Double? = ...): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.linDecay|linDecay(dev.kdrant.model.Expression;dev.kdrant.model.Expression?;kotlin.Double?;kotlin.Double?){}[0]
+        final fun max(kotlin/Array<out dev.kdrant.model/Expression>...): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.max|max(kotlin.Array<out|dev.kdrant.model.Expression>...){}[0]
+        final fun min(kotlin/Array<out dev.kdrant.model/Expression>...): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.min|min(kotlin.Array<out|dev.kdrant.model.Expression>...){}[0]
         final fun mult(kotlin/Array<out dev.kdrant.model/Expression>...): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.mult|mult(kotlin.Array<out|dev.kdrant.model.Expression>...){}[0]
         final fun of(kotlin/Number): dev.kdrant.model/Expression // dev.kdrant.model/Expression.Companion.of|of(kotlin.Number){}[0]
         final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/Expression> // dev.kdrant.model/Expression.Companion.serializer|serializer(){}[0]
@@ -933,6 +1008,27 @@ sealed interface dev.kdrant.model/FacetValue { // dev.kdrant.model/FacetValue|nu
     final object Companion : kotlinx.serialization.internal/SerializerFactory { // dev.kdrant.model/FacetValue.Companion|null[0]
         final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/FacetValue> // dev.kdrant.model/FacetValue.Companion.serializer|serializer(){}[0]
         final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // dev.kdrant.model/FacetValue.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+}
+
+sealed interface dev.kdrant.model/FeedbackStrategy { // dev.kdrant.model/FeedbackStrategy|null[0]
+    final class Naive : dev.kdrant.model/FeedbackStrategy { // dev.kdrant.model/FeedbackStrategy.Naive|null[0]
+        constructor <init>(kotlin/Float, kotlin/Float, kotlin/Float) // dev.kdrant.model/FeedbackStrategy.Naive.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+
+        final val a // dev.kdrant.model/FeedbackStrategy.Naive.a|{}a[0]
+            final fun <get-a>(): kotlin/Float // dev.kdrant.model/FeedbackStrategy.Naive.a.<get-a>|<get-a>(){}[0]
+        final val b // dev.kdrant.model/FeedbackStrategy.Naive.b|{}b[0]
+            final fun <get-b>(): kotlin/Float // dev.kdrant.model/FeedbackStrategy.Naive.b.<get-b>|<get-b>(){}[0]
+        final val c // dev.kdrant.model/FeedbackStrategy.Naive.c|{}c[0]
+            final fun <get-c>(): kotlin/Float // dev.kdrant.model/FeedbackStrategy.Naive.c.<get-c>|<get-c>(){}[0]
+
+        final fun component1(): kotlin/Float // dev.kdrant.model/FeedbackStrategy.Naive.component1|component1(){}[0]
+        final fun component2(): kotlin/Float // dev.kdrant.model/FeedbackStrategy.Naive.component2|component2(){}[0]
+        final fun component3(): kotlin/Float // dev.kdrant.model/FeedbackStrategy.Naive.component3|component3(){}[0]
+        final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): dev.kdrant.model/FeedbackStrategy.Naive // dev.kdrant.model/FeedbackStrategy.Naive.copy|copy(kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/FeedbackStrategy.Naive.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/FeedbackStrategy.Naive.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/FeedbackStrategy.Naive.toString|toString(){}[0]
     }
 }
 
@@ -1096,6 +1192,19 @@ sealed interface dev.kdrant.model/FieldMatcher { // dev.kdrant.model/FieldMatche
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/FieldMatcher.MatchPhrase.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/FieldMatcher.MatchPhrase.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/FieldMatcher.MatchPhrase.toString|toString(){}[0]
+    }
+
+    final class MatchPrefix : dev.kdrant.model/FieldMatcher { // dev.kdrant.model/FieldMatcher.MatchPrefix|null[0]
+        constructor <init>(kotlin/String) // dev.kdrant.model/FieldMatcher.MatchPrefix.<init>|<init>(kotlin.String){}[0]
+
+        final val prefix // dev.kdrant.model/FieldMatcher.MatchPrefix.prefix|{}prefix[0]
+            final fun <get-prefix>(): kotlin/String // dev.kdrant.model/FieldMatcher.MatchPrefix.prefix.<get-prefix>|<get-prefix>(){}[0]
+
+        final fun component1(): kotlin/String // dev.kdrant.model/FieldMatcher.MatchPrefix.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): dev.kdrant.model/FieldMatcher.MatchPrefix // dev.kdrant.model/FieldMatcher.MatchPrefix.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/FieldMatcher.MatchPrefix.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/FieldMatcher.MatchPrefix.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/FieldMatcher.MatchPrefix.toString|toString(){}[0]
     }
 
     final class MatchText : dev.kdrant.model/FieldMatcher { // dev.kdrant.model/FieldMatcher.MatchText|null[0]
@@ -1310,17 +1419,22 @@ sealed interface dev.kdrant.model/InferenceInput { // dev.kdrant.model/Inference
 }
 
 sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams|null[0]
+    abstract val memory // dev.kdrant.model/PayloadIndexParams.memory|{}memory[0]
+        abstract fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.memory.<get-memory>|<get-memory>(){}[0]
     abstract val onDisk // dev.kdrant.model/PayloadIndexParams.onDisk|{}onDisk[0]
         abstract fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
 
     final class Bool : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Bool|null[0]
-        constructor <init>(kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Bool.<init>|<init>(kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Bool.<init>|<init>(kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
+        final val memory // dev.kdrant.model/PayloadIndexParams.Bool.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Bool.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Bool.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Bool.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Bool.component1|component1(){}[0]
-        final fun copy(kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Bool // dev.kdrant.model/PayloadIndexParams.Bool.copy|copy(kotlin.Boolean?){}[0]
+        final fun component2(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Bool.component2|component2(){}[0]
+        final fun copy(kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Bool // dev.kdrant.model/PayloadIndexParams.Bool.copy|copy(kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Bool.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Bool.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Bool.toString|toString(){}[0]
@@ -1335,21 +1449,26 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Bool.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Bool.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Bool> // dev.kdrant.model/PayloadIndexParams.Bool.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class Datetime : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Datetime|null[0]
-        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Datetime.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Datetime.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val isPrincipal // dev.kdrant.model/PayloadIndexParams.Datetime.isPrincipal|{}isPrincipal[0]
             final fun <get-isPrincipal>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Datetime.isPrincipal.<get-isPrincipal>|<get-isPrincipal>(){}[0]
+        final val memory // dev.kdrant.model/PayloadIndexParams.Datetime.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Datetime.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Datetime.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Datetime.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Datetime.component1|component1(){}[0]
         final fun component2(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Datetime.component2|component2(){}[0]
-        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Datetime // dev.kdrant.model/PayloadIndexParams.Datetime.copy|copy(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun component3(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Datetime.component3|component3(){}[0]
+        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Datetime // dev.kdrant.model/PayloadIndexParams.Datetime.copy|copy(kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Datetime.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Datetime.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Datetime.toString|toString(){}[0]
@@ -1364,21 +1483,26 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Datetime.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Datetime.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Datetime> // dev.kdrant.model/PayloadIndexParams.Datetime.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class Float : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Float|null[0]
-        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Float.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Float.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val isPrincipal // dev.kdrant.model/PayloadIndexParams.Float.isPrincipal|{}isPrincipal[0]
             final fun <get-isPrincipal>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Float.isPrincipal.<get-isPrincipal>|<get-isPrincipal>(){}[0]
+        final val memory // dev.kdrant.model/PayloadIndexParams.Float.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Float.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Float.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Float.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Float.component1|component1(){}[0]
         final fun component2(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Float.component2|component2(){}[0]
-        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Float // dev.kdrant.model/PayloadIndexParams.Float.copy|copy(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun component3(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Float.component3|component3(){}[0]
+        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Float // dev.kdrant.model/PayloadIndexParams.Float.copy|copy(kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Float.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Float.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Float.toString|toString(){}[0]
@@ -1393,18 +1517,23 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Float.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Float.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Float> // dev.kdrant.model/PayloadIndexParams.Float.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class Geo : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Geo|null[0]
-        constructor <init>(kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Geo.<init>|<init>(kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Geo.<init>|<init>(kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
+        final val memory // dev.kdrant.model/PayloadIndexParams.Geo.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Geo.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Geo.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Geo.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Geo.component1|component1(){}[0]
-        final fun copy(kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Geo // dev.kdrant.model/PayloadIndexParams.Geo.copy|copy(kotlin.Boolean?){}[0]
+        final fun component2(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Geo.component2|component2(){}[0]
+        final fun copy(kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Geo // dev.kdrant.model/PayloadIndexParams.Geo.copy|copy(kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Geo.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Geo.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Geo.toString|toString(){}[0]
@@ -1419,17 +1548,21 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Geo.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Geo.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Geo> // dev.kdrant.model/PayloadIndexParams.Geo.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class Integer : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Integer|null[0]
-        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Integer.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Integer.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val isPrincipal // dev.kdrant.model/PayloadIndexParams.Integer.isPrincipal|{}isPrincipal[0]
             final fun <get-isPrincipal>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Integer.isPrincipal.<get-isPrincipal>|<get-isPrincipal>(){}[0]
         final val lookup // dev.kdrant.model/PayloadIndexParams.Integer.lookup|{}lookup[0]
             final fun <get-lookup>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Integer.lookup.<get-lookup>|<get-lookup>(){}[0]
+        final val memory // dev.kdrant.model/PayloadIndexParams.Integer.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Integer.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Integer.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Integer.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final val range // dev.kdrant.model/PayloadIndexParams.Integer.range|{}range[0]
@@ -1439,7 +1572,8 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         final fun component2(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Integer.component2|component2(){}[0]
         final fun component3(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Integer.component3|component3(){}[0]
         final fun component4(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Integer.component4|component4(){}[0]
-        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Integer // dev.kdrant.model/PayloadIndexParams.Integer.copy|copy(kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun component5(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Integer.component5|component5(){}[0]
+        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Integer // dev.kdrant.model/PayloadIndexParams.Integer.copy|copy(kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Integer.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Integer.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Integer.toString|toString(){}[0]
@@ -1454,21 +1588,29 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Integer.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Integer.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Integer> // dev.kdrant.model/PayloadIndexParams.Integer.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class Keyword : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Keyword|null[0]
-        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Keyword.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Keyword.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val isTenant // dev.kdrant.model/PayloadIndexParams.Keyword.isTenant|{}isTenant[0]
             final fun <get-isTenant>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Keyword.isTenant.<get-isTenant>|<get-isTenant>(){}[0]
+        final val memory // dev.kdrant.model/PayloadIndexParams.Keyword.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Keyword.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Keyword.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Keyword.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
+        final val prefix // dev.kdrant.model/PayloadIndexParams.Keyword.prefix|{}prefix[0]
+            final fun <get-prefix>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Keyword.prefix.<get-prefix>|<get-prefix>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Keyword.component1|component1(){}[0]
         final fun component2(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Keyword.component2|component2(){}[0]
-        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Keyword // dev.kdrant.model/PayloadIndexParams.Keyword.copy|copy(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun component3(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Keyword.component3|component3(){}[0]
+        final fun component4(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Keyword.component4|component4(){}[0]
+        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Keyword // dev.kdrant.model/PayloadIndexParams.Keyword.copy|copy(kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Keyword.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Keyword.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Keyword.toString|toString(){}[0]
@@ -1483,17 +1625,21 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Keyword.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Keyword.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Keyword> // dev.kdrant.model/PayloadIndexParams.Keyword.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class Text : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Text|null[0]
-        constructor <init>(dev.kdrant.model/Tokenizer? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Text.<init>|<init>(dev.kdrant.model.Tokenizer?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?){}[0]
+        constructor <init>(dev.kdrant.model/Tokenizer? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Text.<init>|<init>(dev.kdrant.model.Tokenizer?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val lowercase // dev.kdrant.model/PayloadIndexParams.Text.lowercase|{}lowercase[0]
             final fun <get-lowercase>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Text.lowercase.<get-lowercase>|<get-lowercase>(){}[0]
         final val maxTokenLen // dev.kdrant.model/PayloadIndexParams.Text.maxTokenLen|{}maxTokenLen[0]
             final fun <get-maxTokenLen>(): kotlin/Int? // dev.kdrant.model/PayloadIndexParams.Text.maxTokenLen.<get-maxTokenLen>|<get-maxTokenLen>(){}[0]
+        final val memory // dev.kdrant.model/PayloadIndexParams.Text.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Text.memory.<get-memory>|<get-memory>(){}[0]
         final val minTokenLen // dev.kdrant.model/PayloadIndexParams.Text.minTokenLen|{}minTokenLen[0]
             final fun <get-minTokenLen>(): kotlin/Int? // dev.kdrant.model/PayloadIndexParams.Text.minTokenLen.<get-minTokenLen>|<get-minTokenLen>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Text.onDisk|{}onDisk[0]
@@ -1509,7 +1655,8 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         final fun component4(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Text.component4|component4(){}[0]
         final fun component5(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Text.component5|component5(){}[0]
         final fun component6(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Text.component6|component6(){}[0]
-        final fun copy(dev.kdrant.model/Tokenizer? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Text // dev.kdrant.model/PayloadIndexParams.Text.copy|copy(dev.kdrant.model.Tokenizer?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun component7(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Text.component7|component7(){}[0]
+        final fun copy(dev.kdrant.model/Tokenizer? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Text // dev.kdrant.model/PayloadIndexParams.Text.copy|copy(dev.kdrant.model.Tokenizer?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Text.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Text.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Text.toString|toString(){}[0]
@@ -1531,16 +1678,19 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
     }
 
     final class Uuid : dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/PayloadIndexParams.Uuid|null[0]
-        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/PayloadIndexParams.Uuid.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadIndexParams.Uuid.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val isTenant // dev.kdrant.model/PayloadIndexParams.Uuid.isTenant|{}isTenant[0]
             final fun <get-isTenant>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Uuid.isTenant.<get-isTenant>|<get-isTenant>(){}[0]
+        final val memory // dev.kdrant.model/PayloadIndexParams.Uuid.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Uuid.memory.<get-memory>|<get-memory>(){}[0]
         final val onDisk // dev.kdrant.model/PayloadIndexParams.Uuid.onDisk|{}onDisk[0]
             final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Uuid.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Uuid.component1|component1(){}[0]
         final fun component2(): kotlin/Boolean? // dev.kdrant.model/PayloadIndexParams.Uuid.component2|component2(){}[0]
-        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/PayloadIndexParams.Uuid // dev.kdrant.model/PayloadIndexParams.Uuid.copy|copy(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun component3(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadIndexParams.Uuid.component3|component3(){}[0]
+        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadIndexParams.Uuid // dev.kdrant.model/PayloadIndexParams.Uuid.copy|copy(kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadIndexParams.Uuid.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadIndexParams.Uuid.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/PayloadIndexParams.Uuid.toString|toString(){}[0]
@@ -1555,6 +1705,8 @@ sealed interface dev.kdrant.model/PayloadIndexParams { // dev.kdrant.model/Paylo
         }
 
         final object Companion { // dev.kdrant.model/PayloadIndexParams.Uuid.Companion|null[0]
+            final val $childSerializers // dev.kdrant.model/PayloadIndexParams.Uuid.Companion.$childSerializers|{}$childSerializers[0]
+
             final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexParams.Uuid> // dev.kdrant.model/PayloadIndexParams.Uuid.Companion.serializer|serializer(){}[0]
         }
     }
@@ -1724,29 +1876,35 @@ sealed interface dev.kdrant.model/PointsUpdateOperation { // dev.kdrant.model/Po
 
 sealed interface dev.kdrant.model/QuantizationConfig { // dev.kdrant.model/QuantizationConfig|null[0]
     final class Binary : dev.kdrant.model/QuantizationConfig { // dev.kdrant.model/QuantizationConfig.Binary|null[0]
-        constructor <init>(kotlin/Boolean? = ...) // dev.kdrant.model/QuantizationConfig.Binary.<init>|<init>(kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/QuantizationConfig.Binary.<init>|<init>(kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val alwaysRam // dev.kdrant.model/QuantizationConfig.Binary.alwaysRam|{}alwaysRam[0]
             final fun <get-alwaysRam>(): kotlin/Boolean? // dev.kdrant.model/QuantizationConfig.Binary.alwaysRam.<get-alwaysRam>|<get-alwaysRam>(){}[0]
+        final val memory // dev.kdrant.model/QuantizationConfig.Binary.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/QuantizationConfig.Binary.memory.<get-memory>|<get-memory>(){}[0]
 
         final fun component1(): kotlin/Boolean? // dev.kdrant.model/QuantizationConfig.Binary.component1|component1(){}[0]
-        final fun copy(kotlin/Boolean? = ...): dev.kdrant.model/QuantizationConfig.Binary // dev.kdrant.model/QuantizationConfig.Binary.copy|copy(kotlin.Boolean?){}[0]
+        final fun component2(): dev.kdrant.model/Memory? // dev.kdrant.model/QuantizationConfig.Binary.component2|component2(){}[0]
+        final fun copy(kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/QuantizationConfig.Binary // dev.kdrant.model/QuantizationConfig.Binary.copy|copy(kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QuantizationConfig.Binary.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/QuantizationConfig.Binary.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/QuantizationConfig.Binary.toString|toString(){}[0]
     }
 
     final class Scalar : dev.kdrant.model/QuantizationConfig { // dev.kdrant.model/QuantizationConfig.Scalar|null[0]
-        constructor <init>(kotlin/Float? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/QuantizationConfig.Scalar.<init>|<init>(kotlin.Float?;kotlin.Boolean?){}[0]
+        constructor <init>(kotlin/Float? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/QuantizationConfig.Scalar.<init>|<init>(kotlin.Float?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
 
         final val alwaysRam // dev.kdrant.model/QuantizationConfig.Scalar.alwaysRam|{}alwaysRam[0]
             final fun <get-alwaysRam>(): kotlin/Boolean? // dev.kdrant.model/QuantizationConfig.Scalar.alwaysRam.<get-alwaysRam>|<get-alwaysRam>(){}[0]
+        final val memory // dev.kdrant.model/QuantizationConfig.Scalar.memory|{}memory[0]
+            final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/QuantizationConfig.Scalar.memory.<get-memory>|<get-memory>(){}[0]
         final val quantile // dev.kdrant.model/QuantizationConfig.Scalar.quantile|{}quantile[0]
             final fun <get-quantile>(): kotlin/Float? // dev.kdrant.model/QuantizationConfig.Scalar.quantile.<get-quantile>|<get-quantile>(){}[0]
 
         final fun component1(): kotlin/Float? // dev.kdrant.model/QuantizationConfig.Scalar.component1|component1(){}[0]
         final fun component2(): kotlin/Boolean? // dev.kdrant.model/QuantizationConfig.Scalar.component2|component2(){}[0]
-        final fun copy(kotlin/Float? = ..., kotlin/Boolean? = ...): dev.kdrant.model/QuantizationConfig.Scalar // dev.kdrant.model/QuantizationConfig.Scalar.copy|copy(kotlin.Float?;kotlin.Boolean?){}[0]
+        final fun component3(): dev.kdrant.model/Memory? // dev.kdrant.model/QuantizationConfig.Scalar.component3|component3(){}[0]
+        final fun copy(kotlin/Float? = ..., kotlin/Boolean? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/QuantizationConfig.Scalar // dev.kdrant.model/QuantizationConfig.Scalar.copy|copy(kotlin.Float?;kotlin.Boolean?;dev.kdrant.model.Memory?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QuantizationConfig.Scalar.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/QuantizationConfig.Scalar.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/QuantizationConfig.Scalar.toString|toString(){}[0]
@@ -1918,6 +2076,25 @@ sealed interface dev.kdrant.model/QueryInterface { // dev.kdrant.model/QueryInte
         final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QueryInterface.Recommend.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // dev.kdrant.model/QueryInterface.Recommend.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // dev.kdrant.model/QueryInterface.Recommend.toString|toString(){}[0]
+    }
+
+    final class RelevanceFeedback : dev.kdrant.model/QueryInterface { // dev.kdrant.model/QueryInterface.RelevanceFeedback|null[0]
+        constructor <init>(dev.kdrant.model/VectorInput, kotlin.collections/List<dev.kdrant.model/FeedbackItem>, dev.kdrant.model/FeedbackStrategy) // dev.kdrant.model/QueryInterface.RelevanceFeedback.<init>|<init>(dev.kdrant.model.VectorInput;kotlin.collections.List<dev.kdrant.model.FeedbackItem>;dev.kdrant.model.FeedbackStrategy){}[0]
+
+        final val feedback // dev.kdrant.model/QueryInterface.RelevanceFeedback.feedback|{}feedback[0]
+            final fun <get-feedback>(): kotlin.collections/List<dev.kdrant.model/FeedbackItem> // dev.kdrant.model/QueryInterface.RelevanceFeedback.feedback.<get-feedback>|<get-feedback>(){}[0]
+        final val strategy // dev.kdrant.model/QueryInterface.RelevanceFeedback.strategy|{}strategy[0]
+            final fun <get-strategy>(): dev.kdrant.model/FeedbackStrategy // dev.kdrant.model/QueryInterface.RelevanceFeedback.strategy.<get-strategy>|<get-strategy>(){}[0]
+        final val target // dev.kdrant.model/QueryInterface.RelevanceFeedback.target|{}target[0]
+            final fun <get-target>(): dev.kdrant.model/VectorInput // dev.kdrant.model/QueryInterface.RelevanceFeedback.target.<get-target>|<get-target>(){}[0]
+
+        final fun component1(): dev.kdrant.model/VectorInput // dev.kdrant.model/QueryInterface.RelevanceFeedback.component1|component1(){}[0]
+        final fun component2(): kotlin.collections/List<dev.kdrant.model/FeedbackItem> // dev.kdrant.model/QueryInterface.RelevanceFeedback.component2|component2(){}[0]
+        final fun component3(): dev.kdrant.model/FeedbackStrategy // dev.kdrant.model/QueryInterface.RelevanceFeedback.component3|component3(){}[0]
+        final fun copy(dev.kdrant.model/VectorInput = ..., kotlin.collections/List<dev.kdrant.model/FeedbackItem> = ..., dev.kdrant.model/FeedbackStrategy = ...): dev.kdrant.model/QueryInterface.RelevanceFeedback // dev.kdrant.model/QueryInterface.RelevanceFeedback.copy|copy(dev.kdrant.model.VectorInput;kotlin.collections.List<dev.kdrant.model.FeedbackItem>;dev.kdrant.model.FeedbackStrategy){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/QueryInterface.RelevanceFeedback.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kdrant.model/QueryInterface.RelevanceFeedback.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kdrant.model/QueryInterface.RelevanceFeedback.toString|toString(){}[0]
     }
 
     final class Sparse : dev.kdrant.model/VectorInput { // dev.kdrant.model/QueryInterface.Sparse|null[0]
@@ -2270,6 +2447,9 @@ final class dev.kdrant.dsl/BatchUpdateBuilder { // dev.kdrant.dsl/BatchUpdateBui
 final class dev.kdrant.dsl/BoolIndexBuilder { // dev.kdrant.dsl/BoolIndexBuilder|null[0]
     constructor <init>() // dev.kdrant.dsl/BoolIndexBuilder.<init>|<init>(){}[0]
 
+    final var memory // dev.kdrant.dsl/BoolIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/BoolIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/BoolIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/BoolIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/BoolIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/BoolIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
@@ -2300,10 +2480,12 @@ final class dev.kdrant.dsl/ClauseBuilder { // dev.kdrant.dsl/ClauseBuilder|null[
     final fun matchExcept(kotlin/String, kotlin.collections/Collection<kotlin/Any>) // dev.kdrant.dsl/ClauseBuilder.matchExcept|matchExcept(kotlin.String;kotlin.collections.Collection<kotlin.Any>){}[0]
     final fun matchExcept(kotlin/String, kotlin/Array<out kotlin/Any>...) // dev.kdrant.dsl/ClauseBuilder.matchExcept|matchExcept(kotlin.String;kotlin.Array<out|kotlin.Any>...){}[0]
     final fun matchPhrase(kotlin/String, kotlin/String) // dev.kdrant.dsl/ClauseBuilder.matchPhrase|matchPhrase(kotlin.String;kotlin.String){}[0]
+    final fun matchPrefix(kotlin/String, kotlin/String) // dev.kdrant.dsl/ClauseBuilder.matchPrefix|matchPrefix(kotlin.String;kotlin.String){}[0]
     final fun matchText(kotlin/String, kotlin/String) // dev.kdrant.dsl/ClauseBuilder.matchText|matchText(kotlin.String;kotlin.String){}[0]
     final fun matchTextAny(kotlin/String, kotlin/String) // dev.kdrant.dsl/ClauseBuilder.matchTextAny|matchTextAny(kotlin.String;kotlin.String){}[0]
     final fun nested(kotlin/String, kotlin/Function1<dev.kdrant.dsl/FilterBuilder, kotlin/Unit>) // dev.kdrant.dsl/ClauseBuilder.nested|nested(kotlin.String;kotlin.Function1<dev.kdrant.dsl.FilterBuilder,kotlin.Unit>){}[0]
     final fun range(kotlin/String, kotlin/Number? = ..., kotlin/Number? = ..., kotlin/Number? = ..., kotlin/Number? = ...) // dev.kdrant.dsl/ClauseBuilder.range|range(kotlin.String;kotlin.Number?;kotlin.Number?;kotlin.Number?;kotlin.Number?){}[0]
+    final fun slice(kotlin/Int, kotlin/Int) // dev.kdrant.dsl/ClauseBuilder.slice|slice(kotlin.Int;kotlin.Int){}[0]
     final fun valuesCount(kotlin/String, kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ...) // dev.kdrant.dsl/ClauseBuilder.valuesCount|valuesCount(kotlin.String;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Int?){}[0]
 }
 
@@ -2325,6 +2507,9 @@ final class dev.kdrant.dsl/CreateCollectionBuilder { // dev.kdrant.dsl/CreateCol
     final var optimizers // dev.kdrant.dsl/CreateCollectionBuilder.optimizers|{}optimizers[0]
         final fun <get-optimizers>(): dev.kdrant.model/OptimizersConfig? // dev.kdrant.dsl/CreateCollectionBuilder.optimizers.<get-optimizers>|<get-optimizers>(){}[0]
         final fun <set-optimizers>(dev.kdrant.model/OptimizersConfig?) // dev.kdrant.dsl/CreateCollectionBuilder.optimizers.<set-optimizers>|<set-optimizers>(dev.kdrant.model.OptimizersConfig?){}[0]
+    final var payloadMemory // dev.kdrant.dsl/CreateCollectionBuilder.payloadMemory|{}payloadMemory[0]
+        final fun <get-payloadMemory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/CreateCollectionBuilder.payloadMemory.<get-payloadMemory>|<get-payloadMemory>(){}[0]
+        final fun <set-payloadMemory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/CreateCollectionBuilder.payloadMemory.<set-payloadMemory>|<set-payloadMemory>(dev.kdrant.model.Memory?){}[0]
     final var quantization // dev.kdrant.dsl/CreateCollectionBuilder.quantization|{}quantization[0]
         final fun <get-quantization>(): dev.kdrant.model/QuantizationConfig? // dev.kdrant.dsl/CreateCollectionBuilder.quantization.<get-quantization>|<get-quantization>(){}[0]
         final fun <set-quantization>(dev.kdrant.model/QuantizationConfig?) // dev.kdrant.dsl/CreateCollectionBuilder.quantization.<set-quantization>|<set-quantization>(dev.kdrant.model.QuantizationConfig?){}[0]
@@ -2349,6 +2534,9 @@ final class dev.kdrant.dsl/DatetimeIndexBuilder { // dev.kdrant.dsl/DatetimeInde
     final var isPrincipal // dev.kdrant.dsl/DatetimeIndexBuilder.isPrincipal|{}isPrincipal[0]
         final fun <get-isPrincipal>(): kotlin/Boolean? // dev.kdrant.dsl/DatetimeIndexBuilder.isPrincipal.<get-isPrincipal>|<get-isPrincipal>(){}[0]
         final fun <set-isPrincipal>(kotlin/Boolean?) // dev.kdrant.dsl/DatetimeIndexBuilder.isPrincipal.<set-isPrincipal>|<set-isPrincipal>(kotlin.Boolean?){}[0]
+    final var memory // dev.kdrant.dsl/DatetimeIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/DatetimeIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/DatetimeIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/DatetimeIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/DatetimeIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/DatetimeIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
@@ -2378,6 +2566,9 @@ final class dev.kdrant.dsl/FloatIndexBuilder { // dev.kdrant.dsl/FloatIndexBuild
     final var isPrincipal // dev.kdrant.dsl/FloatIndexBuilder.isPrincipal|{}isPrincipal[0]
         final fun <get-isPrincipal>(): kotlin/Boolean? // dev.kdrant.dsl/FloatIndexBuilder.isPrincipal.<get-isPrincipal>|<get-isPrincipal>(){}[0]
         final fun <set-isPrincipal>(kotlin/Boolean?) // dev.kdrant.dsl/FloatIndexBuilder.isPrincipal.<set-isPrincipal>|<set-isPrincipal>(kotlin.Boolean?){}[0]
+    final var memory // dev.kdrant.dsl/FloatIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/FloatIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/FloatIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/FloatIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/FloatIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/FloatIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
@@ -2386,6 +2577,9 @@ final class dev.kdrant.dsl/FloatIndexBuilder { // dev.kdrant.dsl/FloatIndexBuild
 final class dev.kdrant.dsl/GeoIndexBuilder { // dev.kdrant.dsl/GeoIndexBuilder|null[0]
     constructor <init>() // dev.kdrant.dsl/GeoIndexBuilder.<init>|<init>(){}[0]
 
+    final var memory // dev.kdrant.dsl/GeoIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/GeoIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/GeoIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/GeoIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/GeoIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/GeoIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
@@ -2400,6 +2594,9 @@ final class dev.kdrant.dsl/IntegerIndexBuilder { // dev.kdrant.dsl/IntegerIndexB
     final var lookup // dev.kdrant.dsl/IntegerIndexBuilder.lookup|{}lookup[0]
         final fun <get-lookup>(): kotlin/Boolean? // dev.kdrant.dsl/IntegerIndexBuilder.lookup.<get-lookup>|<get-lookup>(){}[0]
         final fun <set-lookup>(kotlin/Boolean?) // dev.kdrant.dsl/IntegerIndexBuilder.lookup.<set-lookup>|<set-lookup>(kotlin.Boolean?){}[0]
+    final var memory // dev.kdrant.dsl/IntegerIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/IntegerIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/IntegerIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/IntegerIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/IntegerIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/IntegerIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
@@ -2414,9 +2611,15 @@ final class dev.kdrant.dsl/KeywordIndexBuilder { // dev.kdrant.dsl/KeywordIndexB
     final var isTenant // dev.kdrant.dsl/KeywordIndexBuilder.isTenant|{}isTenant[0]
         final fun <get-isTenant>(): kotlin/Boolean? // dev.kdrant.dsl/KeywordIndexBuilder.isTenant.<get-isTenant>|<get-isTenant>(){}[0]
         final fun <set-isTenant>(kotlin/Boolean?) // dev.kdrant.dsl/KeywordIndexBuilder.isTenant.<set-isTenant>|<set-isTenant>(kotlin.Boolean?){}[0]
+    final var memory // dev.kdrant.dsl/KeywordIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/KeywordIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/KeywordIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/KeywordIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/KeywordIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/KeywordIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
+    final var prefixMatching // dev.kdrant.dsl/KeywordIndexBuilder.prefixMatching|{}prefixMatching[0]
+        final fun <get-prefixMatching>(): kotlin/Boolean? // dev.kdrant.dsl/KeywordIndexBuilder.prefixMatching.<get-prefixMatching>|<get-prefixMatching>(){}[0]
+        final fun <set-prefixMatching>(kotlin/Boolean?) // dev.kdrant.dsl/KeywordIndexBuilder.prefixMatching.<set-prefixMatching>|<set-prefixMatching>(kotlin.Boolean?){}[0]
 }
 
 final class dev.kdrant.dsl/PayloadBuilder { // dev.kdrant.dsl/PayloadBuilder|null[0]
@@ -2498,6 +2701,16 @@ final class dev.kdrant.dsl/RecommendBuilder { // dev.kdrant.dsl/RecommendBuilder
     final fun positive(kotlin.collections/List<kotlin/Float>) // dev.kdrant.dsl/RecommendBuilder.positive|positive(kotlin.collections.List<kotlin.Float>){}[0]
 }
 
+final class dev.kdrant.dsl/RelevanceFeedbackBuilder { // dev.kdrant.dsl/RelevanceFeedbackBuilder|null[0]
+    constructor <init>() // dev.kdrant.dsl/RelevanceFeedbackBuilder.<init>|<init>(){}[0]
+
+    final fun feedback(dev.kdrant.model/VectorInput, kotlin/Float) // dev.kdrant.dsl/RelevanceFeedbackBuilder.feedback|feedback(dev.kdrant.model.VectorInput;kotlin.Float){}[0]
+    final fun naive(kotlin/Float, kotlin/Float, kotlin/Float) // dev.kdrant.dsl/RelevanceFeedbackBuilder.naive|naive(kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    final fun target(dev.kdrant.model/PointId) // dev.kdrant.dsl/RelevanceFeedbackBuilder.target|target(dev.kdrant.model.PointId){}[0]
+    final fun target(dev.kdrant.model/VectorInput) // dev.kdrant.dsl/RelevanceFeedbackBuilder.target|target(dev.kdrant.model.VectorInput){}[0]
+    final fun target(kotlin.collections/List<kotlin/Float>) // dev.kdrant.dsl/RelevanceFeedbackBuilder.target|target(kotlin.collections.List<kotlin.Float>){}[0]
+}
+
 final class dev.kdrant.dsl/ScrollBuilder { // dev.kdrant.dsl/ScrollBuilder|null[0]
     final var shardKey // dev.kdrant.dsl/ScrollBuilder.shardKey|{}shardKey[0]
         final fun <get-shardKey>(): dev.kdrant.model/ShardKey? // dev.kdrant.dsl/ScrollBuilder.shardKey.<get-shardKey>|<get-shardKey>(){}[0]
@@ -2562,6 +2775,7 @@ final class dev.kdrant.dsl/SearchBuilder { // dev.kdrant.dsl/SearchBuilder|null[
     final fun queryMulti(kotlin.collections/List<kotlin.collections/List<kotlin/Float>>) // dev.kdrant.dsl/SearchBuilder.queryMulti|queryMulti(kotlin.collections.List<kotlin.collections.List<kotlin.Float>>){}[0]
     final fun querySparse(kotlin.collections/List<kotlin/Int>, kotlin.collections/List<kotlin/Float>) // dev.kdrant.dsl/SearchBuilder.querySparse|querySparse(kotlin.collections.List<kotlin.Int>;kotlin.collections.List<kotlin.Float>){}[0]
     final fun recommend(kotlin/Function1<dev.kdrant.dsl/RecommendBuilder, kotlin/Unit>) // dev.kdrant.dsl/SearchBuilder.recommend|recommend(kotlin.Function1<dev.kdrant.dsl.RecommendBuilder,kotlin.Unit>){}[0]
+    final fun relevanceFeedback(kotlin/Function1<dev.kdrant.dsl/RelevanceFeedbackBuilder, kotlin/Unit>) // dev.kdrant.dsl/SearchBuilder.relevanceFeedback|relevanceFeedback(kotlin.Function1<dev.kdrant.dsl.RelevanceFeedbackBuilder,kotlin.Unit>){}[0]
     final fun rrf(kotlin/Int? = ..., kotlin.collections/List<kotlin/Float>? = ...) // dev.kdrant.dsl/SearchBuilder.rrf|rrf(kotlin.Int?;kotlin.collections.List<kotlin.Float>?){}[0]
     final fun sample() // dev.kdrant.dsl/SearchBuilder.sample|sample(){}[0]
 }
@@ -2591,9 +2805,14 @@ final class dev.kdrant.dsl/SearchParamsBuilder { // dev.kdrant.dsl/SearchParamsB
     final var hnswEf // dev.kdrant.dsl/SearchParamsBuilder.hnswEf|{}hnswEf[0]
         final fun <get-hnswEf>(): kotlin/Int? // dev.kdrant.dsl/SearchParamsBuilder.hnswEf.<get-hnswEf>|<get-hnswEf>(){}[0]
         final fun <set-hnswEf>(kotlin/Int?) // dev.kdrant.dsl/SearchParamsBuilder.hnswEf.<set-hnswEf>|<set-hnswEf>(kotlin.Int?){}[0]
+    final var idfCorpus // dev.kdrant.dsl/SearchParamsBuilder.idfCorpus|{}idfCorpus[0]
+        final fun <get-idfCorpus>(): dev.kdrant.model/Filter? // dev.kdrant.dsl/SearchParamsBuilder.idfCorpus.<get-idfCorpus>|<get-idfCorpus>(){}[0]
+        final fun <set-idfCorpus>(dev.kdrant.model/Filter?) // dev.kdrant.dsl/SearchParamsBuilder.idfCorpus.<set-idfCorpus>|<set-idfCorpus>(dev.kdrant.model.Filter?){}[0]
     final var indexedOnly // dev.kdrant.dsl/SearchParamsBuilder.indexedOnly|{}indexedOnly[0]
         final fun <get-indexedOnly>(): kotlin/Boolean? // dev.kdrant.dsl/SearchParamsBuilder.indexedOnly.<get-indexedOnly>|<get-indexedOnly>(){}[0]
         final fun <set-indexedOnly>(kotlin/Boolean?) // dev.kdrant.dsl/SearchParamsBuilder.indexedOnly.<set-indexedOnly>|<set-indexedOnly>(kotlin.Boolean?){}[0]
+
+    final fun idfCorpus(kotlin/Function1<dev.kdrant.dsl/FilterBuilder, kotlin/Unit>) // dev.kdrant.dsl/SearchParamsBuilder.idfCorpus|idfCorpus(kotlin.Function1<dev.kdrant.dsl.FilterBuilder,kotlin.Unit>){}[0]
 }
 
 final class dev.kdrant.dsl/SparseVectorParamsBuilder { // dev.kdrant.dsl/SparseVectorParamsBuilder|null[0]
@@ -2613,6 +2832,9 @@ final class dev.kdrant.dsl/TextIndexBuilder { // dev.kdrant.dsl/TextIndexBuilder
     final var maxTokenLen // dev.kdrant.dsl/TextIndexBuilder.maxTokenLen|{}maxTokenLen[0]
         final fun <get-maxTokenLen>(): kotlin/Int? // dev.kdrant.dsl/TextIndexBuilder.maxTokenLen.<get-maxTokenLen>|<get-maxTokenLen>(){}[0]
         final fun <set-maxTokenLen>(kotlin/Int?) // dev.kdrant.dsl/TextIndexBuilder.maxTokenLen.<set-maxTokenLen>|<set-maxTokenLen>(kotlin.Int?){}[0]
+    final var memory // dev.kdrant.dsl/TextIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/TextIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/TextIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var minTokenLen // dev.kdrant.dsl/TextIndexBuilder.minTokenLen|{}minTokenLen[0]
         final fun <get-minTokenLen>(): kotlin/Int? // dev.kdrant.dsl/TextIndexBuilder.minTokenLen.<get-minTokenLen>|<get-minTokenLen>(){}[0]
         final fun <set-minTokenLen>(kotlin/Int?) // dev.kdrant.dsl/TextIndexBuilder.minTokenLen.<set-minTokenLen>|<set-minTokenLen>(kotlin.Int?){}[0]
@@ -2667,6 +2889,9 @@ final class dev.kdrant.dsl/UuidIndexBuilder { // dev.kdrant.dsl/UuidIndexBuilder
     final var isTenant // dev.kdrant.dsl/UuidIndexBuilder.isTenant|{}isTenant[0]
         final fun <get-isTenant>(): kotlin/Boolean? // dev.kdrant.dsl/UuidIndexBuilder.isTenant.<get-isTenant>|<get-isTenant>(){}[0]
         final fun <set-isTenant>(kotlin/Boolean?) // dev.kdrant.dsl/UuidIndexBuilder.isTenant.<set-isTenant>|<set-isTenant>(kotlin.Boolean?){}[0]
+    final var memory // dev.kdrant.dsl/UuidIndexBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/UuidIndexBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/UuidIndexBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var onDisk // dev.kdrant.dsl/UuidIndexBuilder.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.dsl/UuidIndexBuilder.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
         final fun <set-onDisk>(kotlin/Boolean?) // dev.kdrant.dsl/UuidIndexBuilder.onDisk.<set-onDisk>|<set-onDisk>(kotlin.Boolean?){}[0]
@@ -2684,6 +2909,9 @@ final class dev.kdrant.dsl/VectorParamsBuilder { // dev.kdrant.dsl/VectorParamsB
     final var hnswConfig // dev.kdrant.dsl/VectorParamsBuilder.hnswConfig|{}hnswConfig[0]
         final fun <get-hnswConfig>(): dev.kdrant.model/HnswConfig? // dev.kdrant.dsl/VectorParamsBuilder.hnswConfig.<get-hnswConfig>|<get-hnswConfig>(){}[0]
         final fun <set-hnswConfig>(dev.kdrant.model/HnswConfig?) // dev.kdrant.dsl/VectorParamsBuilder.hnswConfig.<set-hnswConfig>|<set-hnswConfig>(dev.kdrant.model.HnswConfig?){}[0]
+    final var memory // dev.kdrant.dsl/VectorParamsBuilder.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.dsl/VectorParamsBuilder.memory.<get-memory>|<get-memory>(){}[0]
+        final fun <set-memory>(dev.kdrant.model/Memory?) // dev.kdrant.dsl/VectorParamsBuilder.memory.<set-memory>|<set-memory>(dev.kdrant.model.Memory?){}[0]
     final var multivector // dev.kdrant.dsl/VectorParamsBuilder.multivector|{}multivector[0]
         final fun <get-multivector>(): dev.kdrant.model/MultiVectorComparator? // dev.kdrant.dsl/VectorParamsBuilder.multivector.<get-multivector>|<get-multivector>(){}[0]
         final fun <set-multivector>(dev.kdrant.model/MultiVectorComparator?) // dev.kdrant.dsl/VectorParamsBuilder.multivector.<set-multivector>|<set-multivector>(dev.kdrant.model.MultiVectorComparator?){}[0]
@@ -2860,10 +3088,12 @@ final class dev.kdrant.model/CollectionInfo { // dev.kdrant.model/CollectionInfo
 }
 
 final class dev.kdrant.model/CollectionParams { // dev.kdrant.model/CollectionParams|null[0]
-    constructor <init>(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/CollectionParams.<init>|<init>(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?){}[0]
+    constructor <init>(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., dev.kdrant.model/PayloadStorageParams? = ...) // dev.kdrant.model/CollectionParams.<init>|<init>(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;dev.kdrant.model.PayloadStorageParams?){}[0]
 
     final val onDiskPayload // dev.kdrant.model/CollectionParams.onDiskPayload|{}onDiskPayload[0]
         final fun <get-onDiskPayload>(): kotlin/Boolean? // dev.kdrant.model/CollectionParams.onDiskPayload.<get-onDiskPayload>|<get-onDiskPayload>(){}[0]
+    final val payload // dev.kdrant.model/CollectionParams.payload|{}payload[0]
+        final fun <get-payload>(): dev.kdrant.model/PayloadStorageParams? // dev.kdrant.model/CollectionParams.payload.<get-payload>|<get-payload>(){}[0]
     final val replicationFactor // dev.kdrant.model/CollectionParams.replicationFactor|{}replicationFactor[0]
         final fun <get-replicationFactor>(): kotlin/Int? // dev.kdrant.model/CollectionParams.replicationFactor.<get-replicationFactor>|<get-replicationFactor>(){}[0]
     final val shardNumber // dev.kdrant.model/CollectionParams.shardNumber|{}shardNumber[0]
@@ -2881,7 +3111,8 @@ final class dev.kdrant.model/CollectionParams { // dev.kdrant.model/CollectionPa
     final fun component4(): kotlin/Int? // dev.kdrant.model/CollectionParams.component4|component4(){}[0]
     final fun component5(): kotlin/Int? // dev.kdrant.model/CollectionParams.component5|component5(){}[0]
     final fun component6(): kotlin/Boolean? // dev.kdrant.model/CollectionParams.component6|component6(){}[0]
-    final fun copy(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ...): dev.kdrant.model/CollectionParams // dev.kdrant.model/CollectionParams.copy|copy(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?){}[0]
+    final fun component7(): dev.kdrant.model/PayloadStorageParams? // dev.kdrant.model/CollectionParams.component7|component7(){}[0]
+    final fun copy(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., dev.kdrant.model/PayloadStorageParams? = ...): dev.kdrant.model/CollectionParams // dev.kdrant.model/CollectionParams.copy|copy(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;dev.kdrant.model.PayloadStorageParams?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/CollectionParams.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/CollectionParams.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/CollectionParams.toString|toString(){}[0]
@@ -2919,7 +3150,7 @@ final class dev.kdrant.model/ContextPair { // dev.kdrant.model/ContextPair|null[
 }
 
 final class dev.kdrant.model/CreateCollectionRequest { // dev.kdrant.model/CreateCollectionRequest|null[0]
-    constructor <init>(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ...) // dev.kdrant.model/CreateCollectionRequest.<init>|<init>(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?){}[0]
+    constructor <init>(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., dev.kdrant.model/PayloadStorageParams? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ...) // dev.kdrant.model/CreateCollectionRequest.<init>|<init>(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;dev.kdrant.model.PayloadStorageParams?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?){}[0]
 
     final val hnswConfig // dev.kdrant.model/CreateCollectionRequest.hnswConfig|{}hnswConfig[0]
         final fun <get-hnswConfig>(): dev.kdrant.model/HnswConfig? // dev.kdrant.model/CreateCollectionRequest.hnswConfig.<get-hnswConfig>|<get-hnswConfig>(){}[0]
@@ -2927,6 +3158,8 @@ final class dev.kdrant.model/CreateCollectionRequest { // dev.kdrant.model/Creat
         final fun <get-onDiskPayload>(): kotlin/Boolean? // dev.kdrant.model/CreateCollectionRequest.onDiskPayload.<get-onDiskPayload>|<get-onDiskPayload>(){}[0]
     final val optimizersConfig // dev.kdrant.model/CreateCollectionRequest.optimizersConfig|{}optimizersConfig[0]
         final fun <get-optimizersConfig>(): dev.kdrant.model/OptimizersConfig? // dev.kdrant.model/CreateCollectionRequest.optimizersConfig.<get-optimizersConfig>|<get-optimizersConfig>(){}[0]
+    final val payload // dev.kdrant.model/CreateCollectionRequest.payload|{}payload[0]
+        final fun <get-payload>(): dev.kdrant.model/PayloadStorageParams? // dev.kdrant.model/CreateCollectionRequest.payload.<get-payload>|<get-payload>(){}[0]
     final val quantizationConfig // dev.kdrant.model/CreateCollectionRequest.quantizationConfig|{}quantizationConfig[0]
         final fun <get-quantizationConfig>(): dev.kdrant.model/QuantizationConfig? // dev.kdrant.model/CreateCollectionRequest.quantizationConfig.<get-quantizationConfig>|<get-quantizationConfig>(){}[0]
     final val replicationFactor // dev.kdrant.model/CreateCollectionRequest.replicationFactor|{}replicationFactor[0]
@@ -2941,15 +3174,16 @@ final class dev.kdrant.model/CreateCollectionRequest { // dev.kdrant.model/Creat
         final fun <get-vectors>(): dev.kdrant.model/VectorsConfig? // dev.kdrant.model/CreateCollectionRequest.vectors.<get-vectors>|<get-vectors>(){}[0]
 
     final fun component1(): dev.kdrant.model/VectorsConfig? // dev.kdrant.model/CreateCollectionRequest.component1|component1(){}[0]
+    final fun component10(): dev.kdrant.model/StrictModeConfig? // dev.kdrant.model/CreateCollectionRequest.component10|component10(){}[0]
     final fun component2(): kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? // dev.kdrant.model/CreateCollectionRequest.component2|component2(){}[0]
     final fun component3(): dev.kdrant.model/HnswConfig? // dev.kdrant.model/CreateCollectionRequest.component3|component3(){}[0]
     final fun component4(): kotlin/Boolean? // dev.kdrant.model/CreateCollectionRequest.component4|component4(){}[0]
-    final fun component5(): kotlin/Int? // dev.kdrant.model/CreateCollectionRequest.component5|component5(){}[0]
+    final fun component5(): dev.kdrant.model/PayloadStorageParams? // dev.kdrant.model/CreateCollectionRequest.component5|component5(){}[0]
     final fun component6(): kotlin/Int? // dev.kdrant.model/CreateCollectionRequest.component6|component6(){}[0]
-    final fun component7(): dev.kdrant.model/OptimizersConfig? // dev.kdrant.model/CreateCollectionRequest.component7|component7(){}[0]
-    final fun component8(): dev.kdrant.model/QuantizationConfig? // dev.kdrant.model/CreateCollectionRequest.component8|component8(){}[0]
-    final fun component9(): dev.kdrant.model/StrictModeConfig? // dev.kdrant.model/CreateCollectionRequest.component9|component9(){}[0]
-    final fun copy(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ...): dev.kdrant.model/CreateCollectionRequest // dev.kdrant.model/CreateCollectionRequest.copy|copy(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?){}[0]
+    final fun component7(): kotlin/Int? // dev.kdrant.model/CreateCollectionRequest.component7|component7(){}[0]
+    final fun component8(): dev.kdrant.model/OptimizersConfig? // dev.kdrant.model/CreateCollectionRequest.component8|component8(){}[0]
+    final fun component9(): dev.kdrant.model/QuantizationConfig? // dev.kdrant.model/CreateCollectionRequest.component9|component9(){}[0]
+    final fun copy(dev.kdrant.model/VectorsConfig? = ..., kotlin.collections/Map<kotlin/String, dev.kdrant.model/SparseVectorParams>? = ..., dev.kdrant.model/HnswConfig? = ..., kotlin/Boolean? = ..., dev.kdrant.model/PayloadStorageParams? = ..., kotlin/Int? = ..., kotlin/Int? = ..., dev.kdrant.model/OptimizersConfig? = ..., dev.kdrant.model/QuantizationConfig? = ..., dev.kdrant.model/StrictModeConfig? = ...): dev.kdrant.model/CreateCollectionRequest // dev.kdrant.model/CreateCollectionRequest.copy|copy(dev.kdrant.model.VectorsConfig?;kotlin.collections.Map<kotlin.String,dev.kdrant.model.SparseVectorParams>?;dev.kdrant.model.HnswConfig?;kotlin.Boolean?;dev.kdrant.model.PayloadStorageParams?;kotlin.Int?;kotlin.Int?;dev.kdrant.model.OptimizersConfig?;dev.kdrant.model.QuantizationConfig?;dev.kdrant.model.StrictModeConfig?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/CreateCollectionRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/CreateCollectionRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/CreateCollectionRequest.toString|toString(){}[0]
@@ -3058,6 +3292,22 @@ final class dev.kdrant.model/FacetHit { // dev.kdrant.model/FacetHit|null[0]
     }
 }
 
+final class dev.kdrant.model/FeedbackItem { // dev.kdrant.model/FeedbackItem|null[0]
+    constructor <init>(dev.kdrant.model/VectorInput, kotlin/Float) // dev.kdrant.model/FeedbackItem.<init>|<init>(dev.kdrant.model.VectorInput;kotlin.Float){}[0]
+
+    final val example // dev.kdrant.model/FeedbackItem.example|{}example[0]
+        final fun <get-example>(): dev.kdrant.model/VectorInput // dev.kdrant.model/FeedbackItem.example.<get-example>|<get-example>(){}[0]
+    final val score // dev.kdrant.model/FeedbackItem.score|{}score[0]
+        final fun <get-score>(): kotlin/Float // dev.kdrant.model/FeedbackItem.score.<get-score>|<get-score>(){}[0]
+
+    final fun component1(): dev.kdrant.model/VectorInput // dev.kdrant.model/FeedbackItem.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // dev.kdrant.model/FeedbackItem.component2|component2(){}[0]
+    final fun copy(dev.kdrant.model/VectorInput = ..., kotlin/Float = ...): dev.kdrant.model/FeedbackItem // dev.kdrant.model/FeedbackItem.copy|copy(dev.kdrant.model.VectorInput;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/FeedbackItem.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/FeedbackItem.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/FeedbackItem.toString|toString(){}[0]
+}
+
 final class dev.kdrant.model/Filter { // dev.kdrant.model/Filter|null[0]
     constructor <init>(kotlin.collections/List<dev.kdrant.model/Condition>? = ..., kotlin.collections/List<dev.kdrant.model/Condition>? = ..., kotlin.collections/List<dev.kdrant.model/Condition>? = ..., dev.kdrant.model/MinShould? = ...) // dev.kdrant.model/Filter.<init>|<init>(kotlin.collections.List<dev.kdrant.model.Condition>?;kotlin.collections.List<dev.kdrant.model.Condition>?;kotlin.collections.List<dev.kdrant.model.Condition>?;dev.kdrant.model.MinShould?){}[0]
 
@@ -3125,7 +3375,7 @@ final class dev.kdrant.model/GeoPoint { // dev.kdrant.model/GeoPoint|null[0]
 }
 
 final class dev.kdrant.model/HnswConfig { // dev.kdrant.model/HnswConfig|null[0]
-    constructor <init>(kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Int? = ...) // dev.kdrant.model/HnswConfig.<init>|<init>(kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Int?){}[0]
+    constructor <init>(kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/HnswConfig.<init>|<init>(kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Int?;dev.kdrant.model.Memory?){}[0]
 
     final val efConstruct // dev.kdrant.model/HnswConfig.efConstruct|{}efConstruct[0]
         final fun <get-efConstruct>(): kotlin/Int? // dev.kdrant.model/HnswConfig.efConstruct.<get-efConstruct>|<get-efConstruct>(){}[0]
@@ -3135,6 +3385,8 @@ final class dev.kdrant.model/HnswConfig { // dev.kdrant.model/HnswConfig|null[0]
         final fun <get-m>(): kotlin/Int? // dev.kdrant.model/HnswConfig.m.<get-m>|<get-m>(){}[0]
     final val maxIndexingThreads // dev.kdrant.model/HnswConfig.maxIndexingThreads|{}maxIndexingThreads[0]
         final fun <get-maxIndexingThreads>(): kotlin/Int? // dev.kdrant.model/HnswConfig.maxIndexingThreads.<get-maxIndexingThreads>|<get-maxIndexingThreads>(){}[0]
+    final val memory // dev.kdrant.model/HnswConfig.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/HnswConfig.memory.<get-memory>|<get-memory>(){}[0]
     final val onDisk // dev.kdrant.model/HnswConfig.onDisk|{}onDisk[0]
         final fun <get-onDisk>(): kotlin/Boolean? // dev.kdrant.model/HnswConfig.onDisk.<get-onDisk>|<get-onDisk>(){}[0]
     final val payloadM // dev.kdrant.model/HnswConfig.payloadM|{}payloadM[0]
@@ -3146,7 +3398,8 @@ final class dev.kdrant.model/HnswConfig { // dev.kdrant.model/HnswConfig|null[0]
     final fun component4(): kotlin/Int? // dev.kdrant.model/HnswConfig.component4|component4(){}[0]
     final fun component5(): kotlin/Boolean? // dev.kdrant.model/HnswConfig.component5|component5(){}[0]
     final fun component6(): kotlin/Int? // dev.kdrant.model/HnswConfig.component6|component6(){}[0]
-    final fun copy(kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Int? = ...): dev.kdrant.model/HnswConfig // dev.kdrant.model/HnswConfig.copy|copy(kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Int?){}[0]
+    final fun component7(): dev.kdrant.model/Memory? // dev.kdrant.model/HnswConfig.component7|component7(){}[0]
+    final fun copy(kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/HnswConfig // dev.kdrant.model/HnswConfig.copy|copy(kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.Int?;dev.kdrant.model.Memory?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/HnswConfig.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/HnswConfig.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/HnswConfig.toString|toString(){}[0]
@@ -3161,7 +3414,35 @@ final class dev.kdrant.model/HnswConfig { // dev.kdrant.model/HnswConfig|null[0]
     }
 
     final object Companion { // dev.kdrant.model/HnswConfig.Companion|null[0]
+        final val $childSerializers // dev.kdrant.model/HnswConfig.Companion.$childSerializers|{}$childSerializers[0]
+
         final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/HnswConfig> // dev.kdrant.model/HnswConfig.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class dev.kdrant.model/IdfParams { // dev.kdrant.model/IdfParams|null[0]
+    constructor <init>(dev.kdrant.model/Filter) // dev.kdrant.model/IdfParams.<init>|<init>(dev.kdrant.model.Filter){}[0]
+
+    final val corpus // dev.kdrant.model/IdfParams.corpus|{}corpus[0]
+        final fun <get-corpus>(): dev.kdrant.model/Filter // dev.kdrant.model/IdfParams.corpus.<get-corpus>|<get-corpus>(){}[0]
+
+    final fun component1(): dev.kdrant.model/Filter // dev.kdrant.model/IdfParams.component1|component1(){}[0]
+    final fun copy(dev.kdrant.model/Filter = ...): dev.kdrant.model/IdfParams // dev.kdrant.model/IdfParams.copy|copy(dev.kdrant.model.Filter){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/IdfParams.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/IdfParams.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/IdfParams.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/IdfParams> { // dev.kdrant.model/IdfParams.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/IdfParams.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/IdfParams.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/IdfParams.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/IdfParams // dev.kdrant.model/IdfParams.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/IdfParams) // dev.kdrant.model/IdfParams.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.IdfParams){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/IdfParams.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/IdfParams> // dev.kdrant.model/IdfParams.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -3426,6 +3707,34 @@ final class dev.kdrant.model/PayloadIndexInfo { // dev.kdrant.model/PayloadIndex
 
     final object Companion { // dev.kdrant.model/PayloadIndexInfo.Companion|null[0]
         final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadIndexInfo> // dev.kdrant.model/PayloadIndexInfo.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class dev.kdrant.model/PayloadStorageParams { // dev.kdrant.model/PayloadStorageParams|null[0]
+    constructor <init>(dev.kdrant.model/Memory? = ...) // dev.kdrant.model/PayloadStorageParams.<init>|<init>(dev.kdrant.model.Memory?){}[0]
+
+    final val memory // dev.kdrant.model/PayloadStorageParams.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadStorageParams.memory.<get-memory>|<get-memory>(){}[0]
+
+    final fun component1(): dev.kdrant.model/Memory? // dev.kdrant.model/PayloadStorageParams.component1|component1(){}[0]
+    final fun copy(dev.kdrant.model/Memory? = ...): dev.kdrant.model/PayloadStorageParams // dev.kdrant.model/PayloadStorageParams.copy|copy(dev.kdrant.model.Memory?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/PayloadStorageParams.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kdrant.model/PayloadStorageParams.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kdrant.model/PayloadStorageParams.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<dev.kdrant.model/PayloadStorageParams> { // dev.kdrant.model/PayloadStorageParams.$serializer|null[0]
+        final val descriptor // dev.kdrant.model/PayloadStorageParams.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // dev.kdrant.model/PayloadStorageParams.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // dev.kdrant.model/PayloadStorageParams.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): dev.kdrant.model/PayloadStorageParams // dev.kdrant.model/PayloadStorageParams.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, dev.kdrant.model/PayloadStorageParams) // dev.kdrant.model/PayloadStorageParams.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;dev.kdrant.model.PayloadStorageParams){}[0]
+    }
+
+    final object Companion { // dev.kdrant.model/PayloadStorageParams.Companion|null[0]
+        final val $childSerializers // dev.kdrant.model/PayloadStorageParams.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<dev.kdrant.model/PayloadStorageParams> // dev.kdrant.model/PayloadStorageParams.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -3950,19 +4259,22 @@ final class dev.kdrant.model/SearchMatrixRequest { // dev.kdrant.model/SearchMat
 }
 
 final class dev.kdrant.model/SearchParams { // dev.kdrant.model/SearchParams|null[0]
-    constructor <init>(kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ...) // dev.kdrant.model/SearchParams.<init>|<init>(kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?){}[0]
+    constructor <init>(kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/IdfParams? = ...) // dev.kdrant.model/SearchParams.<init>|<init>(kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.IdfParams?){}[0]
 
     final val exact // dev.kdrant.model/SearchParams.exact|{}exact[0]
         final fun <get-exact>(): kotlin/Boolean? // dev.kdrant.model/SearchParams.exact.<get-exact>|<get-exact>(){}[0]
     final val hnswEf // dev.kdrant.model/SearchParams.hnswEf|{}hnswEf[0]
         final fun <get-hnswEf>(): kotlin/Int? // dev.kdrant.model/SearchParams.hnswEf.<get-hnswEf>|<get-hnswEf>(){}[0]
+    final val idf // dev.kdrant.model/SearchParams.idf|{}idf[0]
+        final fun <get-idf>(): dev.kdrant.model/IdfParams? // dev.kdrant.model/SearchParams.idf.<get-idf>|<get-idf>(){}[0]
     final val indexedOnly // dev.kdrant.model/SearchParams.indexedOnly|{}indexedOnly[0]
         final fun <get-indexedOnly>(): kotlin/Boolean? // dev.kdrant.model/SearchParams.indexedOnly.<get-indexedOnly>|<get-indexedOnly>(){}[0]
 
     final fun component1(): kotlin/Int? // dev.kdrant.model/SearchParams.component1|component1(){}[0]
     final fun component2(): kotlin/Boolean? // dev.kdrant.model/SearchParams.component2|component2(){}[0]
     final fun component3(): kotlin/Boolean? // dev.kdrant.model/SearchParams.component3|component3(){}[0]
-    final fun copy(kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ...): dev.kdrant.model/SearchParams // dev.kdrant.model/SearchParams.copy|copy(kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?){}[0]
+    final fun component4(): dev.kdrant.model/IdfParams? // dev.kdrant.model/SearchParams.component4|component4(){}[0]
+    final fun copy(kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., dev.kdrant.model/IdfParams? = ...): dev.kdrant.model/SearchParams // dev.kdrant.model/SearchParams.copy|copy(kotlin.Int?;kotlin.Boolean?;kotlin.Boolean?;dev.kdrant.model.IdfParams?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/SearchParams.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/SearchParams.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/SearchParams.toString|toString(){}[0]
@@ -4247,7 +4559,7 @@ final class dev.kdrant.model/UpdateCollectionRequest { // dev.kdrant.model/Updat
 }
 
 final class dev.kdrant.model/VectorParams { // dev.kdrant.model/VectorParams|null[0]
-    constructor <init>(kotlin/Long, dev.kdrant.model/Distance, kotlin/Boolean? = ..., dev.kdrant.model/VectorDatatype? = ..., dev.kdrant.model/HnswConfig? = ..., dev.kdrant.model/MultiVectorConfig? = ...) // dev.kdrant.model/VectorParams.<init>|<init>(kotlin.Long;dev.kdrant.model.Distance;kotlin.Boolean?;dev.kdrant.model.VectorDatatype?;dev.kdrant.model.HnswConfig?;dev.kdrant.model.MultiVectorConfig?){}[0]
+    constructor <init>(kotlin/Long, dev.kdrant.model/Distance, kotlin/Boolean? = ..., dev.kdrant.model/VectorDatatype? = ..., dev.kdrant.model/HnswConfig? = ..., dev.kdrant.model/MultiVectorConfig? = ..., dev.kdrant.model/Memory? = ...) // dev.kdrant.model/VectorParams.<init>|<init>(kotlin.Long;dev.kdrant.model.Distance;kotlin.Boolean?;dev.kdrant.model.VectorDatatype?;dev.kdrant.model.HnswConfig?;dev.kdrant.model.MultiVectorConfig?;dev.kdrant.model.Memory?){}[0]
 
     final val datatype // dev.kdrant.model/VectorParams.datatype|{}datatype[0]
         final fun <get-datatype>(): dev.kdrant.model/VectorDatatype? // dev.kdrant.model/VectorParams.datatype.<get-datatype>|<get-datatype>(){}[0]
@@ -4255,6 +4567,8 @@ final class dev.kdrant.model/VectorParams { // dev.kdrant.model/VectorParams|nul
         final fun <get-distance>(): dev.kdrant.model/Distance // dev.kdrant.model/VectorParams.distance.<get-distance>|<get-distance>(){}[0]
     final val hnswConfig // dev.kdrant.model/VectorParams.hnswConfig|{}hnswConfig[0]
         final fun <get-hnswConfig>(): dev.kdrant.model/HnswConfig? // dev.kdrant.model/VectorParams.hnswConfig.<get-hnswConfig>|<get-hnswConfig>(){}[0]
+    final val memory // dev.kdrant.model/VectorParams.memory|{}memory[0]
+        final fun <get-memory>(): dev.kdrant.model/Memory? // dev.kdrant.model/VectorParams.memory.<get-memory>|<get-memory>(){}[0]
     final val multivectorConfig // dev.kdrant.model/VectorParams.multivectorConfig|{}multivectorConfig[0]
         final fun <get-multivectorConfig>(): dev.kdrant.model/MultiVectorConfig? // dev.kdrant.model/VectorParams.multivectorConfig.<get-multivectorConfig>|<get-multivectorConfig>(){}[0]
     final val onDisk // dev.kdrant.model/VectorParams.onDisk|{}onDisk[0]
@@ -4268,7 +4582,8 @@ final class dev.kdrant.model/VectorParams { // dev.kdrant.model/VectorParams|nul
     final fun component4(): dev.kdrant.model/VectorDatatype? // dev.kdrant.model/VectorParams.component4|component4(){}[0]
     final fun component5(): dev.kdrant.model/HnswConfig? // dev.kdrant.model/VectorParams.component5|component5(){}[0]
     final fun component6(): dev.kdrant.model/MultiVectorConfig? // dev.kdrant.model/VectorParams.component6|component6(){}[0]
-    final fun copy(kotlin/Long = ..., dev.kdrant.model/Distance = ..., kotlin/Boolean? = ..., dev.kdrant.model/VectorDatatype? = ..., dev.kdrant.model/HnswConfig? = ..., dev.kdrant.model/MultiVectorConfig? = ...): dev.kdrant.model/VectorParams // dev.kdrant.model/VectorParams.copy|copy(kotlin.Long;dev.kdrant.model.Distance;kotlin.Boolean?;dev.kdrant.model.VectorDatatype?;dev.kdrant.model.HnswConfig?;dev.kdrant.model.MultiVectorConfig?){}[0]
+    final fun component7(): dev.kdrant.model/Memory? // dev.kdrant.model/VectorParams.component7|component7(){}[0]
+    final fun copy(kotlin/Long = ..., dev.kdrant.model/Distance = ..., kotlin/Boolean? = ..., dev.kdrant.model/VectorDatatype? = ..., dev.kdrant.model/HnswConfig? = ..., dev.kdrant.model/MultiVectorConfig? = ..., dev.kdrant.model/Memory? = ...): dev.kdrant.model/VectorParams // dev.kdrant.model/VectorParams.copy|copy(kotlin.Long;dev.kdrant.model.Distance;kotlin.Boolean?;dev.kdrant.model.VectorDatatype?;dev.kdrant.model.HnswConfig?;dev.kdrant.model.MultiVectorConfig?;dev.kdrant.model.Memory?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.kdrant.model/VectorParams.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.kdrant.model/VectorParams.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.kdrant.model/VectorParams.toString|toString(){}[0]

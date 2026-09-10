@@ -74,6 +74,12 @@ public sealed interface Expression {
     /** The sum of every operand. */
     public data class Sum(public val operands: List<Expression>) : Expression
 
+    /** Largest of [operands]. Qdrant requires at least one. */
+    public data class Max(public val operands: List<Expression>) : Expression
+
+    /** Smallest of [operands]. Qdrant requires at least one. */
+    public data class Min(public val operands: List<Expression>) : Expression
+
     /** Arithmetic negation. */
     public data class Neg(public val operand: Expression) : Expression
 
@@ -91,6 +97,9 @@ public sealed interface Expression {
 
     /** Natural logarithm. */
     public data class Ln(public val operand: Expression) : Expression
+
+    /** Inverse hyperbolic cosine. Qdrant fails the query for an operand below 1. */
+    public data class Acosh(public val operand: Expression) : Expression
 
     /**
      * [left] divided by [right]. [byZeroDefault] is what the division evaluates to when [right] is
@@ -131,6 +140,10 @@ public sealed interface Expression {
         public fun mult(vararg operands: Expression): Expression = Mult(operands.toList())
 
         public fun sum(vararg operands: Expression): Expression = Sum(operands.toList())
+
+        public fun max(vararg operands: Expression): Expression = Max(operands.toList())
+
+        public fun min(vararg operands: Expression): Expression = Min(operands.toList())
 
         /**
          * Decay [x] towards zero as it moves away from [target], reaching [midpoint] at a distance of
@@ -229,12 +242,19 @@ internal object ExpressionSerializer : KSerializer<Expression> {
         is Expression.Sum -> buildJsonObject {
             put("sum", JsonArray(value.operands.map { toElement(json, it) }))
         }
+        is Expression.Max -> buildJsonObject {
+            put("max", JsonArray(value.operands.map { toElement(json, it) }))
+        }
+        is Expression.Min -> buildJsonObject {
+            put("min", JsonArray(value.operands.map { toElement(json, it) }))
+        }
         is Expression.Neg -> buildJsonObject { put("neg", toElement(json, value.operand)) }
         is Expression.Abs -> buildJsonObject { put("abs", toElement(json, value.operand)) }
         is Expression.Sqrt -> buildJsonObject { put("sqrt", toElement(json, value.operand)) }
         is Expression.Exp -> buildJsonObject { put("exp", toElement(json, value.operand)) }
         is Expression.Log10 -> buildJsonObject { put("log10", toElement(json, value.operand)) }
         is Expression.Ln -> buildJsonObject { put("ln", toElement(json, value.operand)) }
+        is Expression.Acosh -> buildJsonObject { put("acosh", toElement(json, value.operand)) }
         is Expression.Div -> wrap("div") {
             put("left", toElement(json, value.left))
             put("right", toElement(json, value.right))

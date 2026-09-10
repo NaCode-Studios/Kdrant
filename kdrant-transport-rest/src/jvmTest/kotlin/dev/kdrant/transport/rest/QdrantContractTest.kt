@@ -9,11 +9,14 @@ import dev.kdrant.model.Direction
 import dev.kdrant.model.Distance
 import dev.kdrant.model.Expression
 import dev.kdrant.model.GeoPoint
+import dev.kdrant.model.Memory
 import dev.kdrant.model.PointId
 import dev.kdrant.model.PointVectors
+import dev.kdrant.model.QueryInterface
 import dev.kdrant.model.ShardKey
 import dev.kdrant.model.Tokenizer
 import dev.kdrant.model.VectorData
+import dev.kdrant.model.VectorDatatype
 import dev.kdrant.model.WithPayload
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -216,6 +219,66 @@ class QdrantContractTest {
                     )
                 }
             }
+
+            // Qdrant 1.19. These are the cases the vendored schema could not validate until it was
+            // refreshed off a released tag, which is why they are here rather than only in the unit
+            // tests: the shapes were written against a document that predated the features.
+            call("createCollectionWithMemoryTiers") { c ->
+                c.createCollection("docs") {
+                    vector {
+                        size = 768
+                        distance = Distance.COSINE
+                        datatype = VectorDatatype.TURBO4
+                        memory = Memory.CACHED
+                    }
+                    payloadMemory = Memory.COLD
+                }
+            }
+            call("createPayloadIndexWithPrefix") { c ->
+                c.createPayloadIndex("docs", "sku") {
+                    keyword { prefixMatching = true; memory = Memory.PINNED }
+                }
+            }
+            call("queryWithRelevanceFeedback") { c ->
+                c.search("docs") {
+                    relevanceFeedback {
+                        target(listOf(0.1f, 0.2f))
+                        feedback(QueryInterface.Vector(listOf(0.3f, 0.4f)), 1.0f)
+                        feedback(QueryInterface.ById(PointId.num(7)), -0.5f)
+                        naive(a = 1.0f, b = 0.5f, c = 0.25f)
+                    }
+                    limit = 5
+                }
+            }
+            call("queryWithIdfCorpus") { c ->
+                c.search("docs") {
+                    querySparse(indices = listOf(1, 7), values = listOf(0.5f, 0.25f))
+                    using = "bm25"
+                    params { idfCorpus { must { "tenant" eq "acme" } } }
+                }
+            }
+            call("queryWithSlice") { c ->
+                c.search("docs") {
+                    query(0.1f, 0.2f)
+                    filter { must { slice(index = 1, total = 4) } }
+                }
+            }
+            call("queryWithMinMax") { c ->
+                c.search("docs") {
+                    prefetch { query(listOf(0.1f, 0.2f)); limit = 100 }
+                    formula(
+                        Expression.max(
+                            Expression.min(Expression.score, Expression.of(1)),
+                            Expression.Acosh(Expression.key("rating")),
+                        ),
+                    )
+                }
+            }
+            call("scrollSlice") { c ->
+                c.scroll("docs", pageSize = 2) {
+                    filter { must { slice(index = 3, total = 4) } }
+                }.toList()
+            }
         }
     }
 
@@ -236,9 +299,22 @@ class QdrantContractTest {
 
     @Test
     fun `the operations covered here are the ones the engine can send a body for`() {
-        // A guard on the guard: if someone adds an operation with a request body and no case above,
-        // the contract coverage silently stops growing with the engine.
-        assertEquals(26, sent.size, "operations captured: ${sent.map { it.name }}")
+        // A guard on the guard: if someone adds an operation with a request body and no case above, the
+        // contract coverage silently stops growing with the engine. This was a count, and a count is a
+        // check somebody eventually lowers to make a build pass. Naming them means dropping coverage
+        // has to be written down.
+        assertEquals(
+            listOf(
+                "batchUpdate", "clearPayload", "count", "createCollection",
+                "createCollectionWithMemoryTiers", "createPayloadIndex", "createPayloadIndexWithPrefix",
+                "createShardKey", "delete", "deletePayload", "deleteShardKey", "deleteVectors",
+                "facet", "query", "queryBatch", "queryDocument", "queryGroups", "queryWithFormula",
+                "queryWithIdfCorpus", "queryWithMinMax", "queryWithMmr", "queryWithRelevanceFeedback",
+                "queryWithSlice", "recoverSnapshot", "retrieve", "scroll", "scrollSlice", "setPayload",
+                "updateAliases", "updateCollectionCluster", "updateVectors", "upsert", "upsertDocument",
+            ),
+            sent.map { it.name }.distinct().sorted(),
+        )
     }
 
     @Test

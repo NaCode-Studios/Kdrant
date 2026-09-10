@@ -26,6 +26,27 @@ jobs:
       - uses: actions/checkout@v7
       - uses: gradle/actions/wrapper-validation@v6
 
+  vendored-qdrant:
+    name: Vendored Qdrant files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The protobuf definitions and the OpenAPI document the contract test validates against are
+      # copies of upstream's, and a copy nobody diffs is a copy that drifts. This reaches the network,
+      # which is why it is a job of its own rather than part of `check`.
+      - name: Compare every vendored file with the pinned Qdrant tag
+        run: ./gradlew verifyVendoredQdrant --no-daemon --stacktrace
+
   build:
     name: Build (JDK ${{ matrix.java }})
     runs-on: ubuntu-latest
@@ -121,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       qdrant:
-        image: qdrant/qdrant:v1.18.2
+        image: qdrant/qdrant:v1.19.1
         ports:
           - 6333:6333
     steps:
@@ -184,7 +205,7 @@ jobs:
           done
           echo "::error::Qdrant did not become ready"; exit 1
         env:
-          QDRANT_VERSION: "1.18.2"
+          QDRANT_VERSION: "1.19.1"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -211,7 +232,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       qdrant:
-        image: qdrant/qdrant:v1.18.2
+        image: qdrant/qdrant:v1.19.1
         ports:
           - 6333:6333
     steps:
@@ -271,7 +292,7 @@ jobs:
       fail-fast: false
       matrix:
         qdrant:
-          - "qdrant/qdrant:v1.18.2"
+          - "qdrant/qdrant:v1.19.1"
           - "qdrant/qdrant:latest"
     steps:
       - uses: actions/checkout@v7

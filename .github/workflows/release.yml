@@ -57,7 +57,7 @@ jobs:
       # same server, and Testcontainers is a JVM convenience this job has no JVM for.
       - name: Start Qdrant
         env:
-          QDRANT_VERSION: "1.18.2"
+          QDRANT_VERSION: "1.19.1"
         run: |
           if [ "$RUNNER_OS" = "Linux" ]; then
             docker run -d --name qdrant -p 6333:6333 "qdrant/qdrant:v$QDRANT_VERSION"

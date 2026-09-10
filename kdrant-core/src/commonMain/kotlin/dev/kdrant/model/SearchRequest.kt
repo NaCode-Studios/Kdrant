@@ -108,4 +108,16 @@ public data class SearchParams(
     /** Search only already-indexed segments. */
     @SerialName("indexed_only")
     public val indexedOnly: Boolean? = null,
+
+    /** Sparse-vector IDF statistics computed only over [IdfParams.corpus]. */
+    @SerialName("idf")
+    public val idf: IdfParams? = null,
+)
+
+/** A per-query population used to compute sparse-vector IDF statistics. */
+@Serializable
+public data class IdfParams(
+    /** The corpus is independent from the retrieval filter and is usually broader. */
+    @SerialName("corpus")
+    public val corpus: Filter,
 )

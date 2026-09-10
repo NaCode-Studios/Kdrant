@@ -4,7 +4,10 @@ import dev.kdrant.KdrantDsl
 import dev.kdrant.model.ContextPair
 import dev.kdrant.model.Direction
 import dev.kdrant.model.Expression
+import dev.kdrant.model.FeedbackItem
+import dev.kdrant.model.FeedbackStrategy
 import dev.kdrant.model.Filter
+import dev.kdrant.model.IdfParams
 import dev.kdrant.model.InferenceInput
 import dev.kdrant.model.LookupLocation
 import dev.kdrant.model.Mmr
@@ -146,6 +149,11 @@ public class SearchBuilder {
     /** Context search: steer results by positive/negative example pairs, without a target. */
     public fun context(configure: ContextBuilder.() -> Unit) {
         query = ContextBuilder().apply(configure).build()
+    }
+
+    /** Rerank an original query from scored relevance feedback supplied by a downstream evaluator. */
+    public fun relevanceFeedback(configure: RelevanceFeedbackBuilder.() -> Unit) {
+        query = RelevanceFeedbackBuilder().apply(configure).build()
     }
 
     /** Restrict the search to points matching this filter. */
@@ -307,7 +315,15 @@ public class SearchParamsBuilder {
     public var exact: Boolean? = null
     public var indexedOnly: Boolean? = null
 
-    internal fun build(): SearchParams = SearchParams(hnswEf, exact, indexedOnly)
+    /** Compute sparse-vector IDF statistics over this corpus instead of the whole collection. */
+    public var idfCorpus: Filter? = null
+
+    /** Build the sparse-vector IDF corpus inline. */
+    public fun idfCorpus(configure: FilterBuilder.() -> Unit) {
+        idfCorpus = FilterBuilder().apply(configure).build()
+    }
+
+    internal fun build(): SearchParams = SearchParams(hnswEf, exact, indexedOnly, idfCorpus?.let(::IdfParams))
 }
 
 /** DSL for a recommend query: [positive] / [negative] examples plus an optional [strategy]. */
@@ -378,6 +394,39 @@ public class ContextBuilder {
     }
 
     internal fun build(): QueryInterface.Context = QueryInterface.Context(pairs.toList())
+}
+
+/** DSL for Qdrant's relevance-feedback query. */
+@KdrantDsl
+public class RelevanceFeedbackBuilder {
+    private var target: VectorInput? = null
+    private val feedback = mutableListOf<FeedbackItem>()
+    private var strategy: FeedbackStrategy? = null
+
+    /** The dense vector used for the original query. */
+    public fun target(values: List<Float>) { target = QueryInterface.Vector(values) }
+
+    /** The stored vector used for the original query. */
+    public fun target(id: PointId) { target = QueryInterface.ById(id) }
+
+    /** The original query as any supported vector input. */
+    public fun target(input: VectorInput) { target = input }
+
+    /** Add one result and its relevance score from the feedback provider. */
+    public fun feedback(example: VectorInput, score: Float) {
+        feedback += FeedbackItem(example, score)
+    }
+
+    /** Use Qdrant's built-in linear strategy and its trained coefficients. */
+    public fun naive(a: Float, b: Float, c: Float) {
+        strategy = FeedbackStrategy.Naive(a, b, c)
+    }
+
+    internal fun build(): QueryInterface.RelevanceFeedback = QueryInterface.RelevanceFeedback(
+        target = requireNotNull(target) { "relevanceFeedback requires target(...)" },
+        feedback = feedback.toList().also { require(it.isNotEmpty()) { "relevanceFeedback requires feedback(...)" } },
+        strategy = requireNotNull(strategy) { "relevanceFeedback requires naive(a, b, c)" },
+    )
 }
 
 /** DSL for `searchBatch`: accumulate several searches to run in a single request. */
