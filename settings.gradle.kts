@@ -26,6 +26,7 @@ include(
     "kdrant-transport-grpc",
     "kdrant-migrate",
     "kdrant-cli",
+    "kdrant-mcp",
     "kdrant-testkit",
     "example-rag",
     "example-native-image",

@@ -25,15 +25,18 @@ jobs:
           - os: ubuntu-latest
             target: linuxX64
             asset: kdrant-linux-x64
+            mcpAsset: kdrant-mcp-linux-x64
           - os: macos-latest
             target: macosArm64
             asset: kdrant-macos-arm64
+            mcpAsset: kdrant-mcp-macos-arm64
           # Windows was a target that compiled and shipped nowhere for two releases. The binary is the
           # same one every other platform gets, and it is proven the same way: against a real Qdrant,
           # which upstream publishes for Windows as an msvc zip.
           - os: windows-latest
             target: mingwX64
             asset: kdrant-windows-x64.exe
+            mcpAsset: kdrant-mcp-windows-x64.exe
     runs-on: ${{ matrix.os }}
     # Bash everywhere, including the Windows runner, where Git Bash is installed: three copies of each
     # step in two shells is how the platforms drift apart.
@@ -58,9 +61,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build the binary
+      - name: Build the binaries
         run: >
           ./gradlew :kdrant-cli:linkKdrantReleaseExecutable${{ matrix.target }}
+          :kdrant-mcp:linkKdrant-mcpReleaseExecutable${{ matrix.target }}
           --no-daemon --no-configuration-cache --stacktrace
 
       # Qdrant, however this runner can start one. A macOS runner has no Docker, which is the same
@@ -99,23 +103,34 @@ jobs:
           TARGET: ${{ matrix.target }}
         run: bash .github/scripts/prove-cli.sh "$TARGET"
 
-      - name: Name the binary after the platform it runs on
+      - name: Speak MCP to the server
+        env:
+          TARGET: ${{ matrix.target }}
+        run: bash .github/scripts/prove-mcp.sh "$TARGET"
+
+      - name: Name the binaries after the platform they run on
         env:
           ASSET: ${{ matrix.asset }}
+          MCP_ASSET: ${{ matrix.mcpAsset }}
           TARGET: ${{ matrix.target }}
         run: |
           mkdir -p cli-artifacts
-          # Kotlin/Native writes kdrant.exe on mingw and kdrant.kexe everywhere else.
-          BUILT="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe"
-          [ -f "$BUILT" ] || BUILT="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.exe"
-          cp "$BUILT" "cli-artifacts/$ASSET"
-          chmod +x "cli-artifacts/$ASSET"
-          # Windows runners have sha256sum through Git Bash and no shasum.
-          if command -v shasum >/dev/null 2>&1; then
-            ( cd cli-artifacts && shasum -a 256 "$ASSET" > "$ASSET.sha256" )
-          else
-            ( cd cli-artifacts && sha256sum "$ASSET" > "$ASSET.sha256" )
-          fi
+          # Kotlin/Native writes .exe on mingw and .kexe everywhere else.
+          copy_binary() {
+            local module="$1" executable="$2" asset="$3"
+            local built="$module/build/bin/$TARGET/${executable}ReleaseExecutable/$executable.kexe"
+            [ -f "$built" ] || built="$module/build/bin/$TARGET/${executable}ReleaseExecutable/$executable.exe"
+            cp "$built" "cli-artifacts/$asset"
+            chmod +x "cli-artifacts/$asset"
+            # Windows runners have sha256sum through Git Bash and no shasum.
+            if command -v shasum >/dev/null 2>&1; then
+              ( cd cli-artifacts && shasum -a 256 "$asset" > "$asset.sha256" )
+            else
+              ( cd cli-artifacts && sha256sum "$asset" > "$asset.sha256" )
+            fi
+          }
+          copy_binary kdrant-cli kdrant "$ASSET"
+          copy_binary kdrant-mcp kdrant-mcp "$MCP_ASSET"
 
       # The binaries get provenance like every jar does. They are a different kind of artifact, not a
       # less trustworthy one, and a downloaded executable is the artifact where provenance matters most.
@@ -123,7 +138,9 @@ jobs:
         if: github.event_name == 'push'
         uses: actions/attest-build-provenance@v4
         with:
-          subject-path: cli-artifacts/${{ matrix.asset }}
+          subject-path: |
+            cli-artifacts/${{ matrix.asset }}
+            cli-artifacts/${{ matrix.mcpAsset }}
 
       - uses: actions/upload-artifact@v7
         with:

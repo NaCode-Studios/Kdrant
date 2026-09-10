@@ -20,6 +20,8 @@ micrometer = "1.17.1"
 koog = "1.2.0"
 grpc = "1.84.0"
 qdrantClient = "1.19.0"
+mcpSdk = "0.15.0"
+kotlinxIo = "0.9.1"
 grpcKotlin = "1.5.0"
 protobuf = "4.36.1"
 opentelemetry = "1.65.0"
@@ -90,6 +92,9 @@ grpc-inprocess = { module = "io.grpc:grpc-inprocess", version.ref = "grpc" }
 # `benchmarks` module's exclusion from publishing already guarantees — that module has no
 # mavenPublishing block, so the release workflow's derived artifact list never sees it.
 qdrant-client = { module = "io.qdrant:client", version.ref = "qdrantClient" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version = "8.0.4" }
+mcp-sdk = { module = "io.modelcontextprotocol:kotlin-sdk", version.ref = "mcpSdk" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo" }
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
 guava = { module = "com.google.guava:guava", version = "33.7.1-jre" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
