@@ -199,7 +199,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 }
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("io.github.nacode-studios", "kdrant-transport-rest", version.toString())
     pom {

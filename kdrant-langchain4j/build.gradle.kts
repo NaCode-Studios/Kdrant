@@ -32,7 +32,7 @@ tasks.test {
 }
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("io.github.nacode-studios", "kdrant-langchain4j", version.toString())
     pom {

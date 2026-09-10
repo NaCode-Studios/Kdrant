@@ -55,7 +55,7 @@ tasks.named<Test>("jvmTest") {
 }
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("io.github.nacode-studios", "kdrant-migrate", version.toString())
     pom {

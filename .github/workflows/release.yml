@@ -28,7 +28,18 @@ jobs:
           - os: macos-latest
             target: macosArm64
             asset: kdrant-macos-arm64
+          # Windows was a target that compiled and shipped nowhere for two releases. The binary is the
+          # same one every other platform gets, and it is proven the same way: against a real Qdrant,
+          # which upstream publishes for Windows as an msvc zip.
+          - os: windows-latest
+            target: mingwX64
+            asset: kdrant-windows-x64.exe
     runs-on: ${{ matrix.os }}
+    # Bash everywhere, including the Windows runner, where Git Bash is installed: three copies of each
+    # step in two shells is how the platforms drift apart.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7
 
@@ -59,15 +70,23 @@ jobs:
         env:
           QDRANT_VERSION: "1.19.1"
         run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            docker run -d --name qdrant -p 6333:6333 "qdrant/qdrant:v$QDRANT_VERSION"
-          else
-            curl -fsSL -o qdrant.tar.gz \
-              "https://github.com/qdrant/qdrant/releases/download/v${QDRANT_VERSION}/qdrant-aarch64-apple-darwin.tar.gz"
-            tar -xzf qdrant.tar.gz
-            ./qdrant &
-          fi
-          for _ in $(seq 1 60); do
+          RELEASES="https://github.com/qdrant/qdrant/releases/download/v${QDRANT_VERSION}"
+          case "$RUNNER_OS" in
+            Linux)
+              docker run -d --name qdrant -p 6333:6333 "qdrant/qdrant:v$QDRANT_VERSION"
+              ;;
+            macOS)
+              curl -fsSL -o qdrant.tar.gz "$RELEASES/qdrant-aarch64-apple-darwin.tar.gz"
+              tar -xzf qdrant.tar.gz
+              ./qdrant &
+              ;;
+            Windows)
+              curl -fsSL -o qdrant.zip "$RELEASES/qdrant-x86_64-pc-windows-msvc.zip"
+              unzip -q qdrant.zip
+              ./qdrant.exe &
+              ;;
+          esac
+          for _ in $(seq 1 90); do
             curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && exit 0
             sleep 1
           done
@@ -78,21 +97,7 @@ jobs:
       - name: Prove it against a real Qdrant
         env:
           TARGET: ${{ matrix.target }}
-        run: |
-          BINARY="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe"
-          curl -fsS -X PUT http://127.0.0.1:6333/collections/cli-source \
-            -H 'content-type: application/json' \
-            -d '{"vectors":{"size":4,"distance":"Dot"}}'
-          curl -fsS -X PUT "http://127.0.0.1:6333/collections/cli-source/points?wait=true" \
-            -H 'content-type: application/json' \
-            -d '{"points":[{"id":1,"vector":[1,0,0,0]},{"id":2,"vector":[0,1,0,0]}]}'
-
-          "$BINARY" collections
-          "$BINARY" migrate cli-source cli-target --checkpoint "$RUNNER_TEMP/cli.checkpoint"
-          SNAPSHOT=$("$BINARY" snapshot create cli-target | cut -f1)
-          "$BINARY" snapshot download cli-target "$SNAPSHOT" --out "$RUNNER_TEMP/cli.snapshot"
-          test -s "$RUNNER_TEMP/cli.snapshot" || { echo "::error::the snapshot came back empty"; exit 1; }
-          "$BINARY" scroll cli-target --limit 5
+        run: bash .github/scripts/prove-cli.sh "$TARGET"
 
       - name: Name the binary after the platform it runs on
         env:
@@ -100,9 +105,17 @@ jobs:
           TARGET: ${{ matrix.target }}
         run: |
           mkdir -p cli-artifacts
-          cp "kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe" "cli-artifacts/$ASSET"
+          # Kotlin/Native writes kdrant.exe on mingw and kdrant.kexe everywhere else.
+          BUILT="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.kexe"
+          [ -f "$BUILT" ] || BUILT="kdrant-cli/build/bin/$TARGET/kdrantReleaseExecutable/kdrant.exe"
+          cp "$BUILT" "cli-artifacts/$ASSET"
           chmod +x "cli-artifacts/$ASSET"
-          ( cd cli-artifacts && shasum -a 256 "$ASSET" > "$ASSET.sha256" )
+          # Windows runners have sha256sum through Git Bash and no shasum.
+          if command -v shasum >/dev/null 2>&1; then
+            ( cd cli-artifacts && shasum -a 256 "$ASSET" > "$ASSET.sha256" )
+          else
+            ( cd cli-artifacts && sha256sum "$ASSET" > "$ASSET.sha256" )
+          fi
 
       # The binaries get provenance like every jar does. They are a different kind of artifact, not a
       # less trustworthy one, and a downloaded executable is the artifact where provenance matters most.
@@ -164,6 +177,16 @@ jobs:
         with:
           subject-path: ${{ steps.artifacts.outputs.paths }}
 
+      # `automaticRelease = true` on every module, so the deployment releases itself once the Portal
+      # finishes validating it. It used to stop at staged, waiting for somebody to open the Portal and
+      # press Publish, and twice nobody did: 2.0.0 and 2.2.0 were both green everywhere, tagged,
+      # attested, with binaries attached, and unresolvable. The failure is quiet by construction because
+      # every check passes.
+      #
+      # The argument for the manual step was that it is the last chance to catch something before an
+      # artifact becomes permanent, and Maven Central has no unpublish. In practice nobody inspected the
+      # staged deployment: they pressed the button because the workflow was green, which is a check that
+      # had already run. The step below is what actually stood in for it, and it runs either way.
       - name: Publish to Maven Central
         if: github.event_name == 'push'
         run: ./gradlew publishToMavenCentral --no-daemon --no-configuration-cache
@@ -172,6 +195,41 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      # "Published" was an assumption for three releases running. This makes it an observation: the run
+      # asks repo1 for the POM of every artifact it claims to have published and fails if one is missing.
+      # Central's CDN takes a few minutes to serve a new version, hence the wait rather than one look.
+      - name: Check the release resolves from Maven Central
+        if: github.event_name == 'push'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          MODULES="kdrant-bom kdrant-core kdrant-transport-rest kdrant-transport-grpc kdrant-migrate
+                   kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer
+                   kdrant-otel kdrant-koog"
+          BASE="https://repo1.maven.org/maven2/io/github/nacode-studios"
+          missing=""
+          for module in $MODULES; do
+            url="$BASE/$module/$VERSION/$module-$VERSION.pom"
+            resolved=""
+            for attempt in $(seq 1 30); do
+              if curl -fsSL -o /dev/null "$url"; then resolved="yes"; break; fi
+              sleep 20
+            done
+            if [ -z "$resolved" ]; then missing="$missing $module"; fi
+          done
+          {
+            echo "## Maven Central"
+            echo
+            if [ -n "$missing" ]; then
+              echo "Not resolving after ten minutes:$missing"
+            else
+              echo "Every artifact resolves at \`$VERSION\`."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$missing" ]; then
+            echo "::error::these artifacts do not resolve from Maven Central at $VERSION:$missing"
+            exit 1
+          fi
 
       # The body is extracted from CHANGELOG.md, never written by hand: a release note composed
       # separately is a second copy of what the changelog owns, and the two eventually disagree.

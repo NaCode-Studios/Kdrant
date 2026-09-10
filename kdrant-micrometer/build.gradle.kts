@@ -41,7 +41,7 @@ tasks.test {
 }
 
 mavenPublishing {
-    publishToMavenCentral()
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("io.github.nacode-studios", "kdrant-micrometer", version.toString())
     pom {

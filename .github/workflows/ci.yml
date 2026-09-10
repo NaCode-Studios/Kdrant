@@ -285,6 +285,50 @@ jobs:
             echo "| Reflection metadata | generated from the classpath, shipped in kdrant-transport-rest |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  cli:
+    name: kdrant-cli against a real Qdrant
+    runs-on: ubuntu-latest
+    # Linux only, and on purpose. This job exists to catch a defect before a tag, and every defect that
+    # stopped 2.2.0 three times was in the tool rather than in a platform: the Linux runner has Docker,
+    # so it is the cheap one, and the release still builds and proves all three binaries. A macOS or
+    # Windows job here would triple the wall clock to re-prove what the release re-proves anyway.
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.19.1
+        ports:
+          - 6333:6333
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build the binary
+        run: >
+          ./gradlew :kdrant-cli:linkKdrantReleaseExecutableLinuxX64
+          --no-daemon --no-configuration-cache --stacktrace
+
+      - name: Wait for Qdrant
+        run: |
+          for _ in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:6333/readyz >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "::error::Qdrant did not become ready"; exit 1
+
+      # The same script the release runs, so the release is the second time these commands execute.
+      - name: Run every subcommand
+        run: bash .github/scripts/prove-cli.sh linuxX64
+
   qdrant-compat:
     name: Integration (${{ matrix.qdrant }})
     runs-on: ubuntu-latest

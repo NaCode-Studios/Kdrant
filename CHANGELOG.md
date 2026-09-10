@@ -42,6 +42,15 @@ All notable changes to this project are documented in this file. The format is b
   than per client, because the thing that should be sticky is one reader's session. The token travels as
   a header over REST and as gRPC metadata under the same key, so a batch, which is one call either way,
   is refused rather than half-honoured when its searches ask for different replicas.
+- **The second half of the command line** (M65). `kdrant health` reports the three probes separately and
+  exits on readiness, because a node that is alive and not ready is the state an operator is usually
+  looking at and a single verdict would hide it. `kdrant collection create|describe|delete` covers the
+  lifecycle `kdrant collections` only listed. `--shard N` scopes any snapshot action to one shard, which
+  is how a sharded collection is actually snapshotted and restored, and `kdrant storage-snapshot` covers
+  the whole node. It is still not a query tool.
+- **A Windows binary** (M65). `mingwX64` compiled and shipped nowhere for two releases. It is now built,
+  proven against a real Qdrant on a Windows runner, checksummed and attested like the other two, and
+  attached to the release as `kdrant-windows-x64.exe`.
 - **The cluster-wide quota, read rather than discovered** (M62). `quotas()` returns the limits in force
   and the utilization each peer reports against them; `updateQuotas(config)` replaces them. A quota a
   caller can only learn about by being refused is a caller that retries into the same wall:
@@ -62,10 +71,27 @@ All notable changes to this project are documented in this file. The format is b
   vendored copies now come from v1.19.1.
 - **The contract test names the operations it covers rather than counting them.** A count is a check
   somebody eventually lowers to make a build pass. Naming them means dropping one has to be written down.
+- **A release publishes itself, and says whether it resolved** (M67). Every module sets
+  `automaticRelease = true`, so a deployment releases once the Portal has validated it instead of
+  waiting for somebody to press Publish. Twice nobody did: `2.0.0` and `2.2.0` were both tagged,
+  attested, green everywhere, and unresolvable. The manual step was meant to be the last look before an
+  artifact became permanent, and in practice it was a button pressed because the workflow was green.
+  What actually stood in for it is the new step beside it, which asks Maven Central for every artifact
+  the release claims and fails when one does not answer.
+- **The CLI runs on every push, not only at a tag** (M66). `2.2.0` took three release attempts and all
+  three failed in the CLI job, on defects any push could have caught, because nothing below the release
+  workflow had ever started the binary. The proof script moved into `.github/scripts/prove-cli.sh` and a
+  CI job runs it against a real Qdrant on every push, so the release is now the second time the tool
+  runs rather than the first.
 - **The shared client contract covers the 1.19 surface against a real server.** Prefix matching before
   and after the index that serves it, relevance feedback reranking a query it was given, four sliced
   scrolls reading a collection exactly once between them and repeatably, and 4-bit storage with a memory
   tier per component round-tripping through `getCollection`. All four run over both engines.
+
+- **The README says Kdrant is a client** (M70). An ARM target, a 37 ms cold start in 42 MB and a 5.7 MB
+  static binary read together as a project that could hold an index on a device. It cannot: it talks to
+  a Qdrant over a network, and the answer for a device that has to answer offline is Qdrant Edge. The
+  Platforms section now draws that line rather than leaving a reader to work it out.
 
 ### Deprecated
 

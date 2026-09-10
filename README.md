@@ -171,6 +171,19 @@ NSURLSession, so App Transport Security applies and a plaintext `http://` Qdrant
 platform before Kdrant sees the request. On Linux the engine is Curl, which links against the system
 libcurl, present on every mainstream distribution and worth checking in a slim container image.
 
+One more thing this list invites a reader to conclude, and it is worth stating rather than leaving to
+be worked out. Kdrant is a client. It talks to a Qdrant over a network, and it never holds an index
+itself. The three facts above point the other way: `linuxArm64` is a published target, the GraalVM
+image answers its first search 37 ms after process start in 42 MB, and `kdrant-cli` is a 5.7 MB static
+binary. Together they say this runs well on small hardware, which is true, and they can be read as
+saying it runs there *as* the vector database, which it does not.
+
+The line worth drawing is between the gateway and the device. An ARM box, a container or a small
+appliance that queries a Qdrant running elsewhere is exactly what those three facts are for. A robot, a
+kiosk or a handset that has to answer with no network is a different architecture, and the answer there
+is [Qdrant Edge](https://qdrant.tech/documentation/edge/), which runs the engine in-process and
+offline. Reach for that, not for this.
+
 There is no Kotlin/JS target, and that is a decision rather than a gap. A browser cannot reach a Qdrant
 without CORS on the server, a Qdrant reachable from a browser is reachable from anyone who opens the
 developer tools, and an API key shipped to a browser is a published key. The answer changes if Qdrant
@@ -497,9 +510,20 @@ only once the check passes. `--shards` and `--replicas` override the source's la
 makes it a re-shard. It cannot embed, so it moves what does not need new vectors: a re-shard, a config
 change, a copy between clusters.
 
-`kdrant collections`, `kdrant scroll` and `kdrant snapshot create|list|download|restore|delete` are the
-rest of it; `kdrant --help` prints the flags. It is not a query tool, because Qdrant's own dashboard is
-better at that and is already running next to the server.
+The rest of it: `kdrant health` reports the three probes separately and exits on readiness, because a
+node that is alive and not ready is the state you are usually looking at; `kdrant collections` and
+`kdrant collection create|describe|delete` cover the lifecycle; `kdrant scroll` reads points;
+`kdrant snapshot create|list|download|restore|delete` takes a collection's snapshots, `--shard N`
+scopes any of them to one shard, and `kdrant storage-snapshot` does the whole node, which is what a
+full restore uses. `kdrant --help` prints the flags.
+
+It is not a query tool, because Qdrant's own dashboard is better at that and is already running next to
+the server.
+
+Binaries are published for Linux x64, macOS arm64 and Windows x64, each with a SHA-256 file and build
+provenance. Every one of them runs every subcommand against a real Qdrant before it is attached, and
+the same script runs on every push, so a release is the second time the tool has been started rather
+than the first.
 
 ## Architecture
 
