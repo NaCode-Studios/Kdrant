@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- **A slow Maven Central CDN no longer costs a release its GitHub Release.** The resolution check added in
+  `2.3.0` ran second-to-last, so when Central had published every artifact and its CDN had not finished
+  serving three of the eleven, the check failed correctly and took the four steps after it down with it:
+  `2.3.0` was published and resolvable and had no Release object, no attached binaries and no artifact
+  metadata, all of which had to be created by hand. A check reports; it does not decide whether to write
+  down what already happened. It runs last now, and it polls the modules together rather than one after
+  another, so the budget is one wait for the slowest rather than the sum of eleven.
+
 ## [2.3.0] - 2026-09-10
 
 Tiers 10 and 11, complete, in one version. The theme is tracking the server this client exists to speak to,
