@@ -204,19 +204,32 @@ Kdrant on Node.
 
 ### Qdrant versions
 
-The contract both engines are held to runs against the four most recent Qdrant minors, and the result
-is published whichever way it goes.
+The contract both engines are held to runs against the four most recent Qdrant minors, and the result is
+published whichever way it goes. It does not all go one way.
 
 <!-- qdrant-matrix:start -->
 | Qdrant | The shared client contract |
 | --- | --- |
-| `v1.19.0` | **39/39 pass** |
-| `v1.18.3` | **39/39 pass** |
-| `v1.17.1` | **39/39 pass** |
-| `v1.16.3` | **39/39 pass** |
+| `v1.19.1` | **46/46 pass** |
+| `v1.18.3` | 42/46 pass — `a prefix filter is correct with and without the index that serves it` fails; `four sliced scrolls read every point exactly once, repeatably` fails; `4-bit storage and a memory tier per component round-trip` fails; `a collection's replication and payload placement can change after it exists` fails |
+| `v1.17.1` | 41/46 pass — `a prefix filter is correct with and without the index that serves it` fails; `four sliced scrolls read every point exactly once, repeatably` fails; `4-bit storage and a memory tier per component round-trip` fails; `a collection's replication and payload placement can change after it exists` fails; `the quantization families a collection can be created with are accepted` fails |
+| `v1.16.3` | 40/46 pass — `a prefix filter is correct with and without the index that serves it` fails; `relevance feedback reranks the query it was given` fails; `four sliced scrolls read every point exactly once, repeatably` fails; `4-bit storage and a memory tier per component round-trip` fails; `a collection's replication and payload placement can change after it exists` fails; `the quantization families a collection can be created with are accepted` fails |
 
-Written by `QdrantVersionMatrixIntegrationTest` from the run on the `2.2.0` merge commit. Regenerate it
-with `KDRANT_UPDATE_COMPAT=1 ./gradlew :kdrant-transport-rest:jvmTest --tests '*QdrantVersionMatrix*'`.
+
+Written by `QdrantVersionMatrixIntegrationTest` from
+[run 34693421161](https://github.com/NaCode-Studios/Kdrant/actions/runs/34693421161). Re-measure it by
+dispatching the [`CI` workflow](.github/workflows/ci.yml), or locally with Docker and
+`KDRANT_UPDATE_COMPAT=1 ./gradlew :kdrant-transport-rest:jvmTest --rerun --tests '*QdrantVersionMatrix*'`.
+
+**What the failing cells say.** Each one names a feature the server does not have, which is the table doing
+its job rather than a defect. Four need Qdrant 1.19: prefix matching, sliced scrolls, memory tiers with
+4-bit storage, and changing a collection's placement after it exists. The quantization case needs 1.18,
+because TurboQuant arrived there; product quantization is much older and is not what fails. Relevance
+feedback needs 1.17.
+
+Everything else passes on all four: the whole of collections, points, search including hybrid fusion, sparse
+and multi-vectors, scroll, payload and vector management, aliases, snapshots, cluster and sharding. So the
+answer to "we are on 1.17, can we use this" is yes, without the features 1.17 does not serve.
 <!-- qdrant-matrix:end -->
 
 ## Usage
