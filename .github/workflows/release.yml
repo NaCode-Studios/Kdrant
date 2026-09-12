@@ -213,41 +213,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
 
-      # "Published" was an assumption for three releases running. This makes it an observation: the run
-      # asks repo1 for the POM of every artifact it claims to have published and fails if one is missing.
-      # Central's CDN takes a few minutes to serve a new version, hence the wait rather than one look.
-      - name: Check the release resolves from Maven Central
-        if: github.event_name == 'push'
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          MODULES="kdrant-bom kdrant-core kdrant-transport-rest kdrant-transport-grpc kdrant-migrate
-                   kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer
-                   kdrant-otel kdrant-koog"
-          BASE="https://repo1.maven.org/maven2/io/github/nacode-studios"
-          missing=""
-          for module in $MODULES; do
-            url="$BASE/$module/$VERSION/$module-$VERSION.pom"
-            resolved=""
-            for attempt in $(seq 1 30); do
-              if curl -fsSL -o /dev/null "$url"; then resolved="yes"; break; fi
-              sleep 20
-            done
-            if [ -z "$resolved" ]; then missing="$missing $module"; fi
-          done
-          {
-            echo "## Maven Central"
-            echo
-            if [ -n "$missing" ]; then
-              echo "Not resolving after ten minutes:$missing"
-            else
-              echo "Every artifact resolves at \`$VERSION\`."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ -n "$missing" ]; then
-            echo "::error::these artifacts do not resolve from Maven Central at $VERSION:$missing"
-            exit 1
-          fi
-
       # The body is extracted from CHANGELOG.md, never written by hand: a release note composed
       # separately is a second copy of what the changelog owns, and the two eventually disagree.
       # Relative links resolve against the tag, so [STABILITY.md](STABILITY.md) points at the released
@@ -338,3 +303,47 @@ jobs:
               --silent || echo "::warning::could not record $artifact $VERSION"
           done
 
+      # "Published" was an assumption for three releases running, and this turns it into an observation:
+      # it asks repo1 for the POM of every artifact the release claims.
+      #
+      # It runs last, and the first time it ran it was second-to-last, which cost 2.3.0 its GitHub Release
+      # and its binaries. Central had published everything and its CDN had not finished serving three of
+      # the eleven, so the check failed correctly and took the steps after it down with it. A release that
+      # happened then had no record of having happened, which is worse than the problem being checked for.
+      # A check reports; it does not decide whether to write down what already occurred.
+      #
+      # It also polls the modules together rather than one after another. Per-module waiting made the
+      # worst case the sum of eleven timeouts; this way the budget is one wait for the slowest.
+      - name: Check the release resolves from Maven Central
+        if: github.event_name == 'push'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BASE="https://repo1.maven.org/maven2/io/github/nacode-studios"
+          pending="kdrant-bom kdrant-core kdrant-transport-rest kdrant-transport-grpc kdrant-migrate
+                   kdrant-spring-boot-starter kdrant-spring-ai kdrant-langchain4j kdrant-micrometer
+                   kdrant-otel kdrant-koog"
+          # 60 rounds of 30 seconds: half an hour for the slowest, not half an hour each.
+          for _ in $(seq 1 60); do
+            still=""
+            for module in $pending; do
+              curl -fsSL -o /dev/null "$BASE/$module/$VERSION/$module-$VERSION.pom" || still="$still $module"
+            done
+            pending="$still"
+            [ -z "$pending" ] && break
+            sleep 30
+          done
+          {
+            echo "## Maven Central"
+            echo
+            if [ -n "$pending" ]; then
+              echo "Not resolving after thirty minutes:$pending"
+              echo
+              echo "The deployment may still be propagating. The release itself is recorded either way."
+            else
+              echo "Every artifact resolves at \`$VERSION\`."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$pending" ]; then
+            echo "::error::these artifacts do not resolve from Maven Central at $VERSION:$pending"
+            exit 1
+          fi
