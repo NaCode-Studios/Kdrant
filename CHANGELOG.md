@@ -16,13 +16,28 @@ All notable changes to this project are documented in this file. The format is b
   down what already happened. It runs last now, and it polls the modules together rather than one after
   another, so the budget is one wait for the slowest rather than the sum of eleven.
 
+### Internal
+
+- **The version matrix had stopped measuring anything.** Gradle restored the test task FROM-CACHE on every
+  run after the one that first produced the table, so the matrix never executed, wrote no report, uploaded
+  no artifact, and the job reported success throughout. The README's table named Qdrant `v1.19.0` and 39
+  contract cases while the pin was `v1.19.1` and the contract had 46. It runs with `--rerun` now, because
+  the job's product is a measurement rather than a verdict and Gradle cannot tell the difference, and a
+  missing table is an upload error: a cell that fails against an older server is what this publishes and
+  must not fail it, but a run that measured nothing is a defect. The workflow also takes a manual dispatch,
+  so re-measuring does not need a commit.
+  The first real run corrected a claim in `2.3.0`, which is the point of having it: relevance
+  feedback is not part of the 1.19 surface. Qdrant has served it since 1.17.0, the matrix showed it passing
+  there, and that section said otherwise.
+
 ## [2.3.0] - 2026-09-10
 
 Tiers 10 and 11, complete, in one version. The theme is tracking the server this client exists to speak to,
 and measuring what had only been asserted.
 
-Qdrant 1.19's query and storage surface is reachable: prefix matching, relevance feedback, slice filtering,
-memory tiers and 4-bit storage. Which Qdrant this client is pinned to is one fact with a check behind it
+Qdrant 1.19's query and storage surface is reachable: prefix matching, slice filtering, memory tiers and
+4-bit storage. Relevance feedback joins them and is not one of them: Qdrant has served it since 1.17.0 and
+nothing here could ask for it. Which Qdrant this client is pinned to is one fact with a check behind it
 rather than fourteen copies, and a scheduled job notices when upstream moves. Reads can be pinned to a
 replica and the cluster quota can be read rather than discovered. The CLI grew the half that was cut and a
 Windows binary, and both it and the new MCP server run against a real Qdrant on every push rather than for
@@ -50,7 +65,8 @@ appended rather than placed beside the flag it overrides, deliberately, so no `c
   filtering off refuses it outright. The two transports spell the option differently, which is the trap
   this shipped with: REST takes a boolean and gRPC an empty message whose presence enables it. The model
   carries the boolean and each engine renders it, asserted on both sides.
-- **Relevance feedback, the eleventh query variant** (M57). `relevanceFeedback { }` takes the vector or
+- **Relevance feedback, the eleventh query variant** (M57). Qdrant 1.17.0 and later.
+  `relevanceFeedback { }` takes the vector or
   point the original query used, the results a downstream evaluator graded and the score it gave each
   one, and Qdrant's linear strategy with its coefficients. `recommend` was the closest thing available
   and it is not the same: it treats examples as a target, where this takes a graded response to a query
@@ -158,10 +174,11 @@ appended rather than placed beside the flag it overrides, deliberately, so no `c
   workflow had ever started the binary. The proof script moved into `.github/scripts/prove-cli.sh` and a
   CI job runs it against a real Qdrant on every push, so the release is now the second time the tool
   runs rather than the first.
-- **The shared client contract covers the 1.19 surface against a real server.** Prefix matching before
-  and after the index that serves it, relevance feedback reranking a query it was given, four sliced
-  scrolls reading a collection exactly once between them and repeatably, and 4-bit storage with a memory
-  tier per component round-tripping through `getCollection`. All four run over both engines.
+- **The shared client contract covers the new surface against a real server.** Prefix matching before and
+  after the index that serves it, relevance feedback reranking a query it was given, four sliced scrolls
+  reading a collection exactly once between them and repeatably, and 4-bit storage with a memory tier per
+  component round-tripping through `getCollection`. All four run over both engines. Three of them need
+  Qdrant 1.19; relevance feedback needs 1.17, and the version matrix is what says which is which.
 
 - **The RAG example uses what the library became** (M71). It was written for the `1.x` line and had
   stayed there: `upsert` in a loop, a dense-only search, no index parameters, and a catch that treated
