@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The version matrix is a measurement rather than a gate, and wanting it again is not a reason to push
+  # a commit. Qdrant releasing a new minor is the usual reason.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -398,9 +401,14 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # `--rerun` because this job's product is a measurement, not a verdict, and Gradle cannot tell the
+      # difference. The task was restored FROM-CACHE on every run after the one that first produced the
+      # table, so the matrix stopped executing, wrote no report, uploaded no artifact, and reported
+      # success the whole time. The README's table went three releases stale that way: it named Qdrant
+      # v1.19.0 and 39 contract cases when the pin was v1.19.1 and the contract had 46.
       - name: Run the client contract against every version
         run: >
-          ./gradlew :kdrant-transport-rest:jvmTest
+          ./gradlew :kdrant-transport-rest:jvmTest --rerun
           --tests "*QdrantVersionMatrixIntegrationTest*" --no-daemon --stacktrace
 
       # The table itself, not a pointer to it. A summary that only says how to regenerate the table is a
@@ -428,7 +436,10 @@ jobs:
           name: qdrant-version-matrix
           path: kdrant-transport-rest/build/reports/qdrant-matrix.md
           retention-days: 30
-          if-no-files-found: ignore
+          # An error rather than ignore. A cell that fails against an older server is what this job
+          # exists to publish and must not fail it; a run that produced no table at all measured
+          # nothing, which is the one outcome here that is a defect rather than a result.
+          if-no-files-found: error
 
   dependency-review:
     name: Dependency review
