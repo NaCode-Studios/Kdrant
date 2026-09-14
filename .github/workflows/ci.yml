@@ -286,6 +286,20 @@ jobs:
           if [ -z "$FIRST_SEARCH_MS" ]; then
             echo "::error::the native image did not report a time to first search"; exit 1
           fi
+          # The README publishes this number, and until now nothing defended it: the job measured the
+          # time, printed it, and passed whatever it said. A dependency that started doing real work at
+          # startup could have taken it to 300 ms and no build would have gone red while the comparison
+          # table kept claiming tens of milliseconds.
+          #
+          # The ceiling is deliberately loose. Across recent runs the measurement lands between 29 and
+          # 42 ms on a shared runner, so 75 leaves room for a noisy neighbour and still catches the
+          # thing worth catching, which is a regression of the kind that doubles it.
+          CEILING_MS=75
+          if [ "$FIRST_SEARCH_MS" -gt "$CEILING_MS" ]; then
+            echo "::error::first search took ${FIRST_SEARCH_MS} ms, over the ${CEILING_MS} ms ceiling " \
+              "the README's claim rests on. Either something regressed or the claim needs rewriting."
+            exit 1
+          fi
           {
             echo "### GraalVM native image"
             echo

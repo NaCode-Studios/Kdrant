@@ -86,13 +86,16 @@ Dependency stacks verified against `io.qdrant:client:1.18.3`.
 | Approximate added footprint | 3 to 5 MB | 15 to 20 MB of transitive jars, shaded Netty about 9 MB alone |
 | API style | `suspend` functions and `Flow`, type-safe DSL | `ListenableFuture<T>`, protobuf builders |
 | Models | `kotlinx-serialization` data classes | generated protobuf messages |
-| GraalVM native image | **37 ms** from process start to first search, in a 42 MB static binary | needs gRPC, Netty and protobuf native configuration you write and maintain |
+| GraalVM native image | **under 75 ms** from process start to first search, measured on every push and usually around 30, in a 42 MB static binary | needs gRPC, Netty and protobuf native configuration you write and maintain |
 
 That last row is a CI job rather than an adjective: [`native-image`](.github/workflows/ci.yml) compiles
 [`example-native-image`](example-native-image/) with `--no-fallback` and makes it search a real Qdrant
 on every change, so the day a dependency starts reflecting, the build fails instead of the sentence
-quietly becoming false. Nothing is required of you: `kdrant-transport-rest` ships the one reflection
-registration kotlinx-serialization needs, generated from its own classes rather than written by hand.
+quietly becoming false. The same job now fails if the first search crosses 75 ms, which is a loose
+ceiling on purpose: the measurement moves between 29 and 42 ms depending on the runner, and what is
+worth catching is a regression that doubles it rather than the noise. Nothing is required of you:
+`kdrant-transport-rest` ships the one reflection registration kotlinx-serialization needs, generated
+from its own classes rather than written by hand.
 
 That table is about footprint. The speed question has an answer too, and it is measured rather than
 argued: [`benchmarks/README.md`](benchmarks/README.md#the-results) runs both clients and both of Kdrant's
@@ -186,9 +189,10 @@ libcurl, present on every mainstream distribution and worth checking in a slim c
 One more thing this list invites a reader to conclude, and it is worth stating rather than leaving to
 be worked out. Kdrant is a client. It talks to a Qdrant over a network, and it never holds an index
 itself. The three facts above point the other way: `linuxArm64` is a published target, the GraalVM
-image answers its first search 37 ms after process start in 42 MB, and `kdrant-cli` is a 5.7 MB static
-binary. Together they say this runs well on small hardware, which is true, and they can be read as
-saying it runs there *as* the vector database, which it does not.
+image answers its first search in tens of milliseconds in 42 MB, and `kdrant-cli` is a static binary of
+5.7 MB on macOS arm64, 6.8 on Windows and 14.1 on Linux x64. Together they say this runs well on small
+hardware, which is true, and they can be read as saying it runs there *as* the vector database, which it
+does not.
 
 The line worth drawing is between the gateway and the device. An ARM box, a container or a small
 appliance that queries a Qdrant running elsewhere is exactly what those three facts are for. A robot, a
