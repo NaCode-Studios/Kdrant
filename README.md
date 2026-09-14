@@ -86,7 +86,7 @@ Dependency stacks verified against `io.qdrant:client:1.18.3`.
 | Approximate added footprint | 3 to 5 MB | 15 to 20 MB of transitive jars, shaded Netty about 9 MB alone |
 | API style | `suspend` functions and `Flow`, type-safe DSL | `ListenableFuture<T>`, protobuf builders |
 | Models | `kotlinx-serialization` data classes | generated protobuf messages |
-| GraalVM native image | a cold process answers a search in **tens of milliseconds**, measured and bounded on every push, from a 42 MB static binary | needs gRPC, Netty and protobuf native configuration you write and maintain |
+| GraalVM native image | a cold process answers a search in **single-digit milliseconds** from a 42 MB static binary, measured and bounded on every push | needs gRPC, Netty and protobuf native configuration you write and maintain |
 
 That last row is a CI job rather than an adjective: [`native-image`](.github/workflows/ci.yml) compiles
 [`example-native-image`](example-native-image/) with `--no-fallback` and makes it search a real Qdrant
@@ -94,7 +94,9 @@ on every change, so the day a dependency starts reflecting, the build fails inst
 quietly becoming false. The same job fails if that search crosses a ceiling, which
 is what keeps the figure beside it from drifting. The ceiling is loose because the runner is shared, and
 the span is narrow on purpose: the collection is seeded before the binary starts, so the clock covers
-process start, client construction and one round trip rather than a collection being built. Nothing is required of you:
+process start, client construction and one round trip rather than a collection being built. That
+narrowing is also why the figure fell. It used to read 37 ms, and most of that was the server creating a
+collection and making a write durable inside a span this table was calling a cold start. Nothing is required of you:
 `kdrant-transport-rest` ships the one reflection registration kotlinx-serialization needs, generated
 from its own classes rather than written by hand.
 
