@@ -1,30 +1,30 @@
 [versions]
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 dokka = "2.2.0"
 mavenPublish = "0.37.0"
 coroutines = "1.11.0"
 serialization = "1.11.0"
-ktor = "3.5.2"
+ktor = "3.6.0"
 junit = "6.1.3"
 testcontainers = "2.0.5"
 ktlint = "14.2.0"
 detekt = "1.23.8"
-kover = "0.9.9"
-kotest = "6.2.4"
+kover = "0.9.11"
+kotest = "6.2.5"
 springBoot = "4.1.1"
 assertj = "3.27.7"
 springAi = "2.0.1"
-langchain4j = "1.20.0"
+langchain4j = "1.22.0"
 mockk = "1.14.11"
 micrometer = "1.17.1"
-koog = "1.2.0"
-grpc = "1.84.0"
+koog = "1.3.0"
+grpc = "1.84.2"
 qdrantClient = "1.19.0"
 mcpSdk = "0.15.0"
 kotlinxIo = "0.9.1"
 grpcKotlin = "1.5.0"
-protobuf = "4.36.1"
-opentelemetry = "1.65.0"
+protobuf = "4.36.2"
+opentelemetry = "1.67.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -96,7 +96,7 @@ kotlin-logging = { module = "io.github.oshai:kotlin-logging", version = "8.0.4" 
 mcp-sdk = { module = "io.modelcontextprotocol:kotlin-sdk", version.ref = "mcpSdk" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo" }
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
-guava = { module = "com.google.guava:guava", version = "33.7.1-jre" }
+guava = { module = "com.google.guava:guava", version = "33.7.2-jre" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
 protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 protoc-gen-grpc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
@@ -124,4 +124,4 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 jmh = { id = "me.champeau.jmh", version = "0.7.3" }
 protobuf = { id = "com.google.protobuf", version = "0.10.0" }
-graalvm-native = { id = "org.graalvm.buildtools.native", version = "1.1.12" }
+graalvm-native = { id = "org.graalvm.buildtools.native", version = "1.1.14" }
